@@ -691,6 +691,29 @@ class DashboardProfessionalWidget(QWidget):
                 f"{len(sessions_today)} session(s) planifiée(s) aujourd'hui",
                 "#f39c12"
             )
+            
+            # Alertes sessions prochaines (dans les 2 heures)
+            from datetime import datetime, timedelta
+            now = datetime.now()
+            upcoming_sessions = [
+                s for s in sessions_today 
+                if s.status == SessionStatus.SCHEDULED 
+                and s.start_datetime > now 
+                and s.start_datetime < now + timedelta(hours=2)
+            ]
+            
+            if upcoming_sessions:
+                for session in upcoming_sessions[:2]:  # Max 2 alertes
+                    time_until = session.start_datetime - now
+                    minutes = int(time_until.total_seconds() / 60)
+                    student_name = session.student.full_name if session.student else "N/A"
+                    instructor_name = session.instructor.full_name if session.instructor else "N/A"
+                    
+                    self.add_alert(
+                        "🔔",
+                        f"Session dans {minutes} min: {student_name} avec {instructor_name}",
+                        "#e67e22"
+                    )
         else:
             self.add_alert(
                 "ℹ️", 
