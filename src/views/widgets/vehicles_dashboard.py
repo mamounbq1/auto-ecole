@@ -22,6 +22,7 @@ from collections import defaultdict
 from src.controllers.vehicle_controller import VehicleController
 from src.controllers.session_controller import SessionController
 from src.models import VehicleStatus
+from src.views.widgets.common_widgets import create_center_header_widget
 
 
 class VehiclesDashboard(QWidget):
@@ -68,6 +69,10 @@ class VehiclesDashboard(QWidget):
         content_layout = QVBoxLayout(container)
         content_layout.setSpacing(20)
         content_layout.setContentsMargins(20, 20, 20, 20)
+        
+        # En-tête du centre (compact)
+        center_header = create_center_header_widget(compact=True)
+        content_layout.addWidget(center_header)
         
         # En-tête avec titre et sélecteur de période
         header = QHBoxLayout()

@@ -15,6 +15,7 @@ from typing import Dict, List
 from src.controllers.instructor_controller import InstructorController
 from src.controllers.session_controller import SessionController
 from src.models import SessionStatus
+from src.views.widgets.common_widgets import create_center_header_widget
 
 
 class InstructorsDashboard(QWidget):
@@ -62,6 +63,10 @@ class InstructorsDashboard(QWidget):
         content_layout = QVBoxLayout(content_widget)
         content_layout.setContentsMargins(20, 20, 20, 20)
         content_layout.setSpacing(20)
+        
+        # En-tête du centre (compact)
+        center_header = create_center_header_widget(compact=True)
+        content_layout.addWidget(center_header)
         
         # Header
         header = self.create_header()
