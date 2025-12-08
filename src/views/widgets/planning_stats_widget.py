@@ -292,13 +292,12 @@ class PlanningStatsWidget(QWidget):
         title_label = QLabel(title.upper())  # Uppercase directement
         title_label.setWordWrap(True)
         
-        # STYLE ULTRA-SIMPLE
-        title_label.setStyleSheet("color: #7f8c8d;")
-        
-        title_font = QFont()
-        title_font.setPointSize(9)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
+        # TOUT dans setStyleSheet
+        title_label.setStyleSheet("""
+            color: #7f8c8d;
+            font-size: 11pt;
+            font-weight: bold;
+        """)
         
         print(f"   ✓ Title label créé: '{title_label.text()}'")
         print(f"     Font: {title_font.pointSize()}pt, Bold: {title_font.bold()}")
@@ -310,14 +309,12 @@ class PlanningStatsWidget(QWidget):
         value_label.setTextFormat(Qt.PlainText)
         value_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         
-        # STYLE ULTRA-SIMPLE avec setStyleSheet MINIMAL (juste couleur)
-        value_label.setStyleSheet(f"color: {color};")
-        
-        # Font séparément
-        font = QFont()
-        font.setPointSize(28)
-        font.setBold(True)
-        value_label.setFont(font)
+        # TOUT dans setStyleSheet - plus fiable !
+        value_label.setStyleSheet(f"""
+            color: {color};
+            font-size: 28pt;
+            font-weight: bold;
+        """)
         
         print(f"   ✓ Value label créé: '{value_label.text()}'")
         print(f"     Font: {font.pointSize()}pt, Bold: {font.bold()}")
