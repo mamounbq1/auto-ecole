@@ -552,8 +552,8 @@ class StudentsEnhancedWidget(QWidget):
             self.table.setItem(row, 3, QTableWidgetItem(student.phone or ""))
             
             # Permis
-            license_val = student.license_type.value if student.license_type else "N/A"
-            self.table.setItem(row, 4, QTableWidgetItem(license_val))
+            license_val = student.license_type if student.license_type else "N/A"
+            self.table.setItem(row, 4, QTableWidgetItem(str(license_val)))
             
             # Statut
             status_item = QTableWidgetItem(student.status.value.capitalize() if student.status else "N/A")
@@ -635,7 +635,7 @@ class StudentsEnhancedWidget(QWidget):
                 'date_of_birth': student.date_of_birth.strftime('%d/%m/%Y') if student.date_of_birth else 'N/A',
                 'phone': student.phone,
                 'address': student.address or 'N/A',
-                'license_type': student.license_type.value if student.license_type else 'B',
+                'license_type': student.license_type if student.license_type else 'B',
                 'hours_planned': student.hours_planned or 20,
                 'total_due': student.total_due or 0
             }
