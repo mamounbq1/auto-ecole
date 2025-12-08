@@ -17,6 +17,7 @@ from src.controllers.instructor_controller import InstructorController
 from src.controllers.vehicle_controller import VehicleController
 from src.models import SessionStatus, SessionType
 from src.views.widgets.session_detail_view import SessionDetailViewDialog
+from src.views.widgets.planning_week_view import PlanningWeekView
 
 
 class SessionDialog(QDialog):
@@ -172,17 +173,39 @@ class PlanningEnhancedWidget(QWidget):
         super().__init__()
         self.user = user
         self.selected_date = datetime.now()
+        self.current_view = "day"  # day, week, month
         self.setup_ui()
         self.load_sessions()
     
     def setup_ui(self):
         """Configurer l'interface"""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(20, 20, 20, 20)
+        self.main_layout.setSpacing(15)
         
         # En-tête
-        self.create_header(layout)
+        self.create_header(self.main_layout)
+        
+        # Conteneur pour les vues (jour/semaine/mois)
+        self.view_container = QWidget()
+        self.view_layout = QVBoxLayout(self.view_container)
+        self.view_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.addWidget(self.view_container)
+        
+        # Afficher vue jour par défaut
+        self.show_day_view()
+    
+    def show_day_view(self):
+        """Afficher la vue jour"""
+        self.current_view = "day"
+        
+        # Mettre à jour boutons
+        self.day_btn.setChecked(True)
+        self.week_btn.setChecked(False)
+        self.month_btn.setChecked(False)
+        
+        # Effacer vue actuelle
+        self.clear_view()
         
         # Layout principal (calendrier + liste)
         main_layout = QHBoxLayout()
@@ -348,7 +371,65 @@ class PlanningEnhancedWidget(QWidget):
         
         main_layout.addWidget(sessions_frame, stretch=1)
         
-        layout.addLayout(main_layout)
+        self.view_layout.addLayout(main_layout)
+    
+    def show_week_view(self):
+        """Afficher la vue semaine"""
+        self.current_view = "week"
+        
+        # Mettre à jour boutons
+        self.day_btn.setChecked(False)
+        self.week_btn.setChecked(True)
+        self.month_btn.setChecked(False)
+        
+        # Effacer vue actuelle
+        self.clear_view()
+        
+        # Créer vue semaine
+        self.week_view = PlanningWeekView(parent=self)
+        self.view_layout.addWidget(self.week_view)
+    
+    def show_month_view(self):
+        """Afficher la vue mois (placeholder)"""
+        self.current_view = "month"
+        
+        # Mettre à jour boutons
+        self.day_btn.setChecked(False)
+        self.week_btn.setChecked(False)
+        self.month_btn.setChecked(True)
+        
+        # Effacer vue actuelle
+        self.clear_view()
+        
+        # Placeholder
+        placeholder = QLabel("📅 Vue Mois - En développement (Phase 3)")
+        placeholder.setAlignment(Qt.AlignCenter)
+        placeholder.setStyleSheet("""
+            QLabel {
+                font-size: 18px;
+                color: #95a5a6;
+                padding: 100px;
+            }
+        """)
+        self.view_layout.addWidget(placeholder)
+    
+    def clear_view(self):
+        """Effacer la vue actuelle"""
+        while self.view_layout.count():
+            item = self.view_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.layout():
+                self.clear_layout(item.layout())
+    
+    def clear_layout(self, layout):
+        """Effacer récursivement un layout"""
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.layout():
+                self.clear_layout(item.layout())
     
     def create_header(self, layout):
         """Créer l'en-tête"""
@@ -365,11 +446,15 @@ class PlanningEnhancedWidget(QWidget):
         header_layout.addStretch()
         
         # Vues
-        day_btn = QPushButton("Jour")
-        week_btn = QPushButton("Semaine")
-        month_btn = QPushButton("Mois")
+        self.day_btn = QPushButton("📅 Jour")
+        self.week_btn = QPushButton("📊 Semaine")
+        self.month_btn = QPushButton("📆 Mois")
         
-        for btn in [day_btn, week_btn, month_btn]:
+        self.day_btn.clicked.connect(self.show_day_view)
+        self.week_btn.clicked.connect(self.show_week_view)
+        self.month_btn.clicked.connect(self.show_month_view)
+        
+        for btn in [self.day_btn, self.week_btn, self.month_btn]:
             btn.setStyleSheet("""
                 QPushButton {
                     background-color: #ecf0f1;
@@ -381,12 +466,20 @@ class PlanningEnhancedWidget(QWidget):
                 QPushButton:hover {
                     background-color: #bdc3c7;
                 }
+                QPushButton:checked {
+                    background-color: #3498db;
+                    color: white;
+                }
             """)
+            btn.setCheckable(True)
             btn.setCursor(Qt.PointingHandCursor)
         
-        header_layout.addWidget(day_btn)
-        header_layout.addWidget(week_btn)
-        header_layout.addWidget(month_btn)
+        # Activer vue jour par défaut
+        self.day_btn.setChecked(True)
+        
+        header_layout.addWidget(self.day_btn)
+        header_layout.addWidget(self.week_btn)
+        header_layout.addWidget(self.month_btn)
         
         refresh_btn = QPushButton("🔄 Actualiser")
         refresh_btn.clicked.connect(self.load_sessions)
