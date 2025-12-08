@@ -617,8 +617,6 @@ class DashboardProfessionalWidget(QWidget):
         # Compter par jour de la semaine
         today = datetime.now().date()
         start_week = today - timedelta(days=today.weekday())
-ime.now().date()
-        start_week = today - timedelta(days=today.weekday())
         
         sessions_by_day = [0] * 7
         for session in all_sessions:
