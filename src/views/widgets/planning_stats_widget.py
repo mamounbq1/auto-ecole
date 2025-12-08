@@ -503,6 +503,16 @@ class PlanningStatsWidget(QWidget):
         value_label = card.findChild(QLabel, "value")
         if value_label:
             value_label.setText(value)
+        else:
+            # Debug: Si findChild ne trouve pas, chercher directement
+            for child in card.findChildren(QLabel):
+                if child.objectName() == "value":
+                    child.setText(value)
+                    return
+            # Fallback: mettre à jour le 2ème label (après le titre)
+            labels = card.findChildren(QLabel)
+            if len(labels) >= 2:
+                labels[1].setText(value)
     
     def load_instructor_stats(self, sessions):
         """Charger stats moniteurs"""
