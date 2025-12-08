@@ -1,0 +1,83 @@
+================================================================================
+  AUTO-ECOLE MANAGER - INSTALLATION ULTRA RAPIDE
+================================================================================
+
+PROBLEME RESOLU !
+-----------------
+L'erreur "ImportError: cannot import name 'init_database'" est maintenant
+corrigee. Vous pouvez installer en 2 clics.
+
+
+INSTALLATION EN 2 CLICS
+------------------------
+
+1. Double-cliquez sur :  SIMPLE_SETUP.bat
+   
+   → Cela va creer la base de donnees automatiquement
+   → Attendez 30 secondes
+   → Message "INSTALLATION TERMINEE" apparaitra
+
+2. Double-cliquez sur :  launch_app.bat
+   
+   → L'application demarre
+   → Connectez-vous avec :
+     
+     Username : admin
+     Password : Admin123!
+
+
+C'EST TOUT !
+------------
+Votre application est prete a l'emploi.
+
+
+SI PROBLEME
+-----------
+
+Option A : Commande directe
+   1. Ouvrir le terminal (cmd)
+   2. cd "C:\Users\DELL\Downloads\WTSP IMG\auto-ecole-main"
+   3. python src\init_db.py
+   4. python src\main_gui.py
+
+Option B : Reinstaller Python
+   - Telecharger Python 3.8+ : https://www.python.org/downloads/
+   - Cocher "Add Python to PATH"
+   - Reinstaller
+
+Option C : Forcer les dependances
+   python -m pip install sqlalchemy PySide6 reportlab matplotlib seaborn
+
+
+FICHIERS IMPORTANTS
+-------------------
+SIMPLE_SETUP.bat         → Installation en 1 clic
+launch_app.bat           → Lancement en 1 clic
+DEMARRAGE_RAPIDE.md      → Guide rapide (en francais)
+INSTALLATION_WINDOWS.md  → Guide complet (en francais)
+
+
+COMPTES DISPONIBLES
+-------------------
+admin          / Admin123!      (Administrateur)
+caissier       / Caisse123!     (Caissier)
+moniteur1      / Moniteur123!   (Moniteur)
+receptionniste / Reception123!  (Receptionniste)
+
+
+AIDE
+----
+Pour plus d'informations, consultez :
+- DEMARRAGE_RAPIDE.md (guide simple)
+- INSTALLATION_WINDOWS.md (guide detaille)
+- DATABASE_FIX_COMPLETE.md (solutions techniques)
+
+
+GITHUB
+------
+https://github.com/mamounbq1/auto-ecole
+
+
+================================================================================
+Bon demarrage ! 🚗💨
+================================================================================
