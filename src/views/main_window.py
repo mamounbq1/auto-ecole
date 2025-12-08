@@ -356,7 +356,12 @@ class MainWindow(QMainWindow):
         
     def show_settings(self):
         """Afficher les paramètres"""
-        self.show_placeholder("Paramètres", "⚙️")
+        from src.views.widgets import SettingsWidget
+        
+        widget = SettingsWidget()
+        self.content_stack.addWidget(widget)
+        self.content_stack.setCurrentWidget(widget)
+        self.statusBar().showMessage("⚙️ Module Paramètres - Configuration Complète")
         
     def show_placeholder(self, title, icon):
         """Afficher un placeholder pour les modules à venir"""
