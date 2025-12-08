@@ -66,6 +66,8 @@ try:
         try:
             main_window = MainWindow(user)
             main_window.show()
+            main_window.raise_()
+            main_window.activateWindow()
             print(f"\n[OK] Application demarree pour : {user.full_name}")
         except Exception as e:
             print(f"\n[ERREUR] Erreur : {e}")
@@ -74,6 +76,8 @@ try:
     
     login_window.login_successful.connect(on_login_success)
     login_window.show()
+    login_window.raise_()
+    login_window.activateWindow()
     
     print("\n[OK] Fenetre de connexion affichee")
     print("   Login : admin / Admin123!")
