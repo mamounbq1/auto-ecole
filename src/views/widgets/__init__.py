@@ -14,6 +14,7 @@ from .planning_enhanced import PlanningEnhancedWidget
 from .instructors_widget import InstructorsWidget
 from .instructors_main import InstructorsMainWidget  # NEW: Module Moniteurs complet
 from .vehicles_widget import VehiclesWidget
+from .vehicles_main import VehiclesMainWidget  # NEW: Module Véhicules complet
 from .exams_widget import ExamsWidget
 
 # Les widgets avec matplotlib sont importés dynamiquement:
@@ -29,6 +30,7 @@ __all__ = [
     'InstructorsWidget',
     'InstructorsMainWidget',  # NEW: Module Moniteurs complet
     'VehiclesWidget',
+    'VehiclesMainWidget',  # NEW: Module Véhicules complet
     'ExamsWidget',
     # 'DashboardAdvancedWidget',  # Import dynamique
     # 'ReportsWidget',  # Import dynamique

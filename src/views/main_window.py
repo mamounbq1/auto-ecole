@@ -328,11 +328,11 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("👨‍🏫 Module Moniteurs - Dashboard & Gestion")
         
     def show_vehicles(self):
-        """Afficher les véhicules"""
-        from .widgets.vehicles_widget import VehiclesWidget
+        """Afficher le module Véhicules (Dashboard + Gestion)"""
+        from .widgets.vehicles_main import VehiclesMainWidget
         
-        self.set_current_module(VehiclesWidget(self.user))
-        self.statusBar().showMessage("Gestion des Véhicules")
+        self.set_current_module(VehiclesMainWidget())
+        self.statusBar().showMessage("🚗 Module Véhicules - Dashboard & Gestion du Parc")
         
     def show_exams(self):
         """Afficher les examens"""
