@@ -383,21 +383,29 @@ class PlanningStatsWidget(QWidget):
             if not inst:
                 continue
             
-            row = QHBoxLayout()
+            # Créer un conteneur pour éviter le chevauchement
+            row_widget = QWidget()
+            row = QHBoxLayout(row_widget)
+            row.setContentsMargins(0, 2, 0, 2)
+            row.setSpacing(8)
             
             rank = QLabel(f"{i+1}.")
+            rank.setFixedWidth(20)
             rank.setStyleSheet("color: #f39c12; font-weight: bold;")
             row.addWidget(rank)
             
-            name = QLabel(inst.full_name[:25])
-            name.setStyleSheet("color: #2c3e50;")
+            name = QLabel(inst.full_name[:22])
+            name.setWordWrap(False)
+            name.setStyleSheet("color: #2c3e50; font-size: 11px;")
             row.addWidget(name, stretch=1)
             
             hrs = QLabel(f"{hours:.1f}h")
-            hrs.setStyleSheet("color: #3498db; font-weight: bold;")
+            hrs.setFixedWidth(50)
+            hrs.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            hrs.setStyleSheet("color: #3498db; font-weight: bold; font-size: 11px;")
             row.addWidget(hrs)
             
-            self.instructors_layout.addLayout(row)
+            self.instructors_layout.addWidget(row_widget)
         
         if not sorted_inst:
             no_data = QLabel("Aucune donnée")
@@ -482,21 +490,34 @@ class PlanningStatsWidget(QWidget):
             if not veh:
                 continue
             
-            row = QHBoxLayout()
+            # Créer un conteneur pour éviter le chevauchement
+            row_widget = QWidget()
+            row = QHBoxLayout(row_widget)
+            row.setContentsMargins(0, 2, 0, 2)
+            row.setSpacing(8)
             
             rank = QLabel(f"{i+1}.")
+            rank.setFixedWidth(20)
             rank.setStyleSheet("color: #f39c12; font-weight: bold;")
             row.addWidget(rank)
             
-            name = QLabel(f"{veh.make} {veh.model}")
+            # Limiter longueur du nom
+            vehicle_name = f"{veh.make} {veh.model}"
+            if len(vehicle_name) > 18:
+                vehicle_name = vehicle_name[:18] + "..."
+            
+            name = QLabel(vehicle_name)
+            name.setWordWrap(False)
             name.setStyleSheet("color: #2c3e50; font-size: 11px;")
             row.addWidget(name, stretch=1)
             
             hrs = QLabel(f"{hours:.0f}h")
-            hrs.setStyleSheet("color: #3498db; font-weight: bold;")
+            hrs.setFixedWidth(50)
+            hrs.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            hrs.setStyleSheet("color: #3498db; font-weight: bold; font-size: 11px;")
             row.addWidget(hrs)
             
-            self.vehicles_layout.addLayout(row)
+            self.vehicles_layout.addWidget(row_widget)
         
         if not sorted_veh:
             no_data = QLabel("Aucune donnée")
