@@ -378,20 +378,20 @@ class DashboardAdvancedWidget(QWidget):
         ax = self.success_chart.figure.add_subplot(111)
         
         # Statistiques de réussite
-        from src.models import ExamType, ExamStatus
+        from src.models import ExamType, ExamResult
         from src.controllers.exam_controller import ExamController
         
         # Réussite code vs conduite
         all_exams = ExamController.get_all_exams()
         
         theory_passed = len([e for e in all_exams 
-                            if e.exam_type == ExamType.THEORY 
-                            and e.result == 'passed'])
-        theory_total = len([e for e in all_exams if e.exam_type == ExamType.THEORY])
+                            if e.exam_type == ExamType.THEORETICAL 
+                            and e.result == ExamResult.PASSED])
+        theory_total = len([e for e in all_exams if e.exam_type == ExamType.THEORETICAL])
         
         practical_passed = len([e for e in all_exams 
                                if e.exam_type == ExamType.PRACTICAL 
-                               and e.result == 'passed'])
+                               and e.result == ExamResult.PASSED])
         practical_total = len([e for e in all_exams if e.exam_type == ExamType.PRACTICAL])
         
         theory_rate = (theory_passed / theory_total * 100) if theory_total > 0 else 0
