@@ -130,7 +130,7 @@ class DashboardSimpleWidget(QWidget):
                 self.stats_grid.itemAt(i).widget().setParent(None)
             
             # Statistiques élèves
-            students = StudentController.get_all_students(self.db_session)
+            students = StudentController.get_all_students()
             active_students = sum(1 for s in students if s.status.value == 'active')
             
             # Statistiques financières
@@ -139,15 +139,13 @@ class DashboardSimpleWidget(QWidget):
             start_of_month = today.replace(day=1)
             
             # Récupérer tous les paiements et filtrer par date
-            all_payments = PaymentController.get_all_payments(self.db_session)
+            all_payments = PaymentController.get_all_payments()
             payments = [p for p in all_payments if p.payment_date and 
                        p.payment_date.replace(tzinfo=None) >= start_of_month.replace(tzinfo=None)]
             monthly_revenue = sum(p.amount for p in payments if p.is_validated)
             
             # Statistiques sessions
-            sessions_today = SessionController.get_sessions_by_date(
-                self.db_session, today.date()
-            )
+            sessions_today = SessionController.get_today_sessions()
             
             # Élèves avec dette
             students_with_debt = sum(1 for s in students if s.balance < 0)
