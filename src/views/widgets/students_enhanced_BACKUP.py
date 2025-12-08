@@ -17,7 +17,6 @@ from src.controllers.payment_controller import PaymentController
 from src.controllers.session_controller import SessionController
 from src.models import StudentStatus
 from src.utils import export_to_csv, get_pdf_generator
-from src.views.widgets.student_detail_view import StudentDetailViewDialog
 
 # Types de permis disponibles
 LICENSE_TYPES = ['A', 'B', 'C', 'D', 'E']
@@ -609,15 +608,21 @@ class StudentsEnhancedWidget(QWidget):
             self.load_students()
     
     def edit_student(self, student):
-        """Modifier un élève avec vue complète"""
-        dialog = StudentDetailViewDialog(student, parent=self, read_only=False)
+        """Modifier un élève"""
+        dialog = StudentDetailDialog(student, parent=self)
         if dialog.exec():
             self.load_students()
     
     def view_student(self, student):
-        """Voir les détails d'un élève avec vue complète"""
-        dialog = StudentDetailViewDialog(student, parent=self, read_only=True)
-        dialog.exec()
+        """Voir les détails d'un élève"""
+        # TODO: Créer une vue détaillée (historique, sessions, paiements)
+        QMessageBox.information(self, "Détail Élève", 
+                               f"Nom: {student.full_name}\n"
+                               f"CIN: {student.cin}\n"
+                               f"Téléphone: {student.phone}\n"
+                               f"Statut: {student.status.value}\n"
+                               f"Heures: {student.hours_completed}/{student.hours_planned}\n"
+                               f"Solde: {student.balance:,.2f} DH")
     
     def generate_contract(self, student):
         """Générer un contrat PDF"""
