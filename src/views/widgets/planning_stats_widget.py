@@ -133,36 +133,36 @@ class PlanningStatsWidget(QWidget):
         stats_layout.setContentsMargins(0, 0, 0, 0)
         
         # Sessions
-        self.total_sessions_label = self.create_stat_card(
+        self.total_sessions_card = self.create_stat_card(
             "📅 SESSIONS TOTALES", "0", "#3498db"
         )
-        stats_layout.addWidget(self.total_sessions_label, 0, 0)
+        stats_layout.addWidget(self.total_sessions_card, 0, 0)
         
-        self.completed_sessions_label = self.create_stat_card(
+        self.completed_sessions_card = self.create_stat_card(
             "✅ TERMINÉES", "0 (0%)", "#27ae60"
         )
-        stats_layout.addWidget(self.completed_sessions_label, 0, 1)
+        stats_layout.addWidget(self.completed_sessions_card, 0, 1)
         
-        self.cancelled_sessions_label = self.create_stat_card(
+        self.cancelled_sessions_card = self.create_stat_card(
             "❌ ANNULÉES", "0 (0%)", "#e74c3c"
         )
-        stats_layout.addWidget(self.cancelled_sessions_label, 0, 2)
+        stats_layout.addWidget(self.cancelled_sessions_card, 0, 2)
         
         # Heures
-        self.planned_hours_label = self.create_stat_card(
+        self.planned_hours_card = self.create_stat_card(
             "⏰ HEURES PLANIFIÉES", "0h", "#9b59b6"
         )
-        stats_layout.addWidget(self.planned_hours_label, 1, 0)
+        stats_layout.addWidget(self.planned_hours_card, 1, 0)
         
-        self.realized_hours_label = self.create_stat_card(
+        self.realized_hours_card = self.create_stat_card(
             "✅ HEURES RÉALISÉES", "0h", "#27ae60"
         )
-        stats_layout.addWidget(self.realized_hours_label, 1, 1)
+        stats_layout.addWidget(self.realized_hours_card, 1, 1)
         
-        self.utilization_label = self.create_stat_card(
+        self.utilization_card = self.create_stat_card(
             "📊 TAUX UTILISATION", "0%", "#f39c12"
         )
-        stats_layout.addWidget(self.utilization_label, 1, 2)
+        stats_layout.addWidget(self.utilization_card, 1, 2)
         
         layout.addWidget(stats_container)
     
@@ -452,8 +452,10 @@ class PlanningStatsWidget(QWidget):
     
     def load_stats(self):
         """Charger les statistiques"""
+        print("📊 [DEBUG] load_stats() appelée")
         start_date, end_date = self.get_date_range()
         sessions = SessionController.get_sessions_by_date_range(start_date, end_date)
+        print(f"📊 [DEBUG] {len(sessions) if sessions else 0} sessions trouvées")
         
         # Stats de base
         total = len(sessions) if sessions else 0
@@ -479,12 +481,14 @@ class PlanningStatsWidget(QWidget):
         utilization = int((realized_hours / planned_hours * 100)) if planned_hours > 0 else 0
         
         # Mettre à jour UI - TOUJOURS afficher, même si 0
-        self.update_stat_card(self.total_sessions_label, str(total))
-        self.update_stat_card(self.completed_sessions_label, f"{completed} ({completed_pct}%)")
-        self.update_stat_card(self.cancelled_sessions_label, f"{cancelled} ({cancelled_pct}%)")
-        self.update_stat_card(self.planned_hours_label, f"{planned_hours:.1f}h")
-        self.update_stat_card(self.realized_hours_label, f"{realized_hours:.1f}h")
-        self.update_stat_card(self.utilization_label, f"{utilization}%")
+        print(f"📊 [DEBUG] Mise à jour cartes: total={total}, completed={completed}, cancelled={cancelled}")
+        self.update_stat_card(self.total_sessions_card, str(total))
+        self.update_stat_card(self.completed_sessions_card, f"{completed} ({completed_pct}%)")
+        self.update_stat_card(self.cancelled_sessions_card, f"{cancelled} ({cancelled_pct}%)")
+        self.update_stat_card(self.planned_hours_card, f"{planned_hours:.1f}h")
+        self.update_stat_card(self.realized_hours_card, f"{realized_hours:.1f}h")
+        self.update_stat_card(self.utilization_card, f"{utilization}%")
+        print("📊 [DEBUG] Cartes mises à jour")
         
         # Stats moniteurs
         self.load_instructor_stats(sessions if sessions else [])
@@ -500,19 +504,16 @@ class PlanningStatsWidget(QWidget):
     
     def update_stat_card(self, card, value):
         """Mettre à jour valeur carte stat"""
-        value_label = card.findChild(QLabel, "value")
-        if value_label:
-            value_label.setText(value)
-        else:
-            # Debug: Si findChild ne trouve pas, chercher directement
-            for child in card.findChildren(QLabel):
-                if child.objectName() == "value":
-                    child.setText(value)
-                    return
-            # Fallback: mettre à jour le 2ème label (après le titre)
-            labels = card.findChildren(QLabel)
-            if len(labels) >= 2:
-                labels[1].setText(value)
+        # Méthode 1: Chercher par objectName
+        for label in card.findChildren(QLabel):
+            if label.objectName() == "value":
+                label.setText(str(value))
+                return
+        
+        # Méthode 2: Le 2ème label est toujours la valeur (après le titre)
+        labels = card.findChildren(QLabel)
+        if len(labels) >= 2:
+            labels[1].setText(str(value))
     
     def load_instructor_stats(self, sessions):
         """Charger stats moniteurs"""
