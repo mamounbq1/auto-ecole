@@ -314,11 +314,11 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Planning des Sessions")
         
     def show_payments(self):
-        """Afficher les paiements"""
-        from .widgets.payments_enhanced import PaymentsEnhancedWidget
+        """Afficher le module Paiements (Dashboard + Gestion)"""
+        from .widgets.payments_main import PaymentsMainWidget
         
-        self.set_current_module(PaymentsEnhancedWidget(self.user))
-        self.statusBar().showMessage("Gestion des Paiements")
+        self.set_current_module(PaymentsMainWidget())
+        self.statusBar().showMessage("💰 Module Paiements - Dashboard Financier & Gestion")
         
     def show_instructors(self):
         """Afficher les moniteurs"""
