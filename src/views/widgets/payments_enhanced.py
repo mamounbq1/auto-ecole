@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QFont, QColor
-from datetime import datetime
+from datetime import datetime, date
 
 from src.controllers.payment_controller import PaymentController
 from src.controllers.student_controller import StudentController
@@ -388,13 +388,16 @@ class PaymentsEnhancedWidget(QWidget):
         total = len(self.payments)
         
         today = datetime.now().date()
+        # Gérer payment_date qui peut être date ou datetime
         today_amount = sum(p.amount for p in self.payments 
-                          if p.payment_date.date() == today)
+                          if (p.payment_date if isinstance(p.payment_date, date) else p.payment_date.date()) == today)
         
         month = datetime.now().month
         year = datetime.now().year
+        # Gérer payment_date qui peut être date ou datetime
         month_amount = sum(p.amount for p in self.payments 
-                          if p.payment_date.month == month and p.payment_date.year == year)
+                          if (p.payment_date if isinstance(p.payment_date, date) else p.payment_date.date()).month == month 
+                          and (p.payment_date if isinstance(p.payment_date, date) else p.payment_date.date()).year == year)
         
         self.total_label.setText(f"Total: {total}")
         self.today_label.setText(f"Aujourd'hui: {today_amount:,.2f} DH")
