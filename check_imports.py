@@ -110,6 +110,7 @@ print("\n8. Testing GUI imports (may fail in headless mode)...")
 try:
     # Don't actually import to avoid Qt errors
     import importlib.util
+    import ast
     
     # Check if files exist
     gui_files = [
@@ -125,16 +126,33 @@ try:
     ]
     
     missing_files = []
+    import_issues = []
+    
     for file_path in gui_files:
         if not Path(file_path).exists():
             missing_files.append(file_path)
+        else:
+            # Check for common import issues
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                # Check for non-existent imports
+                if 'from src.database import' in content:
+                    import_issues.append(f"{file_path}: uses 'src.database' (should be 'src.models')")
+                if 'LicenseType' in content and 'LICENSE_TYPES' not in content:
+                    import_issues.append(f"{file_path}: imports LicenseType (doesn't exist)")
     
     if missing_files:
-        warnings.append(f"Missing GUI files: {missing_files}")
-        print(f"   ⚠️  Missing files: {missing_files}")
+        errors.append(f"Missing GUI files: {missing_files}")
+        print(f"   ❌ Missing files: {missing_files}")
+    elif import_issues:
+        errors.append(f"Import issues found: {import_issues}")
+        print(f"   ❌ Import issues:")
+        for issue in import_issues:
+            print(f"      - {issue}")
     else:
         print(f"   ✅ All GUI files present ({len(gui_files)} files)")
-        warnings.append("GUI imports not tested (requires display)")
+        print(f"   ✅ No obvious import issues detected")
+        warnings.append("GUI imports not fully tested (requires display)")
         
 except Exception as e:
     warnings.append(f"GUI check error: {e}")
