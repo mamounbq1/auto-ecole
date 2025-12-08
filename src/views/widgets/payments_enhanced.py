@@ -436,8 +436,8 @@ class PaymentsEnhancedWidget(QWidget):
             self.table.setItem(row, 4, QTableWidgetItem(method))
             
             # Catégorie
-            category = payment.category.value if payment.category else "N/A"
-            self.table.setItem(row, 5, QTableWidgetItem(category))
+            category = payment.category if payment.category else "N/A"
+            self.table.setItem(row, 5, QTableWidgetItem(str(category)))
             
             # Statut
             status = "✅ Validé" if payment.is_validated else "⏳ En attente"
