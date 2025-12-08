@@ -208,10 +208,15 @@ class PlanningStatsWidget(QWidget):
             font-size: 28px; 
             font-weight: bold;
         """)
-        value_label.setObjectName("value")  # Pour update facile
+        value_label.setObjectName("value")
+        value_label.setTextFormat(Qt.PlainText)  # Force format texte
+        value_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         card_layout.addWidget(value_label)
         
         card_layout.addStretch()
+        
+        # Stocker la couleur pour les mises à jour
+        card.setProperty("color", color)
         
         return card
     
@@ -504,29 +509,43 @@ class PlanningStatsWidget(QWidget):
         self.load_performance_metrics(sessions if sessions else [], start_date, end_date)
     
     def update_stat_card(self, card, value):
-        """Mettre à jour valeur carte stat"""
-        # Chercher le label de valeur
-        value_label = None
+        """Mettre à jour valeur carte stat - MÉTHODE RADICALE"""
+        # Récupérer le layout de la carte
+        layout = card.layout()
+        if not layout:
+            print(f"⚠️ [DEBUG] Carte sans layout!")
+            return
+        
+        # Récupérer la couleur stockée
+        color = card.property("color") or "#3498db"
+        
+        # Trouver et SUPPRIMER l'ancien label de valeur
+        old_value_label = None
         for label in card.findChildren(QLabel):
             if label.objectName() == "value":
-                value_label = label
+                old_value_label = label
                 break
         
-        # Fallback: prendre le 2ème label
-        if not value_label:
-            labels = card.findChildren(QLabel)
-            if len(labels) >= 2:
-                value_label = labels[1]
+        if old_value_label:
+            print(f"📊 [DEBUG] Suppression ancien label: '{old_value_label.text()}'")
+            layout.removeWidget(old_value_label)
+            old_value_label.deleteLater()
         
-        # Mettre à jour avec garantie de visibilité
-        if value_label:
-            value_label.setText(str(value))
-            # Forcer le rafraîchissement du style
-            current_style = value_label.styleSheet()
-            if current_style:
-                value_label.setStyleSheet(current_style)
-            value_label.update()
-            value_label.repaint()
+        # CRÉER un NOUVEAU label avec la valeur
+        new_value_label = QLabel(str(value))
+        new_value_label.setStyleSheet(f"""
+            color: {color}; 
+            font-size: 28px; 
+            font-weight: bold;
+        """)
+        new_value_label.setObjectName("value")
+        new_value_label.setTextFormat(Qt.PlainText)
+        new_value_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        
+        # Insérer à la position 1 (après le titre)
+        layout.insertWidget(1, new_value_label)
+        
+        print(f"✅ [DEBUG] Nouveau label créé: '{value}'")
     
     def load_instructor_stats(self, sessions):
         """Charger stats moniteurs"""
