@@ -455,30 +455,30 @@ class PlanningStatsWidget(QWidget):
         start_date, end_date = self.get_date_range()
         sessions = SessionController.get_sessions_by_date_range(start_date, end_date)
         
-        if not sessions:
-            return
-        
         # Stats de base
-        total = len(sessions)
-        completed = len([s for s in sessions if s.status == SessionStatus.COMPLETED])
-        cancelled = len([s for s in sessions if s.status == SessionStatus.CANCELLED])
+        total = len(sessions) if sessions else 0
+        completed = len([s for s in sessions if s.status == SessionStatus.COMPLETED]) if sessions else 0
+        cancelled = len([s for s in sessions if s.status == SessionStatus.CANCELLED]) if sessions else 0
         
         completed_pct = int((completed / total * 100)) if total > 0 else 0
         cancelled_pct = int((cancelled / total * 100)) if total > 0 else 0
         
         # Heures
-        planned_hours = sum([
-            (s.end_datetime - s.start_datetime).total_seconds() / 3600
-            for s in sessions
-        ])
-        realized_hours = sum([
-            (s.end_datetime - s.start_datetime).total_seconds() / 3600
-            for s in sessions if s.status == SessionStatus.COMPLETED
-        ])
+        planned_hours = 0
+        realized_hours = 0
+        if sessions:
+            planned_hours = sum([
+                (s.end_datetime - s.start_datetime).total_seconds() / 3600
+                for s in sessions
+            ])
+            realized_hours = sum([
+                (s.end_datetime - s.start_datetime).total_seconds() / 3600
+                for s in sessions if s.status == SessionStatus.COMPLETED
+            ])
         
         utilization = int((realized_hours / planned_hours * 100)) if planned_hours > 0 else 0
         
-        # Mettre à jour UI
+        # Mettre à jour UI - TOUJOURS afficher, même si 0
         self.update_stat_card(self.total_sessions_label, str(total))
         self.update_stat_card(self.completed_sessions_label, f"{completed} ({completed_pct}%)")
         self.update_stat_card(self.cancelled_sessions_label, f"{cancelled} ({cancelled_pct}%)")
@@ -487,16 +487,16 @@ class PlanningStatsWidget(QWidget):
         self.update_stat_card(self.utilization_label, f"{utilization}%")
         
         # Stats moniteurs
-        self.load_instructor_stats(sessions)
+        self.load_instructor_stats(sessions if sessions else [])
         
         # Répartition par type
-        self.load_type_distribution(sessions)
+        self.load_type_distribution(sessions if sessions else [])
         
         # Stats véhicules
-        self.load_vehicle_stats(sessions)
+        self.load_vehicle_stats(sessions if sessions else [])
         
         # Métriques performance
-        self.load_performance_metrics(sessions, start_date, end_date)
+        self.load_performance_metrics(sessions if sessions else [], start_date, end_date)
     
     def update_stat_card(self, card, value):
         """Mettre à jour valeur carte stat"""
@@ -549,8 +549,6 @@ class PlanningStatsWidget(QWidget):
     def load_type_distribution(self, sessions):
         """Charger répartition par type"""
         total = len(sessions)
-        if total == 0:
-            return
         
         # Mapping types vers labels français
         type_labels = {
@@ -561,9 +559,11 @@ class PlanningStatsWidget(QWidget):
         }
         
         type_counts = {}
-        for session in sessions:
-            type_counts[session.session_type] = type_counts.get(session.session_type, 0) + 1
+        if sessions:
+            for session in sessions:
+                type_counts[session.session_type] = type_counts.get(session.session_type, 0) + 1
         
+        # TOUJOURS afficher, même si vide
         for session_type, (label, bar) in self.type_bars.items():
             count = type_counts.get(session_type, 0)
             pct = int((count / total * 100)) if total > 0 else 0
@@ -616,14 +616,11 @@ class PlanningStatsWidget(QWidget):
     
     def load_performance_metrics(self, sessions, start_date, end_date):
         """Charger métriques performance"""
-        if not sessions:
-            return
-        
-        total = len(sessions)
-        completed = len([s for s in sessions if s.status == SessionStatus.COMPLETED])
+        total = len(sessions) if sessions else 0
+        completed = len([s for s in sessions if s.status == SessionStatus.COMPLETED]) if sessions else 0
         
         # Taux présence (complétées / total non annulées)
-        non_cancelled = len([s for s in sessions if s.status != SessionStatus.CANCELLED])
+        non_cancelled = len([s for s in sessions if s.status != SessionStatus.CANCELLED]) if sessions else 0
         presence_rate = int((completed / non_cancelled * 100)) if non_cancelled > 0 else 0
         
         self.presence_label.setText(f"Taux de Présence: {presence_rate}%")
@@ -635,10 +632,12 @@ class PlanningStatsWidget(QWidget):
         self.avg_sessions_label.setText(f"Moyenne Sessions/Jour: {avg_per_day:.1f}")
         
         # Durée moyenne
-        if sessions:
+        if sessions and total > 0:
             total_hours = sum([
                 (s.end_datetime - s.start_datetime).total_seconds() / 3600
                 for s in sessions
             ])
             avg_duration = total_hours / total
             self.avg_duration_label.setText(f"Durée Moyenne: {avg_duration:.1f}h")
+        else:
+            self.avg_duration_label.setText(f"Durée Moyenne: 0h")
