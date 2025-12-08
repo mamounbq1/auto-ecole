@@ -724,9 +724,4 @@ class DashboardProfessionalWidget(QWidget):
         except:
             pass
         event.accept()
-       if hasattr(self, 'db_session') and self.db_session:
-                self.db_session.close()
-        except:
-            pass
-        event.accept()
 
