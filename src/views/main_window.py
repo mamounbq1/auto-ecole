@@ -342,11 +342,11 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("📝 Module Examens - Dashboard & Gestion Complète")
         
     def show_reports(self):
-        """Afficher les rapports"""
-        from .widgets.reports_widget import ReportsWidget
+        """Afficher le module Rapports (Analytics avec graphiques)"""
+        from .widgets.reports_main import ReportsMainWidget
         
-        self.set_current_module(ReportsWidget(self.user))
-        self.statusBar().showMessage("Rapports et Statistiques")
+        self.set_current_module(ReportsMainWidget())
+        self.statusBar().showMessage("📊 Module Rapports - Analyses & Graphiques")
         
     def show_settings(self):
         """Afficher les paramètres"""
