@@ -159,7 +159,7 @@ class DashboardProfessionalWidget(QWidget):
         
         # Sous-titre avec date
         self.date_label = QLabel()
-        self.date_label.setStyleSheet("color: #7f8c8d; font-size: 13px; margin-bottom: 10px;")
+        self.date_label.setStyleSheet("color: #7f8c8d; font-size: 11px; margin-bottom: 5px;")
         self.update_date()
         layout.addWidget(self.date_label)
         
@@ -170,7 +170,7 @@ class DashboardProfessionalWidget(QWidget):
         
         # Grille principale pour tous les graphiques (2x3)
         main_grid = QGridLayout()
-        main_grid.setSpacing(15)
+        main_grid.setSpacing(10)
         
         # Ligne 1: CA Evolution + Répartition Paiements + Statut Élèves
         self.revenue_chart_view = self.create_revenue_chart()
@@ -729,3 +729,4 @@ class DashboardProfessionalWidget(QWidget):
         except:
             pass
         event.accept()
+
