@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
     QGroupBox, QGridLayout, QProgressBar, QComboBox
 )
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QFont, QColor
+from PySide6.QtGui import QFont, QColor, QPalette
 from datetime import datetime, timedelta, date
 
 from src.controllers.session_controller import SessionController
@@ -256,26 +256,38 @@ class PlanningStatsWidget(QWidget):
         card_layout.setSpacing(5)
         card_layout.setContentsMargins(10, 8, 10, 8)
         
-        title_label = QLabel(title)
-        title_label.setStyleSheet(f"""
-            color: #7f8c8d; 
-            font-size: 11px; 
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        """)
+        title_label = QLabel(title.upper())  # Uppercase directement
         title_label.setWordWrap(True)
+        
+        # Style avec QFont et QPalette au lieu de stylesheet
+        title_font = QFont()
+        title_font.setPointSize(9)
+        title_font.setBold(True)
+        title_label.setFont(title_font)
+        
+        title_palette = title_label.palette()
+        title_palette.setColor(QPalette.WindowText, QColor("#7f8c8d"))
+        title_label.setPalette(title_palette)
+        
         card_layout.addWidget(title_label)
         
         value_label = QLabel(value)
-        value_label.setStyleSheet(f"""
-            color: {color}; 
-            font-size: 28px; 
-            font-weight: bold;
-        """)
+        # STYLE MINIMAL - pas de stylesheet complexe qui peut cacher le texte
         value_label.setObjectName("value")
-        value_label.setTextFormat(Qt.PlainText)  # Force format texte
+        value_label.setTextFormat(Qt.PlainText)
         value_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        
+        # Définir style directement avec setFont et QPalette (au lieu de stylesheet)
+        font = QFont()
+        font.setPointSize(28)
+        font.setBold(True)
+        value_label.setFont(font)
+        
+        # Palette pour la couleur
+        palette = value_label.palette()
+        palette.setColor(QPalette.WindowText, QColor(color))
+        value_label.setPalette(palette)
+        
         card_layout.addWidget(value_label)
         
         card_layout.addStretch()
