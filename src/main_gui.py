@@ -5,10 +5,17 @@ Point d'entrée principal
 """
 
 import sys
+import os
 from pathlib import Path
 
 # Ajouter le répertoire parent au path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Configurer matplotlib pour éviter les erreurs au chargement
+os.environ['MPLBACKEND'] = 'Agg'  # Backend non-interactif par défaut
+import warnings
+warnings.filterwarnings('ignore', category=RuntimeWarning)
+warnings.filterwarnings('ignore', message='.*FigureCanvas.*')
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QFont
