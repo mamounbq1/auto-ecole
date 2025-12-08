@@ -12,6 +12,7 @@ from .payments_enhanced import PaymentsEnhancedWidget
 from .payments_main import PaymentsMainWidget  # NEW: Module Paiements complet
 from .planning_enhanced import PlanningEnhancedWidget
 from .instructors_widget import InstructorsWidget
+from .instructors_main import InstructorsMainWidget  # NEW: Module Moniteurs complet
 from .vehicles_widget import VehiclesWidget
 from .exams_widget import ExamsWidget
 
@@ -26,6 +27,7 @@ __all__ = [
     'PaymentsMainWidget',  # NEW: Module Paiements complet
     'PlanningEnhancedWidget',
     'InstructorsWidget',
+    'InstructorsMainWidget',  # NEW: Module Moniteurs complet
     'VehiclesWidget',
     'ExamsWidget',
     # 'DashboardAdvancedWidget',  # Import dynamique

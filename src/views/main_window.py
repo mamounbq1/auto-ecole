@@ -321,11 +321,11 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("💰 Module Paiements - Dashboard Financier & Gestion")
         
     def show_instructors(self):
-        """Afficher les moniteurs"""
-        from .widgets.instructors_widget import InstructorsWidget
+        """Afficher le module Moniteurs (Dashboard + Gestion)"""
+        from .widgets.instructors_main import InstructorsMainWidget
         
-        self.set_current_module(InstructorsWidget(self.user))
-        self.statusBar().showMessage("Gestion des Moniteurs")
+        self.set_current_module(InstructorsMainWidget())
+        self.statusBar().showMessage("👨‍🏫 Module Moniteurs - Dashboard & Gestion")
         
     def show_vehicles(self):
         """Afficher les véhicules"""
