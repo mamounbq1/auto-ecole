@@ -274,10 +274,17 @@ class MainWindow(QMainWindow):
     # Méthodes pour afficher les différents modules
     def show_dashboard(self):
         """Afficher le dashboard"""
-        from .widgets.dashboard_advanced import DashboardAdvancedWidget
-        
-        self.set_current_module(DashboardAdvancedWidget(self.user))
-        self.statusBar().showMessage("Dashboard")
+        try:
+            # Essayer le dashboard avancé avec graphiques
+            from .widgets.dashboard_advanced import DashboardAdvancedWidget
+            self.set_current_module(DashboardAdvancedWidget(self.user))
+            self.statusBar().showMessage("Dashboard")
+        except Exception as e:
+            # En cas d'erreur, utiliser le dashboard simple
+            logger.error(f"Erreur chargement dashboard avancé: {e}")
+            from .widgets.dashboard_simple import DashboardSimpleWidget
+            self.set_current_module(DashboardSimpleWidget(self.user))
+            self.statusBar().showMessage("Dashboard (mode simplifié)")
         
     def show_students(self):
         """Afficher la gestion des élèves"""

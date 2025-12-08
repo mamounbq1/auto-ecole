@@ -47,9 +47,22 @@ def main():
     def on_login_success(user):
         logger.info(f"Interface graphique lancée pour : {user.username}")
         
-        # Créer et afficher la fenêtre principale
-        main_window = MainWindow(user)
-        main_window.show()
+        try:
+            # Créer et afficher la fenêtre principale
+            main_window = MainWindow(user)
+            main_window.show()
+            logger.info("✅ Fenêtre principale affichée avec succès")
+        except Exception as e:
+            logger.error(f"❌ Erreur lors du chargement de la fenêtre principale: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(
+                None,
+                "Erreur de chargement",
+                f"Impossible de charger l'interface principale:\n{str(e)}\n\nVoir la console pour plus de détails."
+            )
     
     # Connecter le signal de connexion réussie
     login_window.login_successful.connect(on_login_success)
