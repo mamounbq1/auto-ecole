@@ -185,7 +185,7 @@ class StudentDetailDialog(QDialog):
         self.hours_planned.setValue(self.student.hours_planned or 20)
         self.hours_completed.setValue(self.student.hours_completed or 0)
         self.theory_test_attempts.setValue(self.student.theoretical_exam_attempts or 0)
-        self.practical_test_attempts.setValue(self.student.practical_test_attempts or 0)
+        self.practical_test_attempts.setValue(self.student.practical_exam_attempts or 0)
         
         self.total_due.setValue(self.student.total_due or 0)
         self.total_paid.setValue(self.student.total_paid or 0)
