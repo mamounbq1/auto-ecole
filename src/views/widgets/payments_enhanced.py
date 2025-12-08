@@ -14,8 +14,18 @@ from datetime import datetime
 
 from src.controllers.payment_controller import PaymentController
 from src.controllers.student_controller import StudentController
-from src.models import PaymentMethod, PaymentCategory
+from src.models import PaymentMethod
 from src.utils import get_pdf_generator, get_notification_manager, export_to_csv
+
+# Catégories de paiement disponibles
+PAYMENT_CATEGORIES = [
+    'inscription',
+    'conduite',
+    'examen_theorique',
+    'examen_pratique',
+    'materiel_pedagogique',
+    'autre'
+]
 
 
 class PaymentDialog(QDialog):
@@ -57,8 +67,8 @@ class PaymentDialog(QDialog):
         
         # Catégorie
         self.category = QComboBox()
-        for cat in PaymentCategory:
-            self.category.addItem(cat.value.replace('_', ' ').title(), cat)
+        for cat in PAYMENT_CATEGORIES:
+            self.category.addItem(cat.replace('_', ' ').title(), cat)
         
         # Date
         self.payment_date = QDateEdit()
