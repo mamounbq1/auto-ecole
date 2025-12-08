@@ -18,11 +18,10 @@ from .vehicles_main import VehiclesMainWidget  # NEW: Module Véhicules complet
 from .exams_widget import ExamsWidget
 from .exams_main import ExamsMainWidget  # NEW: Module Examens complet
 
-from .reports_main import ReportsMainWidget  # NEW: Module Rapports complet
-
 # Les widgets avec matplotlib sont importés dynamiquement:
 # - DashboardAdvancedWidget (dashboard avec graphiques)
-# - ReportsWidget (rapports avec graphiques - OLD, remplacé par ReportsMainWidget)
+# - ReportsWidget (rapports avec graphiques - OLD)
+# - ReportsMainWidget (rapports avec graphiques - NEW)
 
 __all__ = [
     'DashboardSimpleWidget',
@@ -36,7 +35,7 @@ __all__ = [
     'VehiclesMainWidget',  # NEW: Module Véhicules complet
     'ExamsWidget',
     'ExamsMainWidget',  # NEW: Module Examens complet
-    'ReportsMainWidget',  # NEW: Module Rapports complet
     # 'DashboardAdvancedWidget',  # Import dynamique
     # 'ReportsWidget',  # Import dynamique (OLD)
+    # 'ReportsMainWidget',  # Import dynamique (NEW)
 ]
