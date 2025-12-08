@@ -17,7 +17,7 @@ from PySide6.QtCharts import (
 
 from datetime import datetime, timedelta, date
 from src.controllers import StudentController, PaymentController, SessionController
-from src.models import StudentStatus, get_session
+from src.models import StudentStatus, SessionStatus, get_session
 
 
 class ModernStatCard(QFrame):

@@ -211,10 +211,20 @@ class PlanningStatsWidget(QWidget):
         
         # Barres de progression pour chaque type
         self.type_bars = {}
-        for session_type in [SessionType.PRATIQUE, SessionType.THEORIE, SessionType.EXAMEN]:
+        
+        # Mapping types vers labels français
+        type_labels = {
+            SessionType.PRACTICAL_DRIVING: "Pratique",
+            SessionType.THEORETICAL_CLASS: "Théorie",
+            SessionType.CODE_EXAM: "Examen Code",
+            SessionType.PRACTICAL_EXAM: "Examen Pratique"
+        }
+        
+        for session_type in [SessionType.PRACTICAL_DRIVING, SessionType.THEORETICAL_CLASS, SessionType.CODE_EXAM]:
             type_layout = QVBoxLayout()
             
-            label = QLabel(f"{session_type.value.capitalize()}: 0 (0%)")
+            type_label_fr = type_labels.get(session_type, session_type.value)
+            label = QLabel(f"{type_label_fr}: 0 (0%)")
             label.setStyleSheet("color: #2c3e50; font-size: 12px;")
             type_layout.addWidget(label)
             
@@ -448,6 +458,14 @@ class PlanningStatsWidget(QWidget):
         if total == 0:
             return
         
+        # Mapping types vers labels français
+        type_labels = {
+            SessionType.PRACTICAL_DRIVING: "Pratique",
+            SessionType.THEORETICAL_CLASS: "Théorie",
+            SessionType.CODE_EXAM: "Examen Code",
+            SessionType.PRACTICAL_EXAM: "Examen Pratique"
+        }
+        
         type_counts = {}
         for session in sessions:
             type_counts[session.session_type] = type_counts.get(session.session_type, 0) + 1
@@ -456,7 +474,8 @@ class PlanningStatsWidget(QWidget):
             count = type_counts.get(session_type, 0)
             pct = int((count / total * 100)) if total > 0 else 0
             
-            label.setText(f"{session_type.value.capitalize()}: {count} ({pct}%)")
+            type_label_fr = type_labels.get(session_type, session_type.value)
+            label.setText(f"{type_label_fr}: {count} ({pct}%)")
             bar.setValue(pct)
     
     def load_vehicle_stats(self, sessions):
