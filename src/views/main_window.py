@@ -342,11 +342,17 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("📝 Module Examens - Dashboard & Gestion Complète")
         
     def show_reports(self):
-        """Afficher le module Rapports (Analytics avec graphiques)"""
-        from .widgets.reports_main import ReportsMainWidget
-        
-        self.set_current_module(ReportsMainWidget())
-        self.statusBar().showMessage("📊 Module Rapports - Analyses & Graphiques")
+        """Afficher le module Rapports"""
+        try:
+            # Essayer version avec graphiques
+            from .widgets.reports_main import ReportsMainWidget
+            self.set_current_module(ReportsMainWidget())
+            self.statusBar().showMessage("📊 Module Rapports - Analyses & Graphiques")
+        except (ImportError, ModuleNotFoundError):
+            # Fallback: version simplifiée sans matplotlib
+            from .widgets.reports_simple import ReportsSimpleWidget
+            self.set_current_module(ReportsSimpleWidget())
+            self.statusBar().showMessage("📊 Module Rapports - Analyses (mode simplifié)")
         
     def show_settings(self):
         """Afficher les paramètres"""
