@@ -18,6 +18,7 @@ from src.controllers.session_controller import SessionController
 from src.models import StudentStatus
 from src.utils import export_to_csv, get_pdf_generator
 from src.views.widgets.student_detail_view import StudentDetailViewDialog
+from src.views.widgets.csv_import_dialog import CSVImportDialog
 
 # Types de permis disponibles
 LICENSE_TYPES = ['A', 'B', 'C', 'D', 'E']
@@ -596,9 +597,26 @@ class StudentsEnhancedWidget(QWidget):
             contract_btn.clicked.connect(lambda checked, s=student: self.generate_contract(s))
             contract_btn.setCursor(Qt.PointingHandCursor)
             
+            delete_btn = QPushButton("🗑️")
+            delete_btn.setToolTip("Supprimer")
+            delete_btn.clicked.connect(lambda checked, s=student: self.delete_student(s))
+            delete_btn.setCursor(Qt.PointingHandCursor)
+            delete_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #e74c3c;
+                    color: white;
+                    border-radius: 3px;
+                    padding: 5px;
+                }
+                QPushButton:hover {
+                    background-color: #c0392b;
+                }
+            """)
+            
             actions_layout.addWidget(view_btn)
             actions_layout.addWidget(edit_btn)
             actions_layout.addWidget(contract_btn)
+            actions_layout.addWidget(delete_btn)
             
             self.table.setCellWidget(row, 8, actions_widget)
     
@@ -664,13 +682,86 @@ class StudentsEnhancedWidget(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Erreur: {str(e)}")
     
+    def delete_student(self, student):
+        """Supprimer un élève avec confirmation"""
+        # Check for related payments
+        try:
+            payments = PaymentController.get_student_payments(student.id)
+            sessions = SessionController.get_student_sessions(student.id)
+            
+            # Build warning message
+            warning_parts = []
+            if len(payments) > 0:
+                total_paid = sum(p.amount for p in payments)
+                warning_parts.append(f"• {len(payments)} paiement(s) (Total: {total_paid:,.2f} DH)")
+            
+            if len(sessions) > 0:
+                warning_parts.append(f"• {len(sessions)} séance(s) de formation")
+            
+            # Confirmation dialog
+            if warning_parts:
+                warning_msg = (
+                    f"⚠️ ATTENTION\n\n"
+                    f"L'élève {student.full_name} a des données associées:\n\n" +
+                    "\n".join(warning_parts) +
+                    f"\n\nLa suppression de cet élève supprimera également "
+                    f"toutes ces données associées.\n\n"
+                    f"Cette action est IRRÉVERSIBLE!\n\n"
+                    f"Êtes-vous absolument sûr de vouloir continuer?"
+                )
+            else:
+                warning_msg = (
+                    f"Êtes-vous sûr de vouloir supprimer l'élève:\n\n"
+                    f"👤 {student.full_name}\n"
+                    f"🆔 CIN: {student.cin}\n\n"
+                    f"Cette action est IRRÉVERSIBLE!"
+                )
+            
+            reply = QMessageBox.warning(
+                self,
+                "⚠️ Confirmer la Suppression",
+                warning_msg,
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No  # Default to No for safety
+            )
+            
+            if reply == QMessageBox.Yes:
+                # Double confirmation for students with data
+                if warning_parts:
+                    final_reply = QMessageBox.critical(
+                        self,
+                        "🛑 DERNIÈRE CONFIRMATION",
+                        f"DERNIÈRE CHANCE!\n\n"
+                        f"Vous êtes sur le point de supprimer {student.full_name} "
+                        f"et TOUTES ses données.\n\n"
+                        f"Tapez 'SUPPRIMER' pour confirmer:",
+                        QMessageBox.Yes | QMessageBox.No,
+                        QMessageBox.No
+                    )
+                    
+                    if final_reply != QMessageBox.Yes:
+                        return
+                
+                # Perform deletion
+                StudentController.delete_student(student.id)
+                QMessageBox.information(
+                    self,
+                    "Succès",
+                    f"L'élève {student.full_name} a été supprimé avec succès."
+                )
+                self.load_students()
+                
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Erreur",
+                f"Erreur lors de la suppression:\n{str(e)}"
+            )
+    
     def import_csv(self):
-        """Importer depuis CSV"""
-        filename, _ = QFileDialog.getOpenFileName(
-            self, "Importer des élèves", "", "CSV Files (*.csv)"
-        )
-        
-        if filename:
-            # TODO: Implémenter l'import CSV
-            QMessageBox.information(self, "Import", 
-                                   "Fonctionnalité d'import en cours de développement")
+        """Importer depuis CSV avec validation complète"""
+        dialog = CSVImportDialog(parent=self)
+        if dialog.exec():
+            # Reload students after successful import
+            self.load_students()
+            QMessageBox.information(self, "Succès", "Les élèves ont été importés avec succès!")
