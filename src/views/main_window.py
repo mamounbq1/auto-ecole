@@ -32,10 +32,11 @@ class MainWindow(QMainWindow):
         self.create_toolbar()
         self.create_status_bar()
         
-        # Afficher le module Élèves par défaut (dashboard instable)
+        # Afficher le module Paiements par défaut (élèves et dashboard instables)
         # Pour réactiver le dashboard, décommentez la ligne ci-dessous
         # self.show_dashboard()
-        self.show_students()
+        # self.show_students()
+        self.show_payments()
         
     def setup_ui(self):
         """Configurer l'interface utilisateur"""
