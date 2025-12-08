@@ -409,8 +409,9 @@ class PlanningEnhancedWidget(QWidget):
             f"📅 {self.selected_date.strftime('%A %d %B %Y')}"
         )
         
-        # Charger les sessions
-        sessions = SessionController.get_sessions_by_date(self.selected_date.date())
+        # Charger les sessions (utiliser get_sessions_by_date_range avec même date)
+        target_date = self.selected_date.date()
+        sessions = SessionController.get_sessions_by_date_range(target_date, target_date)
         
         self.sessions_list.clear()
         
