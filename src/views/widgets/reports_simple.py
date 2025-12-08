@@ -25,6 +25,7 @@ from src.controllers.exam_controller import ExamController
 from src.controllers.instructor_controller import InstructorController
 from src.controllers.vehicle_controller import VehicleController
 from src.models import StudentStatus, SessionStatus, ExamResult, ExamType
+from src.utils.config_manager import get_config_manager
 
 
 class ReportsSimpleWidget(QWidget):
@@ -60,7 +61,10 @@ class ReportsSimpleWidget(QWidget):
         content.setSpacing(20)
         content.setContentsMargins(20, 20, 20, 20)
         
-        # En-tête
+        # En-tête avec informations du centre
+        self.create_center_header(content)
+        
+        # En-tête du rapport
         header = QHBoxLayout()
         
         title = QLabel("📊 RAPPORTS ET ANALYSES")
@@ -147,6 +151,96 @@ class ReportsSimpleWidget(QWidget):
         content.addStretch()
         scroll.setWidget(container)
         main_layout.addWidget(scroll)
+    
+    def create_center_header(self, layout):
+        """Créer l'en-tête avec les informations du centre"""
+        config = get_config_manager()
+        center = config.get_center_info()
+        
+        # Card pour les infos du centre
+        header_card = QFrame()
+        header_card.setStyleSheet("""
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #667eea, stop:1 #764ba2);
+                border-radius: 12px;
+                border: none;
+            }
+            QLabel {
+                color: white;
+                background: transparent;
+                border: none;
+            }
+        """)
+        
+        header_layout = QVBoxLayout(header_card)
+        header_layout.setContentsMargins(25, 20, 25, 20)
+        header_layout.setSpacing(8)
+        
+        # Nom du centre (en grand)
+        name_label = QLabel(center.get('name', 'Auto-École Manager').upper())
+        name_label.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
+        name_label.setStyleSheet("color: white; font-weight: bold;")
+        header_layout.addWidget(name_label)
+        
+        # Ligne d'adresse
+        if center.get('address') or center.get('city'):
+            address_parts = []
+            if center.get('address'):
+                address_parts.append(center['address'])
+            
+            city_parts = []
+            if center.get('postal_code'):
+                city_parts.append(center['postal_code'])
+            if center.get('city'):
+                city_parts.append(center['city'])
+            if city_parts:
+                address_parts.append(' '.join(city_parts))
+            
+            if address_parts:
+                address_label = QLabel(' - '.join(address_parts))
+                address_label.setFont(QFont("Segoe UI", 11))
+                address_label.setStyleSheet("color: rgba(255, 255, 255, 0.9);")
+                header_layout.addWidget(address_label)
+        
+        # Ligne de contact
+        contact_parts = []
+        if center.get('phone'):
+            contact_parts.append(f"📞 {center['phone']}")
+        if center.get('email'):
+            contact_parts.append(f"📧 {center['email']}")
+        if center.get('website'):
+            contact_parts.append(f"🌐 {center['website']}")
+        
+        if contact_parts:
+            contact_label = QLabel(' | '.join(contact_parts))
+            contact_label.setFont(QFont("Segoe UI", 10))
+            contact_label.setStyleSheet("color: rgba(255, 255, 255, 0.85);")
+            header_layout.addWidget(contact_label)
+        
+        # Ligne d'informations légales
+        legal_parts = []
+        if center.get('license_number'):
+            legal_parts.append(f"Agrément N° {center['license_number']}")
+        if center.get('siret'):
+            legal_parts.append(f"SIRET/ICE: {center['siret']}")
+        if center.get('tva_number'):
+            legal_parts.append(f"TVA: {center['tva_number']}")
+        
+        if legal_parts:
+            legal_label = QLabel(' | '.join(legal_parts))
+            legal_label.setFont(QFont("Segoe UI", 9))
+            legal_label.setStyleSheet("color: rgba(255, 255, 255, 0.75); font-style: italic;")
+            header_layout.addWidget(legal_label)
+        
+        # Date du rapport
+        current_date = datetime.now().strftime("%d/%m/%Y à %H:%M")
+        date_label = QLabel(f"📅 Rapport généré le {current_date}")
+        date_label.setFont(QFont("Segoe UI", 9))
+        date_label.setStyleSheet("color: rgba(255, 255, 255, 0.7); margin-top: 5px;")
+        header_layout.addWidget(date_label)
+        
+        layout.addWidget(header_card)
     
     def create_section(self, title):
         """Créer une section"""

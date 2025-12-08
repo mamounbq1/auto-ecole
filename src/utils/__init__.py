@@ -8,6 +8,7 @@ from .export import ExportManager, export_to_csv, export_to_pdf, import_from_csv
 from .logger import setup_logger, get_logger
 from .pdf_generator import PDFGenerator, get_pdf_generator
 from .notifications import NotificationManager, get_notification_manager
+from .config_manager import ConfigManager, get_config_manager
 
 __all__ = [
     # Auth
@@ -33,6 +34,9 @@ __all__ = [
     # Notifications
     'NotificationManager',
     'get_notification_manager',
+    # Config Manager
+    'ConfigManager',
+    'get_config_manager',
     # Logger
     'setup_logger',
     'get_logger',
