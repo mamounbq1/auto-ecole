@@ -324,8 +324,11 @@ class DashboardAdvancedWidget(QWidget):
         ax.set_title('Évolution du CA sur 6 mois', fontsize=14, fontweight='bold', pad=20)
         ax.grid(True, alpha=0.3)
         
-        self.revenue_chart.figure.tight_layout()
-        self.revenue_chart.canvas.draw()
+        try:
+            self.revenue_chart.figure.tight_layout()
+            self.revenue_chart.canvas.draw()
+        except RuntimeError:
+            pass
         
     def load_students_chart(self):
         """Graphique évolution du nombre d'élèves"""
@@ -369,13 +372,20 @@ class DashboardAdvancedWidget(QWidget):
         
         ax.set_title('Répartition des Élèves par Statut', fontsize=14, fontweight='bold', pad=20)
         
-        self.students_chart.figure.tight_layout()
-        self.students_chart.canvas.draw()
+        try:
+            self.students_chart.figure.tight_layout()
+            self.students_chart.canvas.draw()
+        except RuntimeError:
+            pass
         
     def load_success_chart(self):
         """Graphique taux de réussite"""
-        self.success_chart.figure.clear()
-        ax = self.success_chart.figure.add_subplot(111)
+        try:
+            self.success_chart.figure.clear()
+            ax = self.success_chart.figure.add_subplot(111)
+        except RuntimeError:
+            # Canvas déjà supprimé, ignorer
+            return
         
         # Statistiques de réussite
         from src.models import ExamType, ExamResult
@@ -416,8 +426,12 @@ class DashboardAdvancedWidget(QWidget):
         ax.set_xlim(0, 110)
         ax.grid(True, axis='x', alpha=0.3)
         
-        self.success_chart.figure.tight_layout()
-        self.success_chart.canvas.draw()
+        try:
+            self.success_chart.figure.tight_layout()
+            self.success_chart.canvas.draw()
+        except RuntimeError:
+            # Canvas déjà supprimé, ignorer
+            pass
         
     def load_sessions_chart(self):
         """Graphique répartition des sessions"""
@@ -458,9 +472,21 @@ class DashboardAdvancedWidget(QWidget):
         ax.set_title('Répartition des Sessions par Statut', fontsize=14, fontweight='bold', pad=20)
         ax.grid(True, axis='y', alpha=0.3)
         
-        self.sessions_chart.figure.tight_layout()
-        self.sessions_chart.canvas.draw()
+        try:
+            self.sessions_chart.figure.tight_layout()
+            self.sessions_chart.canvas.draw()
+        except RuntimeError:
+            pass
         
     def refresh(self):
         """Actualiser toutes les données"""
         self.load_data()
+    
+    def closeEvent(self, event):
+        """Nettoyage lors de la fermeture"""
+        try:
+            if hasattr(self, 'db') and self.db:
+                self.db.close()
+        except:
+            pass
+        event.accept()
