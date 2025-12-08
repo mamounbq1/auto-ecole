@@ -22,7 +22,7 @@ class PaymentsDashboard(QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.current_period = "month"  # day, week, month, year
+        self.current_period = "all"  # day, week, month, year, all
         self.setup_ui()
         self.load_all_stats()
     
@@ -106,8 +106,8 @@ class PaymentsDashboard(QWidget):
         
         # Sélecteur période
         self.period_combo = QComboBox()
-        self.period_combo.addItems(["Aujourd'hui", "Cette semaine", "Ce mois", "Cette année"])
-        self.period_combo.setCurrentIndex(2)  # Par défaut: Ce mois
+        self.period_combo.addItems(["Aujourd'hui", "Cette semaine", "Ce mois", "Cette année", "Tous les paiements"])
+        self.period_combo.setCurrentIndex(4)  # Par défaut: Tous les paiements
         self.period_combo.currentIndexChanged.connect(self.on_period_changed)
         self.period_combo.setFixedHeight(35)
         self.period_combo.setStyleSheet("""
@@ -536,8 +536,8 @@ class PaymentsDashboard(QWidget):
     
     def on_period_changed(self, index: int):
         """Changement de période"""
-        period_map = {0: "day", 1: "week", 2: "month", 3: "year"}
-        self.current_period = period_map.get(index, "month")
+        period_map = {0: "day", 1: "week", 2: "month", 3: "year", 4: "all"}
+        self.current_period = period_map.get(index, "all")
         self.load_all_stats()
     
     def get_date_range(self) -> tuple:
@@ -558,7 +558,12 @@ class PaymentsDashboard(QWidget):
             else:
                 end = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
             return start, end
-        else:  # year
+        elif self.current_period == "year":
             start = today.replace(month=1, day=1)
             end = today.replace(month=12, day=31)
+            return start, end
+        else:  # all - Tous les paiements
+            # Retourner une plage très large pour inclure tous les paiements
+            start = date(2000, 1, 1)  # Début arbitraire très ancien
+            end = date(2099, 12, 31)  # Fin arbitraire très future
             return start, end
