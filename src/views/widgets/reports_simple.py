@@ -263,7 +263,8 @@ class ReportsSimpleWidget(QWidget):
         
         start_date, end_date = self.get_date_range()
         students = StudentController.get_all_students()
-        sessions = [s for s in SessionController.get_all_sessions() if start_date <= s.session_date <= end_date]
+        all_sessions = SessionController.get_all_sessions()
+        sessions = [s for s in all_sessions if s.start_datetime and start_date <= s.start_datetime.date() <= end_date]
         
         active = len([s for s in students if s.status == StudentStatus.ACTIVE])
         completed = len([s for s in sessions if s.status == SessionStatus.COMPLETED])
