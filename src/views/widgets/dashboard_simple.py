@@ -11,6 +11,7 @@ from PySide6.QtGui import QFont
 
 from src.controllers import StudentController, PaymentController, SessionController
 from src.models import get_session
+from src.utils.config_manager import get_config_manager
 
 
 class StatCard(QFrame):
@@ -77,6 +78,37 @@ class DashboardSimpleWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(20)
+        
+        # En-tête avec informations du centre
+        config = get_config_manager()
+        center = config.get_center_info()
+        
+        center_header = QFrame()
+        center_header.setStyleSheet("""
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #667eea, stop:1 #764ba2);
+                border-radius: 10px;
+                padding: 15px;
+            }
+        """)
+        header_layout = QVBoxLayout(center_header)
+        
+        center_name = QLabel(center.get('name', 'Auto-École Manager').upper())
+        center_name.setStyleSheet("color: white; font-size: 20px; font-weight: bold;")
+        header_layout.addWidget(center_name)
+        
+        if center.get('phone') or center.get('email'):
+            contact_parts = []
+            if center.get('phone'):
+                contact_parts.append(f"📞 {center['phone']}")
+            if center.get('email'):
+                contact_parts.append(f"📧 {center['email']}")
+            contact_label = QLabel(' | '.join(contact_parts))
+            contact_label.setStyleSheet("color: rgba(255, 255, 255, 0.9); font-size: 11px;")
+            header_layout.addWidget(contact_label)
+        
+        layout.addWidget(center_header)
         
         # Titre
         title = QLabel("📊 Dashboard - Vue d'ensemble")

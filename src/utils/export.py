@@ -9,6 +9,7 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 
 from .logger import get_logger
+from .config_manager import get_config_manager
 
 logger = get_logger()
 
@@ -25,6 +26,7 @@ class ExportManager:
         """
         self.export_dir = export_dir
         os.makedirs(export_dir, exist_ok=True)
+        self.config = get_config_manager()
     
     def export_to_csv(self, data: List[Dict[str, Any]], filename: str, 
                       fieldnames: Optional[List[str]] = None) -> tuple[bool, str]:
@@ -52,8 +54,23 @@ class ExportManager:
             if fieldnames is None:
                 fieldnames = list(data[0].keys())
             
-            # Écrire le CSV
+            # Écrire le CSV avec en-tête du centre
             with open(filepath, 'w', newline='', encoding='utf-8-sig') as csvfile:
+                # En-tête avec informations du centre
+                center = self.config.get_center_info()
+                csvfile.write(f"# {center.get('name', 'Auto-École Manager')}\n")
+                if center.get('address'):
+                    csvfile.write(f"# {center['address']}\n")
+                if center.get('phone') or center.get('email'):
+                    contact_parts = []
+                    if center.get('phone'):
+                        contact_parts.append(f"Tél: {center['phone']}")
+                    if center.get('email'):
+                        contact_parts.append(f"Email: {center['email']}")
+                    csvfile.write(f"# {' | '.join(contact_parts)}\n")
+                csvfile.write(f"# Exporté le {datetime.now().strftime('%d/%m/%Y à %H:%M')}\n")
+                csvfile.write("#\n")
+                
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames, extrasaction='ignore')
                 writer.writeheader()
                 writer.writerows(data)

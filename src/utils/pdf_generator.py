@@ -18,6 +18,7 @@ from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 from reportlab.pdfgen import canvas
 
 from src.utils import get_logger
+from src.utils.config_manager import get_config_manager
 
 logger = get_logger()
 
@@ -29,6 +30,7 @@ class PDFGenerator:
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
         self.styles = getSampleStyleSheet()
+        self.config = get_config_manager()
         self._setup_custom_styles()
         
     def _setup_custom_styles(self):
@@ -76,6 +78,140 @@ class PDFGenerator:
             leading=16,
             alignment=TA_LEFT
         ))
+    
+    def _create_center_header(self, story: list, doc_title: str = ""):
+        """
+        Crée un en-tête professionnel avec les informations du centre
+        
+        Args:
+            story: Liste pour ajouter les éléments
+            doc_title: Titre du document (ex: "REÇU DE PAIEMENT", "CONTRAT")
+        """
+        center = self.config.get_center_info()
+        
+        # Logo si disponible
+        logo_path = self.config.get_logo_path()
+        if logo_path and os.path.exists(logo_path):
+            try:
+                logo = Image(logo_path, width=3*cm, height=3*cm, kind='proportional')
+                story.append(logo)
+                story.append(Spacer(1, 0.3*cm))
+            except:
+                pass  # Si le logo ne charge pas, on continue
+        
+        # Nom du centre en grand
+        center_name = Paragraph(
+            f"<b>{center.get('name', 'Auto-École Manager').upper()}</b>",
+            self.styles['CustomTitle']
+        )
+        story.append(center_name)
+        
+        # Adresse et contact
+        contact_lines = []
+        if center.get('address'):
+            contact_lines.append(center['address'])
+        
+        city_parts = []
+        if center.get('postal_code'):
+            city_parts.append(center['postal_code'])
+        if center.get('city'):
+            city_parts.append(center['city'])
+        if city_parts:
+            contact_lines.append(' '.join(city_parts))
+        
+        contact_parts = []
+        if center.get('phone'):
+            contact_parts.append(f"Tél: {center['phone']}")
+        if center.get('email'):
+            contact_parts.append(f"Email: {center['email']}")
+        if center.get('website'):
+            contact_parts.append(f"Web: {center['website']}")
+        
+        if contact_parts:
+            contact_lines.append(' | '.join(contact_parts))
+        
+        # Infos légales
+        legal_parts = []
+        if center.get('license_number'):
+            legal_parts.append(f"Agrément N° {center['license_number']}")
+        if center.get('siret'):
+            legal_parts.append(f"SIRET/ICE: {center['siret']}")
+        if center.get('tva_number'):
+            legal_parts.append(f"TVA: {center['tva_number']}")
+        
+        if legal_parts:
+            contact_lines.append(' | '.join(legal_parts))
+        
+        # Afficher toutes les lignes de contact
+        if contact_lines:
+            contact_style = ParagraphStyle(
+                name='ContactInfo',
+                parent=self.styles['Normal'],
+                fontSize=9,
+                textColor=colors.HexColor('#555555'),
+                alignment=TA_CENTER,
+                leading=12
+            )
+            for line in contact_lines:
+                story.append(Paragraph(line, contact_style))
+        
+        # Ligne de séparation
+        from reportlab.platypus import HRFlowable
+        story.append(Spacer(1, 0.3*cm))
+        story.append(HRFlowable(
+            width="100%",
+            thickness=2,
+            color=colors.HexColor('#3498db'),
+            spaceAfter=10,
+            spaceBefore=5
+        ))
+        
+        # Titre du document si fourni
+        if doc_title:
+            doc_title_para = Paragraph(
+                f"<b>{doc_title}</b>",
+                self.styles['CustomSubtitle']
+            )
+            story.append(doc_title_para)
+        
+        story.append(Spacer(1, 0.5*cm))
+    
+    def _create_center_footer(self, canvas_obj, doc):
+        """
+        Crée un pied de page avec les informations du centre
+        
+        Args:
+            canvas_obj: Canvas ReportLab
+            doc: Document
+        """
+        center = self.config.get_center_info()
+        canvas_obj.saveState()
+        
+        # Ligne de séparation
+        canvas_obj.setStrokeColor(colors.HexColor('#cccccc'))
+        canvas_obj.setLineWidth(0.5)
+        canvas_obj.line(2*cm, 2*cm, A4[0]-2*cm, 2*cm)
+        
+        # Texte du pied de page
+        footer_parts = []
+        if center.get('name'):
+            footer_parts.append(center['name'])
+        if center.get('phone'):
+            footer_parts.append(center['phone'])
+        if center.get('email'):
+            footer_parts.append(center['email'])
+        
+        footer_text = ' | '.join(footer_parts) if footer_parts else "Auto-École Manager"
+        
+        canvas_obj.setFont('Helvetica', 8)
+        canvas_obj.setFillColor(colors.HexColor('#666666'))
+        canvas_obj.drawCentredString(A4[0]/2, 1.5*cm, footer_text)
+        
+        # Numéro de page
+        page_num = f"Page {doc.page}"
+        canvas_obj.drawRightString(A4[0]-2*cm, 1.5*cm, page_num)
+        
+        canvas_obj.restoreState()
         
     def generate_receipt(self, payment_data: Dict[str, Any]) -> tuple[bool, str]:
         """
@@ -101,33 +237,10 @@ class PDFGenerator:
             # Contenu
             story = []
             
-            # En-tête avec bordure décorative
+            # En-tête professionnel avec infos du centre
+            self._create_center_header(story, "REÇU DE PAIEMENT")
+            
             story.append(Spacer(1, 0.5*cm))
-            
-            # Titre principal avec style professionnel
-            title = Paragraph(
-                "<font color='#3498db'>🚗</font> AUTO-ÉCOLE",
-                self.styles['CustomTitle']
-            )
-            story.append(title)
-            
-            # Ligne de séparation
-            from reportlab.platypus import HRFlowable
-            story.append(HRFlowable(
-                width="80%",
-                thickness=2,
-                color=colors.HexColor('#3498db'),
-                spaceAfter=10,
-                spaceBefore=5
-            ))
-            
-            subtitle = Paragraph(
-                "<b>REÇU DE PAIEMENT</b>",
-                self.styles['CustomSubtitle']
-            )
-            story.append(subtitle)
-            
-            story.append(Spacer(1, 1*cm))
             
             # Informations du reçu
             info_data = [
@@ -274,22 +387,23 @@ class PDFGenerator:
             filename = f"contrat_{student_data.get('cin', 'DRAFT')}_{datetime.now().strftime('%Y%m%d')}.pdf"
             filepath = os.path.join(self.output_dir, filename)
             
-            doc = SimpleDocTemplate(filepath, pagesize=A4)
+            doc = SimpleDocTemplate(filepath, pagesize=A4,
+                                   rightMargin=2*cm, leftMargin=2*cm,
+                                   topMargin=2*cm, bottomMargin=2*cm)
             story = []
             
-            # Titre
-            story.append(Spacer(1, 1*cm))
-            title = Paragraph("CONTRAT D'INSCRIPTION", self.styles['CustomTitle'])
-            story.append(title)
+            # En-tête professionnel avec infos du centre
+            self._create_center_header(story, "CONTRAT D'INSCRIPTION")
             
-            story.append(Spacer(1, 1*cm))
+            story.append(Spacer(1, 0.5*cm))
             
             # Contenu du contrat (simplifié)
             contract_text = f"""
             <para alignment="justify">
             <b>Entre les soussignés :</b><br/><br/>
             
-            L'Auto-École, ci-après dénommée "l'établissement",<br/>
+            <b>{self.config.get_center_name()}</b>, ci-après dénommée "l'établissement",<br/>
+            Agrément N° {self.config.get_center_info().get('license_number', 'N/A')}<br/>
             d'une part,<br/><br/>
             
             Et :<br/><br/>
@@ -349,14 +463,15 @@ class PDFGenerator:
             filename = f"convocation_{exam_data.get('summons_number', 'DRAFT')}.pdf"
             filepath = os.path.join(self.output_dir, filename)
             
-            doc = SimpleDocTemplate(filepath, pagesize=A4)
+            doc = SimpleDocTemplate(filepath, pagesize=A4,
+                                   rightMargin=2*cm, leftMargin=2*cm,
+                                   topMargin=2*cm, bottomMargin=2*cm)
             story = []
             
-            story.append(Spacer(1, 1*cm))
-            title = Paragraph("CONVOCATION D'EXAMEN", self.styles['CustomTitle'])
-            story.append(title)
+            # En-tête professionnel avec infos du centre
+            self._create_center_header(story, "CONVOCATION D'EXAMEN")
             
-            story.append(Spacer(1, 1.5*cm))
+            story.append(Spacer(1, 0.5*cm))
             
             # Informations
             info_text = f"""
