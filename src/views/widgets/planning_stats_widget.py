@@ -292,15 +292,13 @@ class PlanningStatsWidget(QWidget):
         title_label = QLabel(title.upper())  # Uppercase directement
         title_label.setWordWrap(True)
         
-        # Style avec QFont et QPalette au lieu de stylesheet
+        # STYLE ULTRA-SIMPLE
+        title_label.setStyleSheet("color: #7f8c8d;")
+        
         title_font = QFont()
         title_font.setPointSize(9)
         title_font.setBold(True)
         title_label.setFont(title_font)
-        
-        title_palette = title_label.palette()
-        title_palette.setColor(QPalette.WindowText, QColor("#7f8c8d"))
-        title_label.setPalette(title_palette)
         
         print(f"   ✓ Title label créé: '{title_label.text()}'")
         print(f"     Font: {title_font.pointSize()}pt, Bold: {title_font.bold()}")
@@ -308,12 +306,14 @@ class PlanningStatsWidget(QWidget):
         card_layout.addWidget(title_label)
         
         value_label = QLabel(str(value))
-        # STYLE MINIMAL - pas de stylesheet complexe qui peut cacher le texte
         value_label.setObjectName("value")
         value_label.setTextFormat(Qt.PlainText)
         value_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         
-        # Définir style directement avec setFont et QPalette (au lieu de stylesheet)
+        # STYLE ULTRA-SIMPLE avec setStyleSheet MINIMAL (juste couleur)
+        value_label.setStyleSheet(f"color: {color};")
+        
+        # Font séparément
         font = QFont()
         font.setPointSize(28)
         font.setBold(True)
@@ -321,20 +321,7 @@ class PlanningStatsWidget(QWidget):
         
         print(f"   ✓ Value label créé: '{value_label.text()}'")
         print(f"     Font: {font.pointSize()}pt, Bold: {font.bold()}")
-        print(f"     Color: {color}")
-        
-        # Palette pour la couleur
-        palette = value_label.palette()
-        original_color = palette.color(QPalette.WindowText)
-        print(f"     Palette AVANT: WindowText = {original_color.name()}")
-        
-        palette.setColor(QPalette.WindowText, QColor(color))
-        palette.setColor(QPalette.Text, QColor(color))  # Essayer aussi Text
-        value_label.setPalette(palette)
-        value_label.setAutoFillBackground(False)
-        
-        new_color = value_label.palette().color(QPalette.WindowText)
-        print(f"     Palette APRÈS: WindowText = {new_color.name()}")
+        print(f"     StyleSheet: color: {color}")
         print(f"     Label visible: {value_label.isVisible()}")
         print(f"     Label enabled: {value_label.isEnabled()}")
         
