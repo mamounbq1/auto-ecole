@@ -1,0 +1,43 @@
+═══════════════════════════════════════════════════════════════
+                    🔧 URGENT FIX REQUIRED 🔧
+═══════════════════════════════════════════════════════════════
+
+Error Found: AttributeError when editing students
+Fix: One line change needed
+
+═══════════════════════════════════════════════════════════════
+QUICK FIX (Manual) - 30 seconds
+═══════════════════════════════════════════════════════════════
+
+File: src\views\widgets\students_enhanced.py
+Line: 188
+
+CHANGE THIS:
+    self.practical_test_attempts.setValue(self.student.practical_test_attempts or 0)
+
+TO THIS:
+    self.practical_test_attempts.setValue(self.student.practical_exam_attempts or 0)
+
+That's it! Just change "practical_test_attempts" to "practical_exam_attempts"
+
+═══════════════════════════════════════════════════════════════
+OR - PULL FROM GIT (If authentication is set up)
+═══════════════════════════════════════════════════════════════
+
+cd "C:\Users\DELL\Downloads\WTSP IMG\auto-ecole-main"
+git pull origin main
+
+This will get the fix automatically along with all Phase 1 features.
+
+═══════════════════════════════════════════════════════════════
+VERIFICATION
+═══════════════════════════════════════════════════════════════
+
+After the fix, test by:
+1. Run: python start_safe.py
+2. Login: admin / Admin123!
+3. Go to: Élèves
+4. Click: ✏️ (edit button) on any student
+5. Should open WITHOUT error!
+
+═══════════════════════════════════════════════════════════════
