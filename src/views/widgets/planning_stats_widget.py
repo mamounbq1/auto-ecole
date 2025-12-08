@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QGroupBox, QGridLayout, QProgressBar, QComboBox
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont, QColor
 from datetime import datetime, timedelta, date
 
@@ -31,7 +31,8 @@ class PlanningStatsWidget(QWidget):
         super().__init__(parent)
         self.current_period = "week"  # week, month, year
         self.setup_ui()
-        self.load_stats()
+        # Charger stats après que l'UI soit rendue
+        QTimer.singleShot(100, self.load_stats)
     
     def setup_ui(self):
         """Configurer l'interface"""
@@ -504,16 +505,28 @@ class PlanningStatsWidget(QWidget):
     
     def update_stat_card(self, card, value):
         """Mettre à jour valeur carte stat"""
-        # Méthode 1: Chercher par objectName
+        # Chercher le label de valeur
+        value_label = None
         for label in card.findChildren(QLabel):
             if label.objectName() == "value":
-                label.setText(str(value))
-                return
+                value_label = label
+                break
         
-        # Méthode 2: Le 2ème label est toujours la valeur (après le titre)
-        labels = card.findChildren(QLabel)
-        if len(labels) >= 2:
-            labels[1].setText(str(value))
+        # Fallback: prendre le 2ème label
+        if not value_label:
+            labels = card.findChildren(QLabel)
+            if len(labels) >= 2:
+                value_label = labels[1]
+        
+        # Mettre à jour avec garantie de visibilité
+        if value_label:
+            value_label.setText(str(value))
+            # Forcer le rafraîchissement du style
+            current_style = value_label.styleSheet()
+            if current_style:
+                value_label.setStyleSheet(current_style)
+            value_label.update()
+            value_label.repaint()
     
     def load_instructor_stats(self, sessions):
         """Charger stats moniteurs"""
