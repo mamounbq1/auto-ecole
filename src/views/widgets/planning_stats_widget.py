@@ -35,32 +35,52 @@ class PlanningStatsWidget(QWidget):
     
     def setup_ui(self):
         """Configurer l'interface"""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(15, 15, 15, 15)
-        layout.setSpacing(15)
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(15, 15, 15, 15)
+        main_layout.setSpacing(15)
         
         # Header avec sélecteur période
-        self.create_header(layout)
+        self.create_header(main_layout)
         
-        # Stats principales
-        self.create_main_stats(layout)
+        # Stats principales (6 cartes en grille)
+        self.create_main_stats(main_layout)
         
-        # Graphiques et détails
-        details_layout = QHBoxLayout()
+        # Graphiques et détails (2 colonnes)
+        details_container = QWidget()
+        details_layout = QHBoxLayout(details_container)
+        details_layout.setSpacing(15)
+        details_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Colonne gauche
-        left_col = QVBoxLayout()
+        # Colonne gauche (Top moniteurs + Répartition types)
+        left_widget = QWidget()
+        left_widget.setMinimumWidth(350)
+        left_widget.setMaximumWidth(600)
+        left_col = QVBoxLayout(left_widget)
+        left_col.setSpacing(15)
+        left_col.setContentsMargins(0, 0, 0, 0)
+        
         self.create_instructor_stats(left_col)
         self.create_type_distribution(left_col)
-        details_layout.addLayout(left_col, stretch=1)
+        left_col.addStretch()
         
-        # Colonne droite
-        right_col = QVBoxLayout()
+        details_layout.addWidget(left_widget)
+        
+        # Colonne droite (Véhicules + Performance)
+        right_widget = QWidget()
+        right_widget.setMinimumWidth(350)
+        right_widget.setMaximumWidth(600)
+        right_col = QVBoxLayout(right_widget)
+        right_col.setSpacing(15)
+        right_col.setContentsMargins(0, 0, 0, 0)
+        
         self.create_vehicle_stats(right_col)
         self.create_performance_metrics(right_col)
-        details_layout.addLayout(right_col, stretch=1)
+        right_col.addStretch()
         
-        layout.addLayout(details_layout)
+        details_layout.addWidget(right_widget)
+        
+        main_layout.addWidget(details_container)
+        main_layout.addStretch()
     
     def create_header(self, layout):
         """Créer l'en-tête"""
@@ -181,13 +201,24 @@ class PlanningStatsWidget(QWidget):
                 background-color: white;
                 border-radius: 8px;
                 padding: 15px;
+                margin: 5px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                padding: 5px 10px;
+                color: #2c3e50;
             }
         """)
+        group.setMinimumHeight(200)
+        group.setMaximumHeight(400)
         
         group_layout = QVBoxLayout(group)
+        group_layout.setSpacing(8)
         
         # Liste moniteurs (sera remplie dans load_stats)
         self.instructors_container = QVBoxLayout()
+        self.instructors_container.setSpacing(5)
         group_layout.addLayout(self.instructors_container)
         
         group_layout.addStretch()
@@ -204,10 +235,20 @@ class PlanningStatsWidget(QWidget):
                 background-color: white;
                 border-radius: 8px;
                 padding: 15px;
+                margin: 5px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                padding: 5px 10px;
+                color: #2c3e50;
             }
         """)
+        group.setMinimumHeight(200)
+        group.setMaximumHeight(350)
         
         group_layout = QVBoxLayout(group)
+        group_layout.setSpacing(10)
         
         # Barres de progression pour chaque type
         self.type_bars = {}
@@ -261,10 +302,20 @@ class PlanningStatsWidget(QWidget):
                 background-color: white;
                 border-radius: 8px;
                 padding: 15px;
+                margin: 5px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                padding: 5px 10px;
+                color: #2c3e50;
             }
         """)
+        group.setMinimumHeight(200)
+        group.setMaximumHeight(400)
         
         group_layout = QVBoxLayout(group)
+        group_layout.setSpacing(8)
         
         # Liste véhicules (sera remplie dans load_stats)
         self.vehicles_container = QVBoxLayout()
@@ -284,10 +335,20 @@ class PlanningStatsWidget(QWidget):
                 background-color: white;
                 border-radius: 8px;
                 padding: 15px;
+                margin: 5px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                padding: 5px 10px;
+                color: #2c3e50;
             }
         """)
+        group.setMinimumHeight(200)
+        group.setMaximumHeight(350)
         
         group_layout = QVBoxLayout(group)
+        group_layout.setSpacing(10)
         
         # Taux de présence
         presence_layout = QVBoxLayout()

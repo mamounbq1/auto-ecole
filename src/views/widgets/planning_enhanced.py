@@ -527,28 +527,36 @@ class PlanningEnhancedWidget(QWidget):
     
     def load_sessions(self):
         """Charger les sessions"""
-        # Marquer les jours avec sessions sur le calendrier
-        all_sessions = SessionController.get_all_sessions()
+        # Vérifier si le calendrier existe (protection contre RuntimeError)
+        if not hasattr(self, 'calendar') or self.calendar is None:
+            return
         
-        # Réinitialiser le format
-        self.calendar.setDateTextFormat(QDate(), QTextCharFormat())
-        
-        # Marquer les jours avec sessions
-        for session in all_sessions:
-            date = QDate(
-                session.start_datetime.year,
-                session.start_datetime.month,
-                session.start_datetime.day
-            )
+        try:
+            # Marquer les jours avec sessions sur le calendrier
+            all_sessions = SessionController.get_all_sessions()
             
-            fmt = QTextCharFormat()
-            fmt.setBackground(QColor("#e8f4f8"))
-            fmt.setFontWeight(QFont.Bold)
+            # Réinitialiser le format
+            self.calendar.setDateTextFormat(QDate(), QTextCharFormat())
             
-            self.calendar.setDateTextFormat(date, fmt)
-        
-        # Charger les sessions du jour sélectionné
-        self.on_date_selected(self.calendar.selectedDate())
+            # Marquer les jours avec sessions
+            for session in all_sessions:
+                date = QDate(
+                    session.start_datetime.year,
+                    session.start_datetime.month,
+                    session.start_datetime.day
+                )
+                
+                fmt = QTextCharFormat()
+                fmt.setBackground(QColor("#e8f4f8"))
+                fmt.setFontWeight(QFont.Bold)
+                
+                self.calendar.setDateTextFormat(date, fmt)
+            
+            # Charger les sessions du jour sélectionné
+            self.on_date_selected(self.calendar.selectedDate())
+        except RuntimeError:
+            # Widget déjà supprimé, ignorer
+            pass
     
     def on_date_selected(self, qdate):
         """Quand une date est sélectionnée"""
