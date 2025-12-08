@@ -16,6 +16,7 @@ from src.controllers.student_controller import StudentController
 from src.controllers.instructor_controller import InstructorController
 from src.controllers.vehicle_controller import VehicleController
 from src.models import SessionStatus, SessionType
+from src.views.widgets.session_detail_view import SessionDetailViewDialog
 
 
 class SessionDialog(QDialog):
@@ -277,7 +278,37 @@ class PlanningEnhancedWidget(QWidget):
             }
         """)
         
-        mark_completed_btn = QPushButton("✅ Marquer Terminée")
+        view_btn = QPushButton("👁️ Voir")
+        view_btn.clicked.connect(self.view_selected_session)
+        view_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #9b59b6;
+                color: white;
+                padding: 10px;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #8e44ad;
+            }
+        """)
+        
+        edit_btn = QPushButton("✏️ Éditer")
+        edit_btn.clicked.connect(self.edit_selected_session)
+        edit_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f39c12;
+                color: white;
+                padding: 10px;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #e67e22;
+            }
+        """)
+        
+        mark_completed_btn = QPushButton("✅ Terminée")
         mark_completed_btn.clicked.connect(self.mark_completed)
         mark_completed_btn.setStyleSheet("""
             QPushButton {
@@ -308,6 +339,8 @@ class PlanningEnhancedWidget(QWidget):
         """)
         
         btn_layout.addWidget(add_btn)
+        btn_layout.addWidget(view_btn)
+        btn_layout.addWidget(edit_btn)
         btn_layout.addWidget(mark_completed_btn)
         btn_layout.addWidget(cancel_btn)
         
@@ -446,10 +479,51 @@ class PlanningEnhancedWidget(QWidget):
                 self.sessions_list.addItem(item)
     
     def add_session(self):
-        """Ajouter une session"""
-        dialog = SessionDialog(self.selected_date, parent=self)
+        """Ajouter une session avec dialogue moderne"""
+        dialog = SessionDetailViewDialog(session=None, parent=self, read_only=False)
         if dialog.exec():
             self.load_sessions()
+    
+    def view_session(self, session_id):
+        """Voir les détails d'une session (lecture seule)"""
+        session = SessionController.get_session_by_id(session_id)
+        if not session:
+            QMessageBox.warning(self, "Erreur", "Session introuvable")
+            return
+        
+        dialog = SessionDetailViewDialog(session, parent=self, read_only=True)
+        dialog.exec()
+    
+    def edit_session(self, session_id):
+        """Éditer une session"""
+        session = SessionController.get_session_by_id(session_id)
+        if not session:
+            QMessageBox.warning(self, "Erreur", "Session introuvable")
+            return
+        
+        dialog = SessionDetailViewDialog(session, parent=self, read_only=False)
+        if dialog.exec():
+            self.load_sessions()
+    
+    def view_selected_session(self):
+        """Voir la session sélectionnée"""
+        current_item = self.sessions_list.currentItem()
+        if not current_item or not current_item.data(Qt.UserRole):
+            QMessageBox.warning(self, "Attention", "Veuillez sélectionner une session")
+            return
+        
+        session_id = current_item.data(Qt.UserRole)
+        self.view_session(session_id)
+    
+    def edit_selected_session(self):
+        """Éditer la session sélectionnée"""
+        current_item = self.sessions_list.currentItem()
+        if not current_item or not current_item.data(Qt.UserRole):
+            QMessageBox.warning(self, "Attention", "Veuillez sélectionner une session")
+            return
+        
+        session_id = current_item.data(Qt.UserRole)
+        self.edit_session(session_id)
     
     def mark_completed(self):
         """Marquer session comme terminée"""
