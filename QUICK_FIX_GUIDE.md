@@ -39,6 +39,33 @@ for lic in LICENSE_TYPES:
 
 ---
 
+### Issue #3: Missing `PaymentCategory` Enum ✅ FIXED
+**Error**: `ImportError: cannot import name 'PaymentCategory' from 'src.models'`
+
+**Root Cause**: `PaymentCategory` enum doesn't exist in the models. Payment category is stored as a simple string field.
+
+**Solution**: Created a constant list and updated all references
+```python
+# Added to payments_enhanced.py
+PAYMENT_CATEGORIES = [
+    'inscription',
+    'conduite',
+    'examen_theorique',
+    'examen_pratique',
+    'materiel_pedagogique',
+    'autre'
+]
+
+# Changed enum iteration to simple list iteration
+for cat in PAYMENT_CATEGORIES:
+    self.category.addItem(cat.replace('_', ' ').title(), cat)
+```
+
+**Files Fixed**: 
+- `src/views/widgets/payments_enhanced.py`
+
+---
+
 ## ✅ Verification
 
 ### Quick Test
@@ -67,11 +94,14 @@ python src/main_gui.py
 ## 📊 All Git Commits
 
 ### Latest Fixes (Today)
-1. **507f374** - improve: Enhance import check to detect common GUI import issues
-2. **be8f5c4** - fix: Remove LicenseType import and use constant list instead
-3. **3a298cf** - docs: Add fix summary for import error resolution
-4. **9a11c98** - test: Add import verification script
-5. **b3f2a33** - fix: Correct database import in dashboard_advanced.py
+1. **f0f9331** - improve: Add PaymentCategory detection to import checker
+2. **f184932** - fix: Remove PaymentCategory import and use constant list
+3. **caa0ff0** - docs: Add comprehensive quick fix guide
+4. **507f374** - improve: Enhance import check to detect common GUI import issues
+5. **be8f5c4** - fix: Remove LicenseType import and use constant list instead
+6. **3a298cf** - docs: Add fix summary for import error resolution
+7. **9a11c98** - test: Add import verification script
+8. **b3f2a33** - fix: Correct database import in dashboard_advanced.py
 
 ### Previous Work
 6. **ba94a9d** - docs: Add completion summary for new modules
@@ -124,16 +154,17 @@ from src.utils import (
 # ❌ Wrong - src.database doesn't exist
 from src.database import get_session
 
-# ❌ Wrong - LicenseType enum doesn't exist
+# ❌ Wrong - These enums don't exist in models
 from src.models import LicenseType
-
-# ❌ Wrong - These enums don't exist
+from src.models import PaymentCategory
 from src.models import VehicleType, InstructorType
 ```
 
-### 💡 License Types
+### 💡 License Types & Payment Categories
 
-License types are stored as **strings**, not enums:
+License types and payment categories are stored as **strings**, not enums:
+
+**License Types**:
 ```python
 # Correct way to handle license types
 LICENSE_TYPES = ['A', 'B', 'C', 'D', 'E']
@@ -141,6 +172,23 @@ LICENSE_TYPES = ['A', 'B', 'C', 'D', 'E']
 # Usage
 for license_type in LICENSE_TYPES:
     print(f"Permis {license_type}")
+```
+
+**Payment Categories**:
+```python
+# Correct way to handle payment categories
+PAYMENT_CATEGORIES = [
+    'inscription',
+    'conduite',
+    'examen_theorique',
+    'examen_pratique',
+    'materiel_pedagogique',
+    'autre'
+]
+
+# Usage
+for category in PAYMENT_CATEGORIES:
+    print(f"Catégorie: {category}")
 ```
 
 ---
