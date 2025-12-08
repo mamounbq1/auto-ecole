@@ -137,9 +137,11 @@ class DashboardSimpleWidget(QWidget):
             from datetime import datetime, timedelta
             today = datetime.now()
             start_of_month = today.replace(day=1)
-            payments = PaymentController.get_payments_by_date_range(
-                self.db_session, start_of_month, today
-            )
+            
+            # Récupérer tous les paiements et filtrer par date
+            all_payments = PaymentController.get_all_payments(self.db_session)
+            payments = [p for p in all_payments if p.payment_date and 
+                       p.payment_date.replace(tzinfo=None) >= start_of_month.replace(tzinfo=None)]
             monthly_revenue = sum(p.amount for p in payments if p.is_validated)
             
             # Statistiques sessions
