@@ -22,8 +22,7 @@ from PySide6.QtGui import QFont
 from src.controllers.student_controller import StudentController
 from src.controllers.session_controller import SessionController
 from src.controllers.payment_controller import PaymentController
-from src.models import StudentStatus, SessionStatus
-from src.database import get_session
+from src.models import StudentStatus, SessionStatus, get_session
 
 # Style seaborn
 sns.set_style("whitegrid")
