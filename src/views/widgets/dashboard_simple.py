@@ -134,14 +134,14 @@ class DashboardSimpleWidget(QWidget):
             active_students = sum(1 for s in students if s.status.value == 'active')
             
             # Statistiques financières
-            from datetime import datetime, timedelta
+            from datetime import datetime, timedelta, date
             today = datetime.now()
-            start_of_month = today.replace(day=1)
+            start_of_month = today.replace(day=1).date()
             
             # Récupérer tous les paiements et filtrer par date
             all_payments = PaymentController.get_all_payments()
             payments = [p for p in all_payments if p.payment_date and 
-                       p.payment_date.replace(tzinfo=None) >= start_of_month.replace(tzinfo=None)]
+                       p.payment_date >= start_of_month]
             monthly_revenue = sum(p.amount for p in payments if p.is_validated)
             
             # Statistiques sessions
