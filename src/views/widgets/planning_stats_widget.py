@@ -122,19 +122,19 @@ class PlanningStatsWidget(QWidget):
     
     def create_main_stats(self, layout):
         """Créer les statistiques principales"""
-        stats_frame = QFrame()
-        stats_frame.setStyleSheet("""
-            QFrame {
-                background-color: white;
-                border-radius: 10px;
-                padding: 15px;
+        stats_container = QWidget()
+        stats_container.setStyleSheet("""
+            QWidget {
+                background-color: transparent;
             }
         """)
-        stats_layout = QGridLayout(stats_frame)
+        stats_layout = QGridLayout(stats_container)
+        stats_layout.setSpacing(12)
+        stats_layout.setContentsMargins(0, 0, 0, 0)
         
         # Sessions
         self.total_sessions_label = self.create_stat_card(
-            "📅 SESSIONS", "0", "#3498db"
+            "📅 SESSIONS TOTALES", "0", "#3498db"
         )
         stats_layout.addWidget(self.total_sessions_label, 0, 0)
         
@@ -164,30 +164,53 @@ class PlanningStatsWidget(QWidget):
         )
         stats_layout.addWidget(self.utilization_label, 1, 2)
         
-        layout.addWidget(stats_frame)
+        layout.addWidget(stats_container)
     
     def create_stat_card(self, title, value, color):
         """Créer une carte statistique"""
         card = QFrame()
+        card.setFrameShape(QFrame.StyledPanel)
         card.setStyleSheet(f"""
             QFrame {{
-                background-color: {color}15;
-                border-left: 5px solid {color};
-                border-radius: 8px;
-                padding: 15px;
+                background-color: white;
+                border: 2px solid #ecf0f1;
+                border-left: 6px solid {color};
+                border-radius: 10px;
+                padding: 12px;
+                min-width: 180px;
+                min-height: 80px;
+            }}
+            QFrame:hover {{
+                border: 2px solid {color};
+                border-left: 6px solid {color};
             }}
         """)
         
         card_layout = QVBoxLayout(card)
+        card_layout.setSpacing(5)
+        card_layout.setContentsMargins(10, 8, 10, 8)
         
         title_label = QLabel(title)
-        title_label.setStyleSheet(f"color: {color}; font-size: 12px; font-weight: bold;")
+        title_label.setStyleSheet(f"""
+            color: #7f8c8d; 
+            font-size: 11px; 
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        """)
+        title_label.setWordWrap(True)
         card_layout.addWidget(title_label)
         
         value_label = QLabel(value)
-        value_label.setStyleSheet(f"color: {color}; font-size: 24px; font-weight: bold;")
+        value_label.setStyleSheet(f"""
+            color: {color}; 
+            font-size: 28px; 
+            font-weight: bold;
+        """)
         value_label.setObjectName("value")  # Pour update facile
         card_layout.addWidget(value_label)
+        
+        card_layout.addStretch()
         
         return card
     
@@ -266,21 +289,26 @@ class PlanningStatsWidget(QWidget):
             
             type_label_fr = type_labels.get(session_type, session_type.value)
             label = QLabel(f"{type_label_fr}: 0 (0%)")
-            label.setStyleSheet("color: #2c3e50; font-size: 12px;")
+            label.setStyleSheet("color: #2c3e50; font-size: 13px; font-weight: 500;")
             type_layout.addWidget(label)
             
             bar = QProgressBar()
             bar.setValue(0)
+            bar.setMinimumHeight(25)
             bar.setStyleSheet("""
                 QProgressBar {
-                    border: 2px solid #ecf0f1;
-                    border-radius: 5px;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 6px;
                     text-align: center;
-                    background-color: #ecf0f1;
+                    background-color: #f5f5f5;
+                    color: #2c3e50;
+                    font-weight: bold;
+                    font-size: 11px;
                 }
                 QProgressBar::chunk {
-                    background-color: #3498db;
-                    border-radius: 3px;
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #3498db, stop:1 #2980b9);
+                    border-radius: 4px;
                 }
             """)
             type_layout.addWidget(bar)
@@ -353,21 +381,26 @@ class PlanningStatsWidget(QWidget):
         # Taux de présence
         presence_layout = QVBoxLayout()
         self.presence_label = QLabel("Taux de Présence: 0%")
-        self.presence_label.setStyleSheet("color: #2c3e50; font-size: 12px;")
+        self.presence_label.setStyleSheet("color: #2c3e50; font-size: 13px; font-weight: 500;")
         presence_layout.addWidget(self.presence_label)
         
         self.presence_bar = QProgressBar()
         self.presence_bar.setValue(0)
+        self.presence_bar.setMinimumHeight(25)
         self.presence_bar.setStyleSheet("""
             QProgressBar {
-                border: 2px solid #ecf0f1;
-                border-radius: 5px;
+                border: 2px solid #e0e0e0;
+                border-radius: 6px;
                 text-align: center;
-                background-color: #ecf0f1;
+                background-color: #f5f5f5;
+                color: #2c3e50;
+                font-weight: bold;
+                font-size: 11px;
             }
             QProgressBar::chunk {
-                background-color: #27ae60;
-                border-radius: 3px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #27ae60, stop:1 #229954);
+                border-radius: 4px;
             }
         """)
         presence_layout.addWidget(self.presence_bar)
@@ -375,12 +408,12 @@ class PlanningStatsWidget(QWidget):
         
         # Sessions par jour (moyenne)
         self.avg_sessions_label = QLabel("Moyenne Sessions/Jour: 0")
-        self.avg_sessions_label.setStyleSheet("color: #2c3e50; padding: 10px 0;")
+        self.avg_sessions_label.setStyleSheet("color: #2c3e50; font-size: 13px; font-weight: 500; padding: 8px 0;")
         group_layout.addWidget(self.avg_sessions_label)
         
         # Durée moyenne session
         self.avg_duration_label = QLabel("Durée Moyenne: 0h")
-        self.avg_duration_label.setStyleSheet("color: #2c3e50; padding: 10px 0;")
+        self.avg_duration_label.setStyleSheet("color: #2c3e50; font-size: 13px; font-weight: 500; padding: 8px 0;")
         group_layout.addWidget(self.avg_duration_label)
         
         group_layout.addStretch()
