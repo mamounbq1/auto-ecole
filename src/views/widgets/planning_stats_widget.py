@@ -38,6 +38,16 @@ class PlanningStatsWidget(QWidget):
         
         # Plus besoin de load_stats ici, les cartes sont créées avec les bonnes valeurs
     
+    def clear_layout(self, layout):
+        """Nettoyer un layout récursivement"""
+        if layout is not None:
+            while layout.count():
+                child = layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
+                elif child.layout():
+                    self.clear_layout(child.layout())
+    
     def calculate_stats(self):
         """Calculer statistiques SANS modifier l'UI"""
         start_date, end_date = self.get_date_range()
@@ -78,9 +88,20 @@ class PlanningStatsWidget(QWidget):
     
     def setup_ui(self):
         """Configurer l'interface"""
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(15, 15, 15, 15)
-        main_layout.setSpacing(15)
+        # Créer le layout principal seulement s'il n'existe pas
+        if not self.layout():
+            main_layout = QVBoxLayout(self)
+            main_layout.setContentsMargins(15, 15, 15, 15)
+            main_layout.setSpacing(15)
+        else:
+            main_layout = self.layout()
+            # Vider le layout existant
+            while main_layout.count():
+                child = main_layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
+                elif child.layout():
+                    self.clear_layout(child.layout())
         
         # Header avec sélecteur période
         self.create_header(main_layout)
@@ -478,15 +499,7 @@ class PlanningStatsWidget(QWidget):
         # Recalculer stats
         self.stats_data = self.calculate_stats()
         
-        # DÉTRUIRE et RECRÉER toute l'UI
-        # Supprimer tous les widgets
-        layout = self.layout()
-        while layout.count():
-            child = layout.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
-        
-        # Recréer l'UI avec les nouvelles valeurs
+        # Recréer l'UI avec les nouvelles valeurs (setup_ui gère le nettoyage)
         self.setup_ui()
     
     def get_date_range(self):
