@@ -168,47 +168,41 @@ class DashboardProfessionalWidget(QWidget):
         self.stats_grid.setSpacing(20)
         layout.addLayout(self.stats_grid)
         
-        # Section graphiques
-        charts_layout = QHBoxLayout()
-        charts_layout.setSpacing(20)
+        # Grille principale pour tous les graphiques (2x3)
+        main_grid = QGridLayout()
+        main_grid.setSpacing(15)
         
-        # Graphique 1: Evolution du CA
+        # Ligne 1: CA Evolution + Répartition Paiements + Statut Élèves
         self.revenue_chart_view = self.create_revenue_chart()
-        charts_layout.addWidget(self.revenue_chart_view, 2)
+        self.revenue_chart_view.setMinimumHeight(280)
+        self.revenue_chart_view.setMaximumHeight(320)
+        main_grid.addWidget(self.revenue_chart_view, 0, 0)
         
-        # Graphique 2: Répartition paiements
         self.payment_chart_view = self.create_payment_pie_chart()
-        charts_layout.addWidget(self.payment_chart_view, 1)
+        self.payment_chart_view.setMinimumHeight(280)
+        self.payment_chart_view.setMaximumHeight(320)
+        main_grid.addWidget(self.payment_chart_view, 0, 1)
         
-        layout.addLayout(charts_layout)
-        
-        # Deuxième ligne de graphiques
-        charts_layout2 = QHBoxLayout()
-        charts_layout2.setSpacing(20)
-        
-        # Graphique 3: Statut élèves
         self.students_chart_view = self.create_students_chart()
-        charts_layout2.addWidget(self.students_chart_view, 1)
+        self.students_chart_view.setMinimumHeight(280)
+        self.students_chart_view.setMaximumHeight(320)
+        main_grid.addWidget(self.students_chart_view, 0, 2)
         
-        # Graphique 4: Sessions de la semaine
+        # Ligne 2: Sessions Semaine + Activités Récentes + Alertes
         self.sessions_chart_view = self.create_sessions_chart()
-        charts_layout2.addWidget(self.sessions_chart_view, 1)
+        self.sessions_chart_view.setMinimumHeight(280)
+        self.sessions_chart_view.setMaximumHeight(320)
+        main_grid.addWidget(self.sessions_chart_view, 1, 0)
         
-        layout.addLayout(charts_layout2)
-        
-        # Section activités récentes et alertes
-        bottom_layout = QHBoxLayout()
-        bottom_layout.setSpacing(20)
-        
-        # Activités récentes
         self.recent_activities = self.create_recent_activities()
-        bottom_layout.addWidget(self.recent_activities, 1)
+        self.recent_activities.setMaximumHeight(320)
+        main_grid.addWidget(self.recent_activities, 1, 1)
         
-        # Alertes
         self.alerts_widget = self.create_alerts_widget()
-        bottom_layout.addWidget(self.alerts_widget, 1)
+        self.alerts_widget.setMaximumHeight(320)
+        main_grid.addWidget(self.alerts_widget, 1, 2)
         
-        layout.addLayout(bottom_layout)
+        layout.addLayout(main_grid)
         
         scroll.setWidget(container)
         main_layout.addWidget(scroll)
@@ -341,7 +335,6 @@ class DashboardProfessionalWidget(QWidget):
         
         chart_view = QChartView(chart)
         chart_view.setRenderHint(QPainter.Antialiasing)
-        chart_view.setMinimumHeight(300)
         
         return chart_view
         
@@ -727,6 +720,11 @@ class DashboardProfessionalWidget(QWidget):
             self.refresh_timer.stop()
         try:
             if hasattr(self, 'db_session') and self.db_session:
+                self.db_session.close()
+        except:
+            pass
+        event.accept()
+       if hasattr(self, 'db_session') and self.db_session:
                 self.db_session.close()
         except:
             pass
