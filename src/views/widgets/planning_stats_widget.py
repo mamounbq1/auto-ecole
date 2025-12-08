@@ -226,6 +226,25 @@ class PlanningStatsWidget(QWidget):
             print(f"✓ Carte {title[:20]} ajoutée et forcée visible à ({row},{col})")
         
         layout.addWidget(stats_container)
+        
+        # FORCER la visibilité du container stats
+        stats_container.setVisible(True)
+        stats_container.show()
+        stats_container.updateGeometry()
+        
+        # FORCER aussi le widget principal
+        self.setVisible(True)
+        self.show()
+        self.updateGeometry()
+        
+        print(f"\n📊 [DEBUG] Visibilité finale:")
+        print(f"   PlanningStatsWidget visible: {self.isVisible()}")
+        print(f"   stats_container visible: {stats_container.isVisible()}")
+        print(f"   total_sessions_card visible: {self.total_sessions_card.isVisible()}")
+        
+        # Vérifier les labels
+        for label in self.total_sessions_card.findChildren(QLabel):
+            print(f"   Label '{label.text()[:20]}' visible: {label.isVisible()}")
     
     def force_widget_visibility(self, widget):
         """Forcer la visibilité d'un widget et ses enfants"""
