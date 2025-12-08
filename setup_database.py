@@ -1,18 +1,22 @@
+#!/usr/bin/env python3
 """
-Script d'initialisation de la base de données
-Crée la base de données et les données de test
+Script d'initialisation simple de la base de données
+Appelle directement src/init_db.py
 """
 
 import os
 import sys
 from pathlib import Path
 
-# Ajouter le répertoire src au path
-sys.path.insert(0, str(Path(__file__).parent))
+print("="*80)
+print("🗄️  INITIALISATION DE LA BASE DE DONNÉES AUTO-ÉCOLE")
+print("="*80)
 
-print("="*80)
-print("🗄️  INITIALISATION DE LA BASE DE DONNÉES")
-print("="*80)
+# Vérifier que nous sommes dans le bon répertoire
+if not Path("src/main_gui.py").exists():
+    print("\n❌ ERREUR: Ce script doit être exécuté depuis le répertoire racine du projet")
+    print(f"   Répertoire actuel: {Path.cwd()}")
+    sys.exit(1)
 
 # Créer le dossier data s'il n'existe pas
 data_dir = Path("data")
@@ -21,59 +25,42 @@ if not data_dir.exists():
     data_dir.mkdir(parents=True, exist_ok=True)
     print("   ✅ Dossier créé")
 else:
-    print(f"\n📁 Dossier data existe: {data_dir.absolute()}")
+    print(f"\n📁 Dossier data existe déjà: {data_dir.absolute()}")
 
-# Importer et initialiser la base de données
-try:
-    print("\n🔧 Importation des modules...")
-    from src.models.base import init_db
-    from src.init_db import init_database, create_test_data
-    
-    print("   ✅ Modules importés")
-    
-    # Initialiser la base de données
-    print("\n🔨 Création des tables...")
-    init_db(database_path="data/autoecole.db", drop_all=False)
-    print("   ✅ Tables créées")
-    
-    # Créer les données de test
-    print("\n📊 Création des données de test...")
-    success = init_database()
-    
-    if success:
-        print("   ✅ Données de test créées")
-        
-        # Créer des données supplémentaires
-        print("\n📝 Ajout de données supplémentaires...")
-        create_test_data()
-        print("   ✅ Données supplémentaires ajoutées")
+# Vérifier si la base existe déjà
+db_path = Path("data/autoecole.db")
+if db_path.exists():
+    print(f"\n⚠️  La base de données existe déjà: {db_path}")
+    print("   Pour recommencer, supprimez d'abord: data\\autoecole.db")
+    response = input("\n   Voulez-vous la supprimer et recommencer ? (o/n): ")
+    if response.lower() in ['o', 'oui', 'y', 'yes']:
+        db_path.unlink()
+        print("   ✅ Base de données supprimée")
     else:
-        print("   ⚠️  Erreur lors de la création des données de test")
+        print("   ℹ️  Conservation de la base existante")
+        print("\n🚀 Vous pouvez lancer l'application:")
+        print("   python src\\main_gui.py")
+        sys.exit(0)
+
+# Appeler le script d'initialisation
+print("\n🔧 Lancement de l'initialisation...")
+print("="*80)
+
+# Ajouter le répertoire parent au path
+sys.path.insert(0, str(Path(__file__).parent))
+
+try:
+    # Importer et exécuter le script d'initialisation
+    from src import init_db
     
-    print("\n" + "="*80)
-    print("✅ BASE DE DONNÉES INITIALISÉE AVEC SUCCÈS!")
-    print("="*80)
+    # Appeler la fonction main du module init_db
+    init_db.main()
     
-    print("\n📋 Informations de connexion:")
-    print("   👤 Administrateur:")
-    print("      Username: admin")
-    print("      Password: Admin123!")
-    print("\n   👤 Caissier:")
-    print("      Username: caissier")
-    print("      Password: Caisse123!")
-    print("\n   👤 Réceptionniste:")
-    print("      Username: receptionniste")
-    print("      Password: Reception123!")
-    print("\n   👤 Moniteur:")
-    print("      Username: moniteur")
-    print("      Password: Moniteur123!")
-    
-    print("\n🚀 Vous pouvez maintenant lancer l'application:")
-    print("   python src/main_gui.py")
-    print("="*80)
-    
+except KeyboardInterrupt:
+    print("\n\n⚠️  Initialisation annulée par l'utilisateur")
+    sys.exit(1)
 except Exception as e:
-    print(f"\n❌ ERREUR: {e}")
+    print(f"\n❌ ERREUR lors de l'initialisation: {e}")
     import traceback
     traceback.print_exc()
     print("\n⚠️  La base de données n'a pas pu être créée.")
