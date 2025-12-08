@@ -5,7 +5,7 @@ Nouvelle version propre créée de zéro
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QGroupBox, QGridLayout, QProgressBar, QComboBox
+    QGroupBox, QGridLayout, QProgressBar, QComboBox, QScrollArea
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
@@ -29,9 +29,45 @@ class PlanningStatsWidget(QWidget):
     
     def setup_ui(self):
         """Configurer l'interface"""
+        # Layout principal du widget
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+        
+        # Créer un scroll area pour tout le contenu
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+            QScrollBar:vertical {
+                border: none;
+                background: #f0f0f0;
+                width: 10px;
+                border-radius: 5px;
+            }
+            QScrollBar::handle:vertical {
+                background: #3498db;
+                border-radius: 5px;
+                min-height: 30px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #2980b9;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+        """)
+        
+        # Widget de contenu qui sera scrollable
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(20, 20, 20, 20)
+        content_layout.setSpacing(20)
         
         # Header
         header = QFrame()
@@ -80,7 +116,7 @@ class PlanningStatsWidget(QWidget):
         """)
         header_layout.addWidget(self.period_combo)
         
-        main_layout.addWidget(header)
+        content_layout.addWidget(header)
         
         # Grille de 6 cartes statistiques SIMPLES
         cards_container = QFrame()
@@ -104,7 +140,7 @@ class PlanningStatsWidget(QWidget):
         cards_layout.addWidget(self.card_realized, 1, 1)
         cards_layout.addWidget(self.card_utilization, 1, 2)
         
-        main_layout.addWidget(cards_container)
+        content_layout.addWidget(cards_container)
         
         # Détails (2 colonnes)
         details = QWidget()
@@ -120,6 +156,8 @@ class PlanningStatsWidget(QWidget):
         
         # Top moniteurs
         self.instructors_group = QGroupBox("👨‍🏫 Top Moniteurs")
+        self.instructors_group.setMinimumHeight(180)
+        self.instructors_group.setMaximumHeight(250)
         self.instructors_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -141,6 +179,8 @@ class PlanningStatsWidget(QWidget):
         
         # Répartition types
         self.types_group = QGroupBox("📚 Répartition par Type")
+        self.types_group.setMinimumHeight(200)
+        self.types_group.setMaximumHeight(280)
         self.types_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -171,6 +211,8 @@ class PlanningStatsWidget(QWidget):
         
         # Top véhicules
         self.vehicles_group = QGroupBox("🚗 Top Véhicules")
+        self.vehicles_group.setMinimumHeight(180)
+        self.vehicles_group.setMaximumHeight(250)
         self.vehicles_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -192,6 +234,8 @@ class PlanningStatsWidget(QWidget):
         
         # Performance
         self.performance_group = QGroupBox("⚡ Performance")
+        self.performance_group.setMinimumHeight(200)
+        self.performance_group.setMaximumHeight(280)
         self.performance_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -214,7 +258,13 @@ class PlanningStatsWidget(QWidget):
         right_layout.addStretch()
         details_layout.addWidget(right)
         
-        main_layout.addWidget(details)
+        content_layout.addWidget(details)
+        
+        # Ajouter le widget de contenu au scroll area
+        scroll.setWidget(content_widget)
+        
+        # Ajouter le scroll area au layout principal
+        main_layout.addWidget(scroll)
     
     def create_empty_card(self, title_text, border_color):
         """Créer une carte vide (sera remplie après)"""
