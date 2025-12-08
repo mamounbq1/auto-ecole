@@ -1,0 +1,118 @@
+╔═══════════════════════════════════════════════════════════════╗
+║         AUTO-ECOLE MANAGER - GUIDE DE DEMARRAGE              ║
+╚═══════════════════════════════════════════════════════════════╝
+
+📍 EMPLACEMENT DU PROJET:
+   C:\Users\DELL\Downloads\WTSP IMG\auto-ecole-main
+
+
+✅ ETAPES POUR DEMARRER L'APPLICATION:
+
+1️⃣  OUVRIR LE TERMINAL (CMD)
+   - Appuyez sur Windows + R
+   - Tapez: cmd
+   - Appuyez sur Entree
+
+
+2️⃣  ALLER DANS LE REPERTOIRE DU PROJET
+   Copiez et collez cette commande:
+   
+   cd "C:\Users\DELL\Downloads\WTSP IMG\auto-ecole-main"
+
+
+3️⃣  METTRE A JOUR LE CODE (IMPORTANT!)
+   Copiez et collez:
+   
+   git pull origin main
+
+
+4️⃣  TESTER LES PAIEMENTS (OPTIONNEL)
+   Copiez et collez:
+   
+   python test_payments.py
+   
+   ✓ Vous devriez voir: "TOUS LES TESTS REUSSIS!"
+
+
+5️⃣  LANCER L'APPLICATION
+   Copiez et collez:
+   
+   python start_safe.py
+
+
+6️⃣  SE CONNECTER
+   Login:     admin
+   Password:  Admin123!
+
+
+═══════════════════════════════════════════════════════════════
+
+🔧 CORRECTIONS APPLIQUEES (Commit a7c0220):
+
+✓ Fix AttributeError: 'date' object has no attribute 'date'
+  → Le module Paiements gere maintenant date ET datetime
+
+✓ Fix UnicodeEncodeError (CP1252) 
+  → Encodage UTF-8 configure pour Windows
+  → Caracteres speciaux remplaces
+
+✓ Dashboard et Etudiants temporairement desactives
+  → L'app ouvre directement sur Paiements (stable)
+
+
+═══════════════════════════════════════════════════════════════
+
+📊 MODULES DISPONIBLES:
+
+✅ Paiements    - Gestion complete + stats + PDF
+✅ Planning     - Sessions de conduite
+✅ Moniteurs    - Gestion des instructeurs
+✅ Vehicules    - Parc automobile
+✅ Examens      - Planification des examens
+
+⚠️  Dashboard   - Temporairement desactive (erreur matplotlib)
+⚠️  Etudiants   - Temporairement desactive
+
+
+═══════════════════════════════════════════════════════════════
+
+🛠️ EN CAS DE PROBLEME:
+
+Si l'application se ferme apres connexion:
+1. Fermez tous les processus Python:
+   taskkill /F /IM python.exe
+   
+2. Relancez:
+   python start_safe.py
+
+
+Si "git pull" ne fonctionne pas:
+1. Verifiez que vous etes dans le bon repertoire:
+   cd "C:\Users\DELL\Downloads\WTSP IMG\auto-ecole-main"
+   
+2. Si erreur "not a git repository":
+   - Supprimez le dossier actuel
+   - Re-clonez: git clone https://github.com/mamounbq1/auto-ecole.git auto-ecole-main
+
+
+═══════════════════════════════════════════════════════════════
+
+📧 INFORMATIONS SUPPLEMENTAIRES:
+
+Base de donnees:     data\autoecole.db
+Logs:                Les erreurs s'affichent dans la console
+GitHub:              https://github.com/mamounbq1/auto-ecole
+
+
+═══════════════════════════════════════════════════════════════
+
+🎯 RAPPEL - COMMANDES RAPIDES:
+
+cd "C:\Users\DELL\Downloads\WTSP IMG\auto-ecole-main"
+git pull origin main
+python start_safe.py
+
+→ Login: admin / Admin123!
+
+
+╚═══════════════════════════════════════════════════════════════╝
