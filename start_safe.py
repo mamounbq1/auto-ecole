@@ -60,14 +60,16 @@ try:
     
     # Fenêtre de connexion
     login_window = LoginWindow()
+    main_window_ref = [None]  # Garder référence à main_window
     
     def on_login_success(user):
         logger.info(f"Connexion reussie : {user.username}")
         try:
-            main_window = MainWindow(user)
-            main_window.show()
-            main_window.raise_()
-            main_window.activateWindow()
+            main_window_ref[0] = MainWindow(user)
+            main_window_ref[0].show()
+            main_window_ref[0].raise_()
+            main_window_ref[0].activateWindow()
+            login_window.close()
             print(f"\n[OK] Application demarree pour : {user.full_name}")
         except Exception as e:
             print(f"\n[ERREUR] Erreur : {e}")
