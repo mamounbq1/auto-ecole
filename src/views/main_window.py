@@ -297,20 +297,29 @@ class MainWindow(QMainWindow):
         """Afficher les paiements"""
         from .widgets.payments_enhanced import PaymentsEnhancedWidget
         
-        self.set_current_module(PaymentsWidget(self.user))
+        self.set_current_module(PaymentsEnhancedWidget(self.user))
         self.statusBar().showMessage("Gestion des Paiements")
         
     def show_instructors(self):
         """Afficher les moniteurs"""
-        self.show_placeholder("Moniteurs", "👨‍🏫")
+        from .widgets.instructors_widget import InstructorsWidget
+        
+        self.set_current_module(InstructorsWidget(self.user))
+        self.statusBar().showMessage("Gestion des Moniteurs")
         
     def show_vehicles(self):
         """Afficher les véhicules"""
-        self.show_placeholder("Véhicules", "🚗")
+        from .widgets.vehicles_widget import VehiclesWidget
+        
+        self.set_current_module(VehiclesWidget(self.user))
+        self.statusBar().showMessage("Gestion des Véhicules")
         
     def show_exams(self):
         """Afficher les examens"""
-        self.show_placeholder("Examens", "📝")
+        from .widgets.exams_widget import ExamsWidget
+        
+        self.set_current_module(ExamsWidget(self.user))
+        self.statusBar().showMessage("Gestion des Examens")
         
     def show_reports(self):
         """Afficher les rapports"""

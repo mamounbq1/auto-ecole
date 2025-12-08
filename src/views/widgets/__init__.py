@@ -7,6 +7,9 @@ from .students_enhanced import StudentsEnhancedWidget
 from .payments_enhanced import PaymentsEnhancedWidget
 from .planning_enhanced import PlanningEnhancedWidget
 from .reports_widget import ReportsWidget
+from .instructors_widget import InstructorsWidget
+from .vehicles_widget import VehiclesWidget
+from .exams_widget import ExamsWidget
 
 __all__ = [
     'DashboardAdvancedWidget',
@@ -14,4 +17,7 @@ __all__ = [
     'PaymentsEnhancedWidget',
     'PlanningEnhancedWidget',
     'ReportsWidget',
+    'InstructorsWidget',
+    'VehiclesWidget',
+    'ExamsWidget',
 ]
