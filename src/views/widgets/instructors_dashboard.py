@@ -1,0 +1,563 @@
+"""
+Instructors Dashboard Widget - Tableau de bord des moniteurs
+Statistiques et analyses des performances des moniteurs
+"""
+
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
+    QGroupBox, QGridLayout, QProgressBar, QComboBox, QScrollArea
+)
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
+from datetime import datetime, timedelta, date
+from typing import Dict, List
+
+from src.controllers.instructor_controller import InstructorController
+from src.controllers.session_controller import SessionController
+from src.models import SessionStatus
+
+
+class InstructorsDashboard(QWidget):
+    """Dashboard des moniteurs avec statistiques de performance"""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.current_period = "all"  # day, week, month, year, all
+        self.setup_ui()
+        self.load_all_stats()
+    
+    def setup_ui(self):
+        """Configurer l'interface"""
+        # Layout principal avec scroll
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Scroll area
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+            QScrollBar:vertical {
+                background: #f0f0f0;
+                width: 10px;
+                border-radius: 5px;
+            }
+            QScrollBar::handle:vertical {
+                background: #3498db;
+                border-radius: 5px;
+                min-height: 30px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #2980b9;
+            }
+        """)
+        
+        # Widget de contenu
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(20, 20, 20, 20)
+        content_layout.setSpacing(20)
+        
+        # Header
+        header = self.create_header()
+        content_layout.addWidget(header)
+        
+        # Cartes statistiques principales (4 cartes)
+        stats_grid = self.create_main_stats()
+        content_layout.addWidget(stats_grid)
+        
+        # Détails (2 colonnes)
+        details = self.create_details_section()
+        content_layout.addWidget(details)
+        
+        scroll.setWidget(content_widget)
+        main_layout.addWidget(scroll)
+    
+    def create_header(self) -> QFrame:
+        """Créer l'en-tête"""
+        header = QFrame()
+        header.setFixedHeight(60)
+        header.setStyleSheet("""
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #3498db, stop:1 #2980b9);
+                border-radius: 8px;
+            }
+        """)
+        
+        layout = QHBoxLayout(header)
+        layout.setContentsMargins(20, 0, 20, 0)
+        
+        # Titre
+        title = QLabel("👨‍🏫 Tableau de Bord Moniteurs")
+        title_font = QFont()
+        title_font.setPointSize(16)
+        title_font.setBold(True)
+        title.setFont(title_font)
+        title.setStyleSheet("color: white;")
+        layout.addWidget(title)
+        
+        layout.addStretch()
+        
+        # Sélecteur période
+        self.period_combo = QComboBox()
+        self.period_combo.addItems(["Aujourd'hui", "Cette semaine", "Ce mois", "Cette année", "Tous"])
+        self.period_combo.setCurrentIndex(4)  # Par défaut: Tous
+        self.period_combo.currentIndexChanged.connect(self.on_period_changed)
+        self.period_combo.setFixedHeight(35)
+        self.period_combo.setStyleSheet("""
+            QComboBox {
+                background-color: white;
+                color: #2c3e50;
+                padding: 5px 15px;
+                border-radius: 5px;
+                font-weight: bold;
+                min-width: 150px;
+            }
+        """)
+        layout.addWidget(self.period_combo)
+        
+        return header
+    
+    def create_main_stats(self) -> QWidget:
+        """Créer les cartes statistiques principales"""
+        container = QWidget()
+        layout = QGridLayout(container)
+        layout.setSpacing(15)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # 4 cartes vides (seront remplies dans load_all_stats)
+        self.card_total = self.create_stat_card("👨‍🏫 MONITEURS ACTIFS", "0", "#3498db")
+        self.card_hours = self.create_stat_card("⏰ HEURES ENSEIGNÉES", "0h", "#27ae60")
+        self.card_avg_rate = self.create_stat_card("📊 TAUX MOYEN RÉUSSITE", "0%", "#9b59b6")
+        self.card_sessions = self.create_stat_card("📅 SESSIONS TOTALES", "0", "#e74c3c")
+        
+        layout.addWidget(self.card_total, 0, 0)
+        layout.addWidget(self.card_hours, 0, 1)
+        layout.addWidget(self.card_avg_rate, 1, 0)
+        layout.addWidget(self.card_sessions, 1, 1)
+        
+        return container
+    
+    def create_stat_card(self, title: str, value: str, color: str) -> QFrame:
+        """Créer une carte statistique"""
+        card = QFrame()
+        card.setFixedHeight(100)
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: white;
+                border: 2px solid #ecf0f1;
+                border-left: 6px solid {color};
+                border-radius: 8px;
+            }}
+            QFrame:hover {{
+                border: 2px solid {color};
+                border-left: 6px solid {color};
+            }}
+        """)
+        
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(15, 10, 15, 10)
+        layout.setSpacing(5)
+        
+        # Titre
+        title_label = QLabel(title)
+        title_font = QFont()
+        title_font.setPointSize(9)
+        title_font.setBold(True)
+        title_label.setFont(title_font)
+        title_label.setStyleSheet("color: #7f8c8d;")
+        layout.addWidget(title_label)
+        
+        # Valeur
+        value_label = QLabel(value)
+        value_label.setObjectName("value_label")
+        value_font = QFont()
+        value_font.setPointSize(24)
+        value_font.setBold(True)
+        value_label.setFont(value_font)
+        value_label.setStyleSheet(f"color: {color};")
+        layout.addWidget(value_label)
+        
+        layout.addStretch()
+        
+        return card
+    
+    def create_details_section(self) -> QWidget:
+        """Créer la section détails (2 colonnes)"""
+        container = QWidget()
+        layout = QHBoxLayout(container)
+        layout.setSpacing(15)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Colonne gauche
+        left = QWidget()
+        left_layout = QVBoxLayout(left)
+        left_layout.setSpacing(15)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Top moniteurs par heures
+        self.top_hours_group = self.create_group("⏰ Top Moniteurs par Heures")
+        left_layout.addWidget(self.top_hours_group)
+        
+        # Distribution disponibilité
+        self.availability_group = self.create_group("📊 Disponibilité")
+        left_layout.addWidget(self.availability_group)
+        
+        left_layout.addStretch()
+        layout.addWidget(left)
+        
+        # Colonne droite
+        right = QWidget()
+        right_layout = QVBoxLayout(right)
+        right_layout.setSpacing(15)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Top par taux de réussite
+        self.top_success_group = self.create_group("🏆 Top Taux de Réussite")
+        right_layout.addWidget(self.top_success_group)
+        
+        # Types de permis
+        self.license_types_group = self.create_group("🚗 Types de Permis")
+        right_layout.addWidget(self.license_types_group)
+        
+        right_layout.addStretch()
+        layout.addWidget(right)
+        
+        return container
+    
+    def create_group(self, title: str) -> QGroupBox:
+        """Créer un groupe avec titre"""
+        group = QGroupBox(title)
+        group.setMinimumHeight(200)
+        group.setMaximumHeight(300)
+        group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                font-size: 13px;
+                background-color: white;
+                border: 2px solid #ecf0f1;
+                border-radius: 8px;
+                padding: 15px;
+                margin-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                padding: 0 5px;
+            }
+        """)
+        
+        layout = QVBoxLayout(group)
+        layout.setSpacing(8)
+        
+        return group
+    
+    def update_card_value(self, card: QFrame, new_value: str):
+        """Mettre à jour la valeur d'une carte"""
+        value_label = card.findChild(QLabel, "value_label")
+        if value_label:
+            value_label.setText(new_value)
+    
+    def load_all_stats(self):
+        """Charger toutes les statistiques"""
+        # Récupérer tous les moniteurs
+        all_instructors = InstructorController.get_all_instructors()
+        
+        # Filtrer les actifs
+        active_instructors = [i for i in all_instructors if i.is_available]
+        
+        # Récupérer sessions pour la période
+        start_date, end_date = self.get_date_range()
+        all_sessions = SessionController.get_sessions_by_date_range(start_date, end_date)
+        sessions = [s for s in all_sessions if s.instructor_id and s.status == SessionStatus.COMPLETED]
+        
+        # Calculs principaux
+        total_active = len(active_instructors)
+        
+        # Heures enseignées (période)
+        total_hours = sum([
+            (s.end_datetime - s.start_datetime).total_seconds() / 3600
+            for s in sessions
+        ]) if sessions else 0
+        
+        # Taux moyen de réussite
+        success_rates = [i.success_rate for i in all_instructors if i.success_rate > 0]
+        avg_success = int(sum(success_rates) / len(success_rates)) if success_rates else 0
+        
+        # Sessions totales
+        total_sessions = len(sessions)
+        
+        # Mettre à jour les cartes
+        self.update_card_value(self.card_total, str(total_active))
+        self.update_card_value(self.card_hours, f"{total_hours:.1f}h")
+        self.update_card_value(self.card_avg_rate, f"{avg_success}%")
+        self.update_card_value(self.card_sessions, str(total_sessions))
+        
+        # Charger détails
+        self.load_top_hours(all_instructors, sessions)
+        self.load_availability(all_instructors)
+        self.load_top_success(all_instructors)
+        self.load_license_types(all_instructors)
+    
+    def load_top_hours(self, instructors: List, sessions: List):
+        """Charger top moniteurs par heures"""
+        layout = self.top_hours_group.layout()
+        
+        # Nettoyer
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        
+        # Calculer heures par moniteur (période)
+        instructor_hours = {}
+        for s in sessions:
+            hours = (s.end_datetime - s.start_datetime).total_seconds() / 3600
+            instructor_hours[s.instructor_id] = instructor_hours.get(s.instructor_id, 0) + hours
+        
+        # Map instructors
+        inst_map = {i.id: i for i in instructors}
+        
+        # Top 5
+        for i, (inst_id, hours) in enumerate(sorted(instructor_hours.items(), key=lambda x: x[1], reverse=True)[:5]):
+            inst = inst_map.get(inst_id)
+            if not inst:
+                continue
+            
+            row_widget = QWidget()
+            row = QHBoxLayout(row_widget)
+            row.setContentsMargins(0, 2, 0, 2)
+            row.setSpacing(8)
+            
+            rank = QLabel(f"{i+1}.")
+            rank.setFixedWidth(20)
+            rank.setStyleSheet("color: #f39c12; font-weight: bold;")
+            row.addWidget(rank)
+            
+            name = QLabel(inst.full_name[:22])
+            name.setStyleSheet("color: #2c3e50; font-size: 11px;")
+            row.addWidget(name, stretch=1)
+            
+            hours_label = QLabel(f"{hours:.1f}h")
+            hours_label.setFixedWidth(60)
+            hours_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            hours_label.setStyleSheet("color: #3498db; font-weight: bold; font-size: 11px;")
+            row.addWidget(hours_label)
+            
+            layout.addWidget(row_widget)
+        
+        if not instructor_hours:
+            no_data = QLabel("Aucune session")
+            no_data.setStyleSheet("color: #95a5a6; font-style: italic;")
+            layout.addWidget(no_data)
+    
+    def load_availability(self, instructors: List):
+        """Charger distribution disponibilité"""
+        layout = self.availability_group.layout()
+        
+        # Nettoyer
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        
+        total = len(instructors)
+        available = len([i for i in instructors if i.is_available])
+        unavailable = total - available
+        
+        # Disponibles
+        avail_label = QLabel(f"Disponibles: {available}")
+        avail_label.setStyleSheet("color: #2c3e50; font-size: 11px;")
+        layout.addWidget(avail_label)
+        
+        avail_bar = QProgressBar()
+        avail_pct = int((available / total * 100)) if total > 0 else 0
+        avail_bar.setValue(avail_pct)
+        avail_bar.setFixedHeight(20)
+        avail_bar.setFormat(f"{avail_pct}%")
+        avail_bar.setStyleSheet("""
+            QProgressBar {
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                background-color: #f5f5f5;
+                text-align: center;
+                color: #2c3e50;
+                font-weight: bold;
+                font-size: 10px;
+            }
+            QProgressBar::chunk {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #27ae60, stop:1 #229954);
+                border-radius: 3px;
+            }
+        """)
+        layout.addWidget(avail_bar)
+        
+        # Indisponibles
+        unavail_label = QLabel(f"Indisponibles: {unavailable}")
+        unavail_label.setStyleSheet("color: #2c3e50; font-size: 11px; padding-top: 8px;")
+        layout.addWidget(unavail_label)
+        
+        unavail_bar = QProgressBar()
+        unavail_pct = int((unavailable / total * 100)) if total > 0 else 0
+        unavail_bar.setValue(unavail_pct)
+        unavail_bar.setFixedHeight(20)
+        unavail_bar.setFormat(f"{unavail_pct}%")
+        unavail_bar.setStyleSheet("""
+            QProgressBar {
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                background-color: #f5f5f5;
+                text-align: center;
+                color: #2c3e50;
+                font-weight: bold;
+                font-size: 10px;
+            }
+            QProgressBar::chunk {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #e74c3c, stop:1 #c0392b);
+                border-radius: 3px;
+            }
+        """)
+        layout.addWidget(unavail_bar)
+        
+        if total == 0:
+            no_data = QLabel("Aucun moniteur")
+            no_data.setStyleSheet("color: #95a5a6; font-style: italic;")
+            layout.addWidget(no_data)
+    
+    def load_top_success(self, instructors: List):
+        """Charger top par taux de réussite"""
+        layout = self.top_success_group.layout()
+        
+        # Nettoyer
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        
+        # Filtrer et trier
+        sorted_inst = sorted(
+            [i for i in instructors if i.success_rate > 0],
+            key=lambda x: x.success_rate,
+            reverse=True
+        )[:5]
+        
+        for i, inst in enumerate(sorted_inst):
+            row_widget = QWidget()
+            row = QHBoxLayout(row_widget)
+            row.setContentsMargins(0, 2, 0, 2)
+            row.setSpacing(8)
+            
+            rank = QLabel(f"{i+1}.")
+            rank.setFixedWidth(20)
+            rank.setStyleSheet("color: #f39c12; font-weight: bold;")
+            row.addWidget(rank)
+            
+            name = QLabel(inst.full_name[:22])
+            name.setStyleSheet("color: #2c3e50; font-size: 11px;")
+            row.addWidget(name, stretch=1)
+            
+            rate_label = QLabel(f"{inst.success_rate}%")
+            rate_label.setFixedWidth(60)
+            rate_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            rate_label.setStyleSheet("color: #27ae60; font-weight: bold; font-size: 11px;")
+            row.addWidget(rate_label)
+            
+            layout.addWidget(row_widget)
+        
+        if not sorted_inst:
+            no_data = QLabel("Aucune donnée")
+            no_data.setStyleSheet("color: #95a5a6; font-style: italic;")
+            layout.addWidget(no_data)
+    
+    def load_license_types(self, instructors: List):
+        """Charger types de permis"""
+        layout = self.license_types_group.layout()
+        
+        # Nettoyer
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        
+        # Compter types
+        license_counts = {}
+        for inst in instructors:
+            for lt in inst.license_types_list:
+                license_counts[lt] = license_counts.get(lt, 0) + 1
+        
+        total = len(instructors)
+        
+        # Afficher top types
+        for lt, count in sorted(license_counts.items(), key=lambda x: x[1], reverse=True)[:5]:
+            label = QLabel(f"Permis {lt}: {count} moniteurs")
+            label.setStyleSheet("color: #2c3e50; font-size: 11px;")
+            layout.addWidget(label)
+            
+            bar = QProgressBar()
+            pct = int((count / total * 100)) if total > 0 else 0
+            bar.setValue(pct)
+            bar.setFixedHeight(20)
+            bar.setFormat(f"{pct}%")
+            bar.setStyleSheet("""
+                QProgressBar {
+                    border: 1px solid #e0e0e0;
+                    border-radius: 4px;
+                    background-color: #f5f5f5;
+                    text-align: center;
+                    color: #2c3e50;
+                    font-weight: bold;
+                    font-size: 10px;
+                }
+                QProgressBar::chunk {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #9b59b6, stop:1 #8e44ad);
+                    border-radius: 3px;
+                }
+            """)
+            layout.addWidget(bar)
+        
+        if not license_counts:
+            no_data = QLabel("Aucun type")
+            no_data.setStyleSheet("color: #95a5a6; font-style: italic;")
+            layout.addWidget(no_data)
+    
+    def on_period_changed(self, index: int):
+        """Changement de période"""
+        period_map = {0: "day", 1: "week", 2: "month", 3: "year", 4: "all"}
+        self.current_period = period_map.get(index, "all")
+        self.load_all_stats()
+    
+    def get_date_range(self) -> tuple:
+        """Obtenir plage de dates selon période"""
+        today = date.today()
+        
+        if self.current_period == "day":
+            return today, today
+        elif self.current_period == "week":
+            days_since_monday = today.weekday()
+            start = today - timedelta(days=days_since_monday)
+            end = start + timedelta(days=6)
+            return start, end
+        elif self.current_period == "month":
+            start = today.replace(day=1)
+            if today.month == 12:
+                end = today.replace(year=today.year + 1, month=1, day=1) - timedelta(days=1)
+            else:
+                end = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
+            return start, end
+        elif self.current_period == "year":
+            start = today.replace(month=1, day=1)
+            end = today.replace(month=12, day=31)
+            return start, end
+        else:  # all
+            start = date(2000, 1, 1)
+            end = date(2099, 12, 31)
+            return start, end
