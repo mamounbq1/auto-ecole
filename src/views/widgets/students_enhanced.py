@@ -182,7 +182,7 @@ class StudentDetailDialog(QDialog):
         
         self.hours_planned.setValue(self.student.hours_planned or 20)
         self.hours_completed.setValue(self.student.hours_completed or 0)
-        self.theory_test_attempts.setValue(self.student.theory_test_attempts or 0)
+        self.theory_test_attempts.setValue(self.student.theoretical_exam_attempts or 0)
         self.practical_test_attempts.setValue(self.student.practical_test_attempts or 0)
         
         self.total_due.setValue(self.student.total_due or 0)
@@ -216,8 +216,8 @@ class StudentDetailDialog(QDialog):
             'status': self.status.currentData(),
             'hours_planned': self.hours_planned.value(),
             'hours_completed': self.hours_completed.value(),
-            'theory_test_attempts': self.theory_test_attempts.value(),
-            'practical_test_attempts': self.practical_test_attempts.value(),
+            'theoretical_exam_attempts': self.theory_test_attempts.value(),
+            'practical_exam_attempts': self.practical_test_attempts.value(),
             'total_due': self.total_due.value(),
         }
         

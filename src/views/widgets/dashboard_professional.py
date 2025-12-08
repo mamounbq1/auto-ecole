@@ -81,7 +81,6 @@ class ModernStatCard(QFrame):
             }}
             QFrame#modernStatCard:hover {{
                 background-color: #f8f9fa;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             }}
         """)
         self.setMinimumHeight(150)
@@ -615,8 +614,9 @@ class DashboardProfessionalWidget(QWidget):
         
         sessions_by_day = [0] * 7
         for session in all_sessions:
-            if session.session_date >= start_week:
-                day_index = (session.session_date - start_week).days
+            session_date = session.start_datetime.date()
+            if session_date >= start_week:
+                day_index = (session_date - start_week).days
                 if 0 <= day_index < 7:
                     sessions_by_day[day_index] += 1
         
