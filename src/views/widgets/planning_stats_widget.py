@@ -30,9 +30,51 @@ class PlanningStatsWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.current_period = "week"  # week, month, year
+        
+        # Calculer les stats AVANT de créer l'UI
+        self.stats_data = self.calculate_stats()
+        
         self.setup_ui()
-        # Charger stats après que l'UI soit rendue
-        QTimer.singleShot(100, self.load_stats)
+        
+        # Plus besoin de load_stats ici, les cartes sont créées avec les bonnes valeurs
+    
+    def calculate_stats(self):
+        """Calculer statistiques SANS modifier l'UI"""
+        start_date, end_date = self.get_date_range()
+        sessions = SessionController.get_sessions_by_date_range(start_date, end_date)
+        
+        total = len(sessions) if sessions else 0
+        completed = len([s for s in sessions if s.status == SessionStatus.COMPLETED]) if sessions else 0
+        cancelled = len([s for s in sessions if s.status == SessionStatus.CANCELLED]) if sessions else 0
+        
+        completed_pct = int((completed / total * 100)) if total > 0 else 0
+        cancelled_pct = int((cancelled / total * 100)) if total > 0 else 0
+        
+        planned_hours = 0
+        realized_hours = 0
+        if sessions:
+            planned_hours = sum([
+                (s.end_datetime - s.start_datetime).total_seconds() / 3600
+                for s in sessions
+            ])
+            realized_hours = sum([
+                (s.end_datetime - s.start_datetime).total_seconds() / 3600
+                for s in sessions if s.status == SessionStatus.COMPLETED
+            ])
+        
+        utilization = int((realized_hours / planned_hours * 100)) if planned_hours > 0 else 0
+        
+        return {
+            'total': total,
+            'completed': completed,
+            'completed_pct': completed_pct,
+            'cancelled': cancelled,
+            'cancelled_pct': cancelled_pct,
+            'planned_hours': planned_hours,
+            'realized_hours': realized_hours,
+            'utilization': utilization,
+            'sessions': sessions if sessions else []
+        }
     
     def setup_ui(self):
         """Configurer l'interface"""
@@ -133,35 +175,37 @@ class PlanningStatsWidget(QWidget):
         stats_layout.setSpacing(12)
         stats_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Sessions
+        # Sessions - CRÉER avec les VRAIES valeurs dès le début
+        stats = self.stats_data
+        
         self.total_sessions_card = self.create_stat_card(
-            "📅 SESSIONS TOTALES", "0", "#3498db"
+            "📅 SESSIONS TOTALES", str(stats['total']), "#3498db"
         )
         stats_layout.addWidget(self.total_sessions_card, 0, 0)
         
         self.completed_sessions_card = self.create_stat_card(
-            "✅ TERMINÉES", "0 (0%)", "#27ae60"
+            "✅ TERMINÉES", f"{stats['completed']} ({stats['completed_pct']}%)", "#27ae60"
         )
         stats_layout.addWidget(self.completed_sessions_card, 0, 1)
         
         self.cancelled_sessions_card = self.create_stat_card(
-            "❌ ANNULÉES", "0 (0%)", "#e74c3c"
+            "❌ ANNULÉES", f"{stats['cancelled']} ({stats['cancelled_pct']}%)", "#e74c3c"
         )
         stats_layout.addWidget(self.cancelled_sessions_card, 0, 2)
         
         # Heures
         self.planned_hours_card = self.create_stat_card(
-            "⏰ HEURES PLANIFIÉES", "0h", "#9b59b6"
+            "⏰ HEURES PLANIFIÉES", f"{stats['planned_hours']:.1f}h", "#9b59b6"
         )
         stats_layout.addWidget(self.planned_hours_card, 1, 0)
         
         self.realized_hours_card = self.create_stat_card(
-            "✅ HEURES RÉALISÉES", "0h", "#27ae60"
+            "✅ HEURES RÉALISÉES", f"{stats['realized_hours']:.1f}h", "#27ae60"
         )
         stats_layout.addWidget(self.realized_hours_card, 1, 1)
         
         self.utilization_card = self.create_stat_card(
-            "📊 TAUX UTILISATION", "0%", "#f39c12"
+            "📊 TAUX UTILISATION", f"{stats['utilization']}%", "#f39c12"
         )
         stats_layout.addWidget(self.utilization_card, 1, 2)
         
@@ -427,10 +471,23 @@ class PlanningStatsWidget(QWidget):
         layout.addWidget(group)
     
     def on_period_changed(self, index):
-        """Changement de période"""
+        """Changement de période - RECRÉER toute l'UI"""
         period_map = {0: "week", 1: "month", 2: "year"}
         self.current_period = period_map.get(index, "week")
-        self.load_stats()
+        
+        # Recalculer stats
+        self.stats_data = self.calculate_stats()
+        
+        # DÉTRUIRE et RECRÉER toute l'UI
+        # Supprimer tous les widgets
+        layout = self.layout()
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        
+        # Recréer l'UI avec les nouvelles valeurs
+        self.setup_ui()
     
     def get_date_range(self):
         """Obtenir plage de dates selon période"""
@@ -457,56 +514,33 @@ class PlanningStatsWidget(QWidget):
         return start, end
     
     def load_stats(self):
-        """Charger les statistiques"""
+        """Charger les statistiques - UTILISE stats_data déjà calculées"""
         print("📊 [DEBUG] load_stats() appelée")
+        
+        # Recalculer
+        self.stats_data = self.calculate_stats()
+        stats = self.stats_data
+        
+        print(f"📊 [DEBUG] {stats['total']} sessions trouvées")
+        print(f"📊 [DEBUG] Mise à jour cartes: total={stats['total']}, completed={stats['completed']}, cancelled={stats['cancelled']}")
+        
+        # Les cartes du bas (moniteurs, véhicules, etc.)
         start_date, end_date = self.get_date_range()
-        sessions = SessionController.get_sessions_by_date_range(start_date, end_date)
-        print(f"📊 [DEBUG] {len(sessions) if sessions else 0} sessions trouvées")
-        
-        # Stats de base
-        total = len(sessions) if sessions else 0
-        completed = len([s for s in sessions if s.status == SessionStatus.COMPLETED]) if sessions else 0
-        cancelled = len([s for s in sessions if s.status == SessionStatus.CANCELLED]) if sessions else 0
-        
-        completed_pct = int((completed / total * 100)) if total > 0 else 0
-        cancelled_pct = int((cancelled / total * 100)) if total > 0 else 0
-        
-        # Heures
-        planned_hours = 0
-        realized_hours = 0
-        if sessions:
-            planned_hours = sum([
-                (s.end_datetime - s.start_datetime).total_seconds() / 3600
-                for s in sessions
-            ])
-            realized_hours = sum([
-                (s.end_datetime - s.start_datetime).total_seconds() / 3600
-                for s in sessions if s.status == SessionStatus.COMPLETED
-            ])
-        
-        utilization = int((realized_hours / planned_hours * 100)) if planned_hours > 0 else 0
-        
-        # Mettre à jour UI - TOUJOURS afficher, même si 0
-        print(f"📊 [DEBUG] Mise à jour cartes: total={total}, completed={completed}, cancelled={cancelled}")
-        self.update_stat_card(self.total_sessions_card, str(total))
-        self.update_stat_card(self.completed_sessions_card, f"{completed} ({completed_pct}%)")
-        self.update_stat_card(self.cancelled_sessions_card, f"{cancelled} ({cancelled_pct}%)")
-        self.update_stat_card(self.planned_hours_card, f"{planned_hours:.1f}h")
-        self.update_stat_card(self.realized_hours_card, f"{realized_hours:.1f}h")
-        self.update_stat_card(self.utilization_card, f"{utilization}%")
-        print("📊 [DEBUG] Cartes mises à jour")
+        sessions = stats['sessions']
         
         # Stats moniteurs
-        self.load_instructor_stats(sessions if sessions else [])
+        self.load_instructor_stats(sessions)
         
         # Répartition par type
-        self.load_type_distribution(sessions if sessions else [])
+        self.load_type_distribution(sessions)
         
         # Stats véhicules
-        self.load_vehicle_stats(sessions if sessions else [])
+        self.load_vehicle_stats(sessions)
         
         # Métriques performance
-        self.load_performance_metrics(sessions if sessions else [], start_date, end_date)
+        self.load_performance_metrics(sessions, start_date, end_date)
+        
+        print("📊 [DEBUG] Chargement stats terminé")
     
     def update_stat_card(self, card, value):
         """Mettre à jour valeur carte stat - MÉTHODE RADICALE"""
