@@ -50,8 +50,9 @@ class ModernStatCard(QFrame):
         # Valeur principale
         value_label = QLabel(str(value))
         value_label.setAlignment(Qt.AlignLeft)
+        value_label.setWordWrap(True)
         font = QFont()
-        font.setPointSize(32)
+        font.setPointSize(18)
         font.setBold(True)
         value_label.setFont(font)
         value_label.setStyleSheet(f"color: {color};")
@@ -388,9 +389,7 @@ class DashboardProfessionalWidget(QWidget):
         title.setStyleSheet("color: #2c3e50; font-size: 16px; font-weight: bold; margin-bottom: 10px;")
         layout.addWidget(title)
         
-        # Liste des alertes
-        self.alerts_layout = QVBoxLayout()
-        layout.addLayout(self.alerts_layout)
+        # Liste des alertests_layout)
         
         layout.addStretch()
         
@@ -620,6 +619,8 @@ class DashboardProfessionalWidget(QWidget):
         
         # Compter par jour de la semaine
         today = datetime.now().date()
+        start_week = today - timedelta(days=today.weekday())
+ime.now().date()
         start_week = today - timedelta(days=today.weekday())
         
         sessions_by_day = [0] * 7
