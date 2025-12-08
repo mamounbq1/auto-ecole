@@ -1,51 +1,136 @@
-# 🚗 Application de Gestion Auto-École
+# 🚗 Auto-École Manager - Application de Gestion Complète
 
-## 📋 Description
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/status-production--ready-brightgreen.svg)]()
 
-Application complète de gestion pour auto-école permettant de digitaliser et automatiser la gestion des élèves, moniteurs, véhicules, planning, paiements et examens.
+Application complète de gestion pour auto-école avec interface graphique moderne (PySide6), permettant de digitaliser et automatiser la gestion des élèves, moniteurs, véhicules, planning, paiements et examens.
+
+## 🎯 Installation rapide (Windows)
+
+### Méthode 1 : Double-clic (Recommandé) ⭐
+
+1. **Télécharger** le projet depuis GitHub
+2. **Ouvrir** le dossier `auto-ecole-main`
+3. **Double-cliquer** sur `SIMPLE_SETUP.bat` (initialisation)
+4. **Double-cliquer** sur `AUTO_ECOLE.bat` (lancement)
+5. **Se connecter** : `admin` / `Admin123!`
+
+### Méthode 2 : Ligne de commande
+
+```bash
+cd "C:\Users\DELL\Downloads\WTSP IMG\auto-ecole-main"
+python src\init_db.py
+python src\main_gui.py
+```
+
+**📖 Guide complet** : Voir [`DEMARRAGE_RAPIDE.md`](DEMARRAGE_RAPIDE.md)
+
+---
 
 ## ✨ Fonctionnalités Principales
 
-### 🎯 MVP (Version 1.0)
+### 7 Modules complets
 
-- **Gestion des élèves** : CRUD complet, historique, import/export CSV
-- **Gestion des moniteurs** : Fiches moniteurs, disponibilités
-- **Gestion des véhicules** : Immatriculation, maintenance, disponibilité
-- **Planning intelligent** : Calendrier interactif, affectation automatique
-- **Paiements & Facturation** : Suivi des paiements, génération de reçus PDF
-- **Examens** : Gestion sessions d'examen, convocations
-- **Authentification & Rôles** : Admin, Caissier, Moniteur, Réceptionniste
-- **Rapports & Statistiques** : Dashboard, CA, KPIs
-- **Sauvegarde/Restauration** : Backup automatique de la base de données
+1. **📊 Dashboard** - Statistiques en temps réel avec graphiques
+   - Élèves actifs, CA mensuel, sessions du jour
+   - Graphiques : évolution CA, répartition élèves, taux de réussite
+
+2. **🎓 Élèves** - Gestion complète des apprenants
+   - CRUD complet, historique, progression
+   - Import/export CSV, filtres avancés
+
+3. **💰 Paiements** - Suivi financier professionnel
+   - Méthodes multiples (Espèces, Carte, Chèque, Virement)
+   - Génération de reçus PDF, catégorisation
+
+4. **📅 Planning** - Calendrier intelligent
+   - Planification des sessions de conduite
+   - Affectation moniteur + véhicule, vue calendrier
+
+5. **👨‍🏫 Moniteurs** - Gestion des instructeurs
+   - Types de permis, disponibilités, salaires
+   - Statistiques de performance
+
+6. **🚗 Véhicules** - Gestion de la flotte
+   - Suivi kilométrage, maintenances planifiées
+   - Coûts, assurances, contrôles techniques
+
+7. **📝 Examens** - Gestion complète des examens
+   - Planification théorique/pratique
+   - Convocations PDF, résultats, statistiques
+
+### Fonctionnalités transversales
+
+- ✅ **Authentification** avec 4 rôles (Admin, Caissier, Moniteur, Réceptionniste)
+- ✅ **Génération PDF** professionnelle (reçus, convocations, rapports)
+- ✅ **Export CSV** pour tous les modules
+- ✅ **Graphiques** avec matplotlib/seaborn
+- ✅ **Sauvegarde/Restauration** de la base de données
+
+---
 
 ## 🛠️ Stack Technique
 
-- **Frontend** : PySide6 (Qt for Python)
-- **Backend** : Python 3.9+
-- **Base de données** : SQLite avec SQLAlchemy ORM
-- **Sécurité** : bcrypt pour les mots de passe
-- **Génération PDF** : ReportLab
-- **Export Excel** : openpyxl, pandas
-- **Internationalisation** : gettext (FR/AR)
+| Composant | Technologie |
+|-----------|-------------|
+| **Interface** | PySide6 (Qt 6 for Python) |
+| **Backend** | Python 3.8+ |
+| **Base de données** | SQLite + SQLAlchemy ORM |
+| **Graphiques** | Matplotlib, Seaborn |
+| **PDF** | ReportLab |
+| **Export** | CSV natif Python |
 
-## 📦 Installation
+---
+
+## 📦 Installation détaillée
 
 ### Prérequis
 
+- **Python 3.8+** ([Télécharger](https://www.python.org/downloads/))
+- **Windows 10/11** (testé et validé)
+
+### Étape 1 : Cloner le projet
+
 ```bash
-Python 3.9 ou supérieur
+git clone https://github.com/mamounbq1/auto-ecole.git
+cd auto-ecole
 ```
 
-### Dépendances
+### Étape 2 : Installer les dépendances
+
+```bash
+pip install sqlalchemy PySide6 reportlab matplotlib seaborn
+```
+
+Ou avec requirements.txt :
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Configuration initiale
+### Étape 3 : Initialiser la base de données
 
+**Windows** :
 ```bash
-python src/init_db.py
+SIMPLE_SETUP.bat
+```
+
+**Ligne de commande** :
+```bash
+python src\init_db.py
+```
+
+### Étape 4 : Lancer l'application
+
+**Windows** :
+```bash
+AUTO_ECOLE.bat
+```
+
+**Ligne de commande** :
+```bash
+python src\main_gui.py
 ```
 
 Compte admin par défaut :
