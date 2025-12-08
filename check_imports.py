@@ -142,6 +142,10 @@ try:
                     import_issues.append(f"{file_path}: imports LicenseType (doesn't exist)")
                 if 'PaymentCategory' in content and 'PAYMENT_CATEGORIES' not in content:
                     import_issues.append(f"{file_path}: imports PaymentCategory (doesn't exist)")
+                if 'ExamStatus' in content:
+                    import_issues.append(f"{file_path}: imports ExamStatus (should be ExamResult)")
+                if 'ExamType.THEORY ' in content or 'ExamType.THEORY)' in content:
+                    import_issues.append(f"{file_path}: uses ExamType.THEORY (should be ExamType.THEORETICAL)")
     
     if missing_files:
         errors.append(f"Missing GUI files: {missing_files}")
