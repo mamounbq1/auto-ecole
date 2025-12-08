@@ -380,7 +380,9 @@ class DashboardProfessionalWidget(QWidget):
         title.setStyleSheet("color: #2c3e50; font-size: 16px; font-weight: bold; margin-bottom: 10px;")
         layout.addWidget(title)
         
-        # Liste des alertests_layout)
+        # Conteneur des alertes
+        self.alerts_layout = QVBoxLayout()
+        layout.addLayout(self.alerts_layout)
         
         layout.addStretch()
         

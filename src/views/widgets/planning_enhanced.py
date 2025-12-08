@@ -78,7 +78,7 @@ class SessionDialog(QDialog):
         vehicles = VehicleController.get_all_vehicles()
         for vehicle in vehicles:
             self.vehicle_combo.addItem(
-                f"{vehicle.make} {vehicle.model} ({vehicle.license_plate})",
+                f"{vehicle.make} {vehicle.model} ({vehicle.plate_number})",
                 vehicle.id
             )
         
