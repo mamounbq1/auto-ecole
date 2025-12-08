@@ -18,6 +18,7 @@ from src.controllers.vehicle_controller import VehicleController
 from src.models import SessionStatus, SessionType
 from src.views.widgets.session_detail_view import SessionDetailViewDialog
 from src.views.widgets.planning_week_view import PlanningWeekView
+from src.views.widgets.planning_stats_widget import PlanningStatsWidget
 
 
 class SessionDialog(QDialog):
@@ -203,6 +204,7 @@ class PlanningEnhancedWidget(QWidget):
         self.day_btn.setChecked(True)
         self.week_btn.setChecked(False)
         self.month_btn.setChecked(False)
+        self.stats_btn.setChecked(False)
         
         # Effacer vue actuelle
         self.clear_view()
@@ -381,6 +383,7 @@ class PlanningEnhancedWidget(QWidget):
         self.day_btn.setChecked(False)
         self.week_btn.setChecked(True)
         self.month_btn.setChecked(False)
+        self.stats_btn.setChecked(False)
         
         # Effacer vue actuelle
         self.clear_view()
@@ -397,6 +400,7 @@ class PlanningEnhancedWidget(QWidget):
         self.day_btn.setChecked(False)
         self.week_btn.setChecked(False)
         self.month_btn.setChecked(True)
+        self.stats_btn.setChecked(False)
         
         # Effacer vue actuelle
         self.clear_view()
@@ -412,6 +416,23 @@ class PlanningEnhancedWidget(QWidget):
             }
         """)
         self.view_layout.addWidget(placeholder)
+    
+    def show_stats_view(self):
+        """Afficher les statistiques"""
+        self.current_view = "stats"
+        
+        # Mettre à jour boutons
+        self.day_btn.setChecked(False)
+        self.week_btn.setChecked(False)
+        self.month_btn.setChecked(False)
+        self.stats_btn.setChecked(True)
+        
+        # Effacer vue actuelle
+        self.clear_view()
+        
+        # Créer vue stats
+        self.stats_view = PlanningStatsWidget(parent=self)
+        self.view_layout.addWidget(self.stats_view)
     
     def clear_view(self):
         """Effacer la vue actuelle"""
@@ -449,12 +470,14 @@ class PlanningEnhancedWidget(QWidget):
         self.day_btn = QPushButton("📅 Jour")
         self.week_btn = QPushButton("📊 Semaine")
         self.month_btn = QPushButton("📆 Mois")
+        self.stats_btn = QPushButton("📈 Statistiques")
         
         self.day_btn.clicked.connect(self.show_day_view)
         self.week_btn.clicked.connect(self.show_week_view)
         self.month_btn.clicked.connect(self.show_month_view)
+        self.stats_btn.clicked.connect(self.show_stats_view)
         
-        for btn in [self.day_btn, self.week_btn, self.month_btn]:
+        for btn in [self.day_btn, self.week_btn, self.month_btn, self.stats_btn]:
             btn.setStyleSheet("""
                 QPushButton {
                     background-color: #ecf0f1;
@@ -480,6 +503,7 @@ class PlanningEnhancedWidget(QWidget):
         header_layout.addWidget(self.day_btn)
         header_layout.addWidget(self.week_btn)
         header_layout.addWidget(self.month_btn)
+        header_layout.addWidget(self.stats_btn)
         
         refresh_btn = QPushButton("🔄 Actualiser")
         refresh_btn.clicked.connect(self.load_sessions)
