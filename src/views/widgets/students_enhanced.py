@@ -621,8 +621,8 @@ class StudentsEnhancedWidget(QWidget):
             self.table.setCellWidget(row, 8, actions_widget)
     
     def add_student(self):
-        """Ajouter un élève"""
-        dialog = StudentDetailDialog(parent=self)
+        """Ajouter un élève avec le formulaire moderne à 6 onglets"""
+        dialog = StudentDetailViewDialog(student=None, parent=self, read_only=False)
         if dialog.exec():
             self.load_students()
     
