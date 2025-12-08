@@ -281,10 +281,12 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("Dashboard Professionnel")
         except Exception as e:
             # Fallback vers dashboard simple en cas d'erreur
-            print(f"Erreur dashboard professionnel: {e}")
+            print(f"[ERREUR] Dashboard professionnel: {e}")
+            import traceback
+            traceback.print_exc()
             from .widgets.dashboard_simple import DashboardSimpleWidget
             self.set_current_module(DashboardSimpleWidget(self.user))
-            self.statusBar().showMessage("Dashboard")
+            self.statusBar().showMessage("Dashboard Simple (Fallback)")
         
         # Version avec graphiques matplotlib (désactivée)
         # try:
