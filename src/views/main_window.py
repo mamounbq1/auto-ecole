@@ -32,11 +32,8 @@ class MainWindow(QMainWindow):
         self.create_toolbar()
         self.create_status_bar()
         
-        # Afficher le module Paiements par défaut (élèves et dashboard instables)
-        # Pour réactiver le dashboard, décommentez la ligne ci-dessous
-        # self.show_dashboard()
-        # self.show_students()
-        self.show_payments()
+        # Afficher le Dashboard professionnel par défaut
+        self.show_dashboard()
         
     def setup_ui(self):
         """Configurer l'interface utilisateur"""
@@ -277,13 +274,19 @@ class MainWindow(QMainWindow):
     # Méthodes pour afficher les différents modules
     def show_dashboard(self):
         """Afficher le dashboard"""
-        # Utiliser le dashboard simple par défaut (stable, pas de matplotlib)
-        # Pour réactiver le dashboard avancé, décommentez les lignes ci-dessous
-        from .widgets.dashboard_simple import DashboardSimpleWidget
-        self.set_current_module(DashboardSimpleWidget(self.user))
-        self.statusBar().showMessage("Dashboard")
+        # Utiliser le dashboard professionnel avec QtCharts (stable, moderne)
+        try:
+            from .widgets.dashboard_professional import DashboardProfessionalWidget
+            self.set_current_module(DashboardProfessionalWidget(self.user))
+            self.statusBar().showMessage("Dashboard Professionnel")
+        except Exception as e:
+            # Fallback vers dashboard simple en cas d'erreur
+            print(f"Erreur dashboard professionnel: {e}")
+            from .widgets.dashboard_simple import DashboardSimpleWidget
+            self.set_current_module(DashboardSimpleWidget(self.user))
+            self.statusBar().showMessage("Dashboard")
         
-        # Version avec graphiques matplotlib (peut causer des crashes)
+        # Version avec graphiques matplotlib (désactivée)
         # try:
         #     from .widgets.dashboard_advanced import DashboardAdvancedWidget
         #     self.set_current_module(DashboardAdvancedWidget(self.user))
