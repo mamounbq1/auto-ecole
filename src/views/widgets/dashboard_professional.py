@@ -156,13 +156,10 @@ class DashboardProfessionalWidget(QWidget):
         """)
         header_layout.addWidget(self.refresh_btn)
         
-        layout.addLayout(header_layout)
-        
-        # Sous-titre avec date
-        self.date_label = QLabel()
-        self.date_label.setStyleSheet("color: #7f8c8d; font-size: 11px; margin-bottom: 5px;")
+        # Mettre à jour la date (déjà dans header_layout)
         self.update_date()
-        layout.addWidget(self.date_label)
+        
+        layout.addLayout(header_layout)
         
         # Grille de cartes statistiques (KPI)
         self.stats_grid = QGridLayout()
