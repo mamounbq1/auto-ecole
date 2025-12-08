@@ -1,0 +1,6 @@
+full_name,cin,date_of_birth,phone,email,address,license_type,status,hours_planned,hours_completed,theoretical_exam_attempts,practical_exam_attempts,total_due,total_paid,notes
+Ahmed Bennani,AB123456,1995-05-15,+212-600-111222,ahmed@example.com,123 Rue Casa Maroc,B,actif,20,5,1,0,5000,2000,Bon élève motivé
+Fatima Alaoui,FA987654,1998-08-22,+212-600-333444,fatima@example.com,456 Ave Rabat Maroc,B,actif,30,10,2,1,7500,5000,Très assidue
+Karim Benjelloun,KB555555,1997-11-10,+212-600-555666,karim@example.com,789 Bd Fes Maroc,C,en_attente,25,0,0,0,6000,0,Début de formation
+Sara El Amrani,SE444444,1996-03-18,+212-600-777888,sara@example.com,321 Rue Tanger Maroc,B,diplome,40,40,3,2,8000,8000,Diplômée avec succès
+Mohamed Idrissi,MI333333,1999-07-25,+212-600-999000,mohamed@example.com,654 Ave Meknes Maroc,A,suspendu,15,8,1,0,4500,1500,Problèmes de ponctualité
