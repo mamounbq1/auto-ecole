@@ -1,0 +1,96 @@
+{
+    "app": {
+        "name": "Auto-École Manager",
+        "version": "1.0.0",
+        "language": "fr",
+        "theme": "light"
+    },
+    "center": {
+        "name": "Auto-École Excellence",
+        "address": "123 Avenue Mohammed V",
+        "city": "Casablanca",
+        "postal_code": "20000",
+        "phone": "+212 5XX-XXXXXX",
+        "email": "contact@autoecole-excellence.ma",
+        "website": "www.autoecole-excellence.ma",
+        "siret": "123456789",
+        "tva_number": "MA123456789",
+        "license_number": "AE-2024-001",
+        "director_name": "Mohammed ALAMI"
+    },
+    "database": {
+        "path": "data/autoecole.db",
+        "backup_on_start": true,
+        "auto_backup_interval": 3600
+    },
+    "security": {
+        "session_timeout": 7200,
+        "password_min_length": 8,
+        "password_require_special": true,
+        "max_login_attempts": 5
+    },
+    "paths": {
+        "exports": "exports",
+        "backups": "backups",
+        "logs": "logs",
+        "resources": "src/resources"
+    },
+    "pdf": {
+        "page_size": "A4",
+        "auto_print": false,
+        "company_logo": null
+    },
+    "session_types": [
+        "Conduite pratique",
+        "Cours théorique",
+        "Examen code",
+        "Examen pratique",
+        "Simulation",
+        "Créneau route",
+        "Créneau ville",
+        "Créneau autoroute"
+    ],
+    "payment_methods": [
+        "Espèces",
+        "Carte bancaire",
+        "Chèque",
+        "Virement",
+        "Mobile money"
+    ],
+    "student_statuses": [
+        "Actif",
+        "En attente",
+        "Suspendu",
+        "Diplômé",
+        "Abandonné"
+    ],
+    "vehicle_statuses": [
+        "Disponible",
+        "En service",
+        "En maintenance",
+        "Hors service"
+    ],
+    "formats": {
+        "date": "DD/MM/YYYY",
+        "time": "HH:mm",
+        "datetime": "DD/MM/YYYY HH:mm",
+        "currency": "DH",
+        "decimal_places": 2
+    },
+    "working_hours": {
+        "start": "08:00",
+        "end": "18:00",
+        "session_duration": 60
+    },
+    "notifications": {
+        "enable_email": false,
+        "enable_sms": false,
+        "email_host": "",
+        "email_port": 587,
+        "sms_provider": ""
+    },
+    "reports": {
+        "fiscal_year_start": "01-01",
+        "default_currency": "MAD"
+    }
+}
