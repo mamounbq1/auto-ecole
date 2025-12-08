@@ -14,8 +14,10 @@ from datetime import datetime
 
 from src.controllers.instructor_controller import InstructorController
 from src.controllers.session_controller import SessionController
-from src.models import LicenseType
 from src.utils import export_to_csv
+
+# Types de permis disponibles
+LICENSE_TYPES = ['A', 'B', 'C', 'D', 'E']
 
 
 class InstructorDialog(QDialog):

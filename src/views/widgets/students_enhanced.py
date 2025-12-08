@@ -15,8 +15,11 @@ from datetime import datetime
 from src.controllers.student_controller import StudentController
 from src.controllers.payment_controller import PaymentController
 from src.controllers.session_controller import SessionController
-from src.models import StudentStatus, LicenseType
+from src.models import StudentStatus
 from src.utils import export_to_csv, get_pdf_generator
+
+# Types de permis disponibles
+LICENSE_TYPES = ['A', 'B', 'C', 'D', 'E']
 
 
 class StudentDetailDialog(QDialog):
@@ -55,8 +58,8 @@ class StudentDetailDialog(QDialog):
         self.address.setMaximumHeight(80)
         
         self.license_type = QComboBox()
-        for lic in LicenseType:
-            self.license_type.addItem(lic.value, lic)
+        for lic in LICENSE_TYPES:
+            self.license_type.addItem(lic, lic)
         
         self.status = QComboBox()
         for st in StudentStatus:
@@ -389,8 +392,8 @@ class StudentsEnhancedWidget(QWidget):
         
         self.license_filter = QComboBox()
         self.license_filter.addItem("🚗 Tous les permis", None)
-        for lic in LicenseType:
-            self.license_filter.addItem(f"Permis {lic.value}", lic)
+        for lic in LICENSE_TYPES:
+            self.license_filter.addItem(f"Permis {lic}", lic)
         self.license_filter.currentIndexChanged.connect(self.apply_filters)
         self.license_filter.setMinimumHeight(40)
         self.license_filter.setStyleSheet("""
