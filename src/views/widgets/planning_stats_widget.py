@@ -207,39 +207,39 @@ class PlanningStatsWidget(QWidget):
         print(f"   Realized hours: {stats['realized_hours']:.1f}h")
         print(f"   Utilization: {stats['utilization']}%")
         
-        self.total_sessions_card = self.create_stat_card(
-            "📅 SESSIONS TOTALES", str(stats['total']), "#3498db"
-        )
-        stats_layout.addWidget(self.total_sessions_card, 0, 0)
-        print(f"✓ Carte SESSIONS ajoutée à position (0,0)")
+        # Créer et ajouter toutes les cartes
+        cards = [
+            (self, 'total_sessions_card', "📅 SESSIONS TOTALES", str(stats['total']), "#3498db", 0, 0),
+            (self, 'completed_sessions_card', "✅ TERMINÉES", f"{stats['completed']} ({stats['completed_pct']}%)", "#27ae60", 0, 1),
+            (self, 'cancelled_sessions_card', "❌ ANNULÉES", f"{stats['cancelled']} ({stats['cancelled_pct']}%)", "#e74c3c", 0, 2),
+            (self, 'planned_hours_card', "⏰ HEURES PLANIFIÉES", f"{stats['planned_hours']:.1f}h", "#9b59b6", 1, 0),
+            (self, 'realized_hours_card', "✅ HEURES RÉALISÉES", f"{stats['realized_hours']:.1f}h", "#27ae60", 1, 1),
+            (self, 'utilization_card', "📊 TAUX UTILISATION", f"{stats['utilization']}%", "#f39c12", 1, 2),
+        ]
         
-        self.completed_sessions_card = self.create_stat_card(
-            "✅ TERMINÉES", f"{stats['completed']} ({stats['completed_pct']}%)", "#27ae60"
-        )
-        stats_layout.addWidget(self.completed_sessions_card, 0, 1)
-        
-        self.cancelled_sessions_card = self.create_stat_card(
-            "❌ ANNULÉES", f"{stats['cancelled']} ({stats['cancelled_pct']}%)", "#e74c3c"
-        )
-        stats_layout.addWidget(self.cancelled_sessions_card, 0, 2)
-        
-        # Heures
-        self.planned_hours_card = self.create_stat_card(
-            "⏰ HEURES PLANIFIÉES", f"{stats['planned_hours']:.1f}h", "#9b59b6"
-        )
-        stats_layout.addWidget(self.planned_hours_card, 1, 0)
-        
-        self.realized_hours_card = self.create_stat_card(
-            "✅ HEURES RÉALISÉES", f"{stats['realized_hours']:.1f}h", "#27ae60"
-        )
-        stats_layout.addWidget(self.realized_hours_card, 1, 1)
-        
-        self.utilization_card = self.create_stat_card(
-            "📊 TAUX UTILISATION", f"{stats['utilization']}%", "#f39c12"
-        )
-        stats_layout.addWidget(self.utilization_card, 1, 2)
+        for obj, attr_name, title, value, color, row, col in cards:
+            card = self.create_stat_card(title, value, color)
+            setattr(obj, attr_name, card)
+            stats_layout.addWidget(card, row, col)
+            # FORCER la visibilité immédiatement après ajout
+            self.force_widget_visibility(card)
+            print(f"✓ Carte {title[:20]} ajoutée et forcée visible à ({row},{col})")
         
         layout.addWidget(stats_container)
+    
+    def force_widget_visibility(self, widget):
+        """Forcer la visibilité d'un widget et ses enfants"""
+        widget.setVisible(True)
+        widget.show()
+        widget.updateGeometry()
+        widget.update()
+        
+        # Forcer aussi tous les labels enfants
+        for child in widget.findChildren(QLabel):
+            child.setVisible(True)
+            child.show()
+            child.updateGeometry()
+            child.update()
     
     def create_stat_card(self, title, value, color):
         """Créer une carte statistique"""
