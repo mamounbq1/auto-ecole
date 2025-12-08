@@ -119,33 +119,31 @@ class DashboardProfessionalWidget(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(20)
         
-        # Header
+        # Header compact
         header_layout = QHBoxLayout()
         
-        # Titre
-        title = QLabel("📊 Dashboard Professionnel")
-        title_font = QFont()
-        title_font.setPointSize(24)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        title.setStyleSheet("color: #2c3e50;")
-        header_layout.addWidget(title)
+        # Date à gauche
+        self.date_label = QLabel()
+        self.date_label.setStyleSheet("color: #7f8c8d; font-size: 12px;")
+        self.update_date()
+        header_layout.addWidget(self.date_label)
         
         header_layout.addStretch()
         
         # Bouton refresh
         self.refresh_btn = QPushButton("🔄 Actualiser")
-        self.refresh_btn.setMinimumHeight(40)
+        self.refresh_btn.setMinimumHeight(32)
+        self.refresh_btn.setMaximumHeight(32)
         self.refresh_btn.clicked.connect(self.load_data)
         self.refresh_btn.setStyleSheet("""
             QPushButton {
                 background-color: #3498db;
                 color: white;
                 border: none;
-                border-radius: 8px;
-                padding: 10px 20px;
+                border-radius: 6px;
+                padding: 8px 16px;
                 font-weight: bold;
-                font-size: 13px;
+                font-size: 12px;
             }
             QPushButton:hover {
                 background-color: #2980b9;
@@ -155,9 +153,6 @@ class DashboardProfessionalWidget(QWidget):
             }
         """)
         header_layout.addWidget(self.refresh_btn)
-        
-        # Mettre à jour la date (déjà dans header_layout)
-        self.update_date()
         
         layout.addLayout(header_layout)
         
