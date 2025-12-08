@@ -78,6 +78,34 @@ class PaymentController:
             return []
     
     @staticmethod
+    def get_monthly_revenue(year: int, month: int) -> float:
+        """
+        Calculer le chiffre d'affaires mensuel
+        
+        Args:
+            year: Année
+            month: Mois (1-12)
+        
+        Returns:
+            Montant total des paiements du mois
+        """
+        try:
+            from datetime import datetime
+            from sqlalchemy import extract
+            
+            session = get_session()
+            payments = session.query(Payment).filter(
+                extract('year', Payment.payment_date) == year,
+                extract('month', Payment.payment_date) == month
+            ).all()
+            
+            total = sum(p.amount for p in payments)
+            return total
+        except Exception as e:
+            logger.error(f"Erreur lors du calcul du CA mensuel : {e}")
+            return 0.0
+    
+    @staticmethod
     def generate_receipt_pdf(payment_id: int) -> tuple[bool, str]:
         """
         Générer un reçu PDF pour un paiement
@@ -122,3 +150,14 @@ class PaymentController:
             error_msg = f"Erreur lors de la génération du reçu : {str(e)}"
             logger.error(error_msg)
             return False, error_msg
+    
+    @staticmethod
+    def get_all_payments() -> List[Payment]:
+        """Obtenir tous les paiements"""
+        try:
+            session = get_session()
+            payments = session.query(Payment).order_by(Payment.payment_date.desc()).all()
+            return payments
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des paiements : {e}")
+            return []

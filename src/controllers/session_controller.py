@@ -31,6 +31,17 @@ class SessionController:
             return []
     
     @staticmethod
+    def get_all_sessions() -> List[Session]:
+        """Obtenir toutes les sessions"""
+        try:
+            session = get_session()
+            sessions = session.query(Session).order_by(Session.start_datetime.desc()).all()
+            return sessions
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des sessions : {e}")
+            return []
+    
+    @staticmethod
     def get_today_sessions() -> List[Session]:
         """Obtenir les sessions du jour"""
         today = date.today()

@@ -206,6 +206,17 @@ class StudentController:
             return False, error_msg
     
     @staticmethod
+    def get_active_students() -> List[Student]:
+        """Obtenir tous les élèves actifs"""
+        try:
+            session = get_session()
+            students = session.query(Student).filter(Student.status == StudentStatus.ACTIVE).all()
+            return students
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des élèves actifs : {e}")
+            return []
+    
+    @staticmethod
     def get_active_students_count() -> int:
         """Obtenir le nombre d'élèves actifs"""
         try:

@@ -6,6 +6,8 @@ from .auth import AuthManager, login, logout, get_current_user, require_role
 from .backup import BackupManager, create_backup, restore_backup, list_backups
 from .export import ExportManager, export_to_csv, export_to_pdf, import_from_csv, get_export_manager
 from .logger import setup_logger, get_logger
+from .pdf_generator import PDFGenerator, get_pdf_generator
+from .notifications import NotificationManager, get_notification_manager
 
 __all__ = [
     # Auth
@@ -25,6 +27,12 @@ __all__ = [
     'export_to_pdf',
     'import_from_csv',
     'get_export_manager',
+    # PDF
+    'PDFGenerator',
+    'get_pdf_generator',
+    # Notifications
+    'NotificationManager',
+    'get_notification_manager',
     # Logger
     'setup_logger',
     'get_logger',

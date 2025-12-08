@@ -17,6 +17,13 @@ cryptography==41.0.7
 reportlab==4.0.7
 pypdf==3.17.4
 
+# Graphiques et visualisations
+matplotlib==3.10.3
+seaborn==0.13.2
+
+# Notifications
+twilio==9.8.8
+
 # Export Excel/CSV
 openpyxl==3.1.2
 pandas==2.1.4

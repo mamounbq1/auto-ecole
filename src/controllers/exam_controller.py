@@ -15,3 +15,13 @@ class ExamController:
         except Exception as e:
             logger.error(f"Erreur : {e}")
             return []
+    
+    @staticmethod
+    def get_all_exams() -> List[Exam]:
+        """Obtenir tous les examens"""
+        try:
+            session = get_session()
+            return session.query(Exam).order_by(Exam.scheduled_date.desc()).all()
+        except Exception as e:
+            logger.error(f"Erreur : {e}")
+            return []

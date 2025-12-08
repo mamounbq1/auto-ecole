@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""
+Application Auto-École avec interface graphique PySide6
+Point d'entrée principal
+"""
+
+import sys
+from pathlib import Path
+
+# Ajouter le répertoire parent au path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt
+
+from src.views import LoginWindow, MainWindow
+from src.utils import get_logger
+
+logger = get_logger()
+
+
+def setup_app_style(app):
+    """Configurer le style global de l'application"""
+    # Police par défaut
+    font = QFont("Segoe UI", 10)
+    app.setFont(font)
+    
+    # Style global
+    app.setStyle("Fusion")
+
+
+def main():
+    """Fonction principale"""
+    # Créer l'application Qt
+    app = QApplication(sys.argv)
+    app.setApplicationName("Auto-École Manager")
+    app.setOrganizationName("AutoEcole")
+    
+    # Configurer le style
+    setup_app_style(app)
+    
+    # Créer et afficher la fenêtre de connexion
+    login_window = LoginWindow()
+    
+    # Fonction appelée lors d'une connexion réussie
+    def on_login_success(user):
+        logger.info(f"Interface graphique lancée pour : {user.username}")
+        
+        # Créer et afficher la fenêtre principale
+        main_window = MainWindow(user)
+        main_window.show()
+    
+    # Connecter le signal de connexion réussie
+    login_window.login_successful.connect(on_login_success)
+    
+    # Afficher la fenêtre de connexion
+    login_window.show()
+    
+    # Lancer la boucle d'événements
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
