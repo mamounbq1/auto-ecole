@@ -140,6 +140,8 @@ try:
                     import_issues.append(f"{file_path}: uses 'src.database' (should be 'src.models')")
                 if 'LicenseType' in content and 'LICENSE_TYPES' not in content:
                     import_issues.append(f"{file_path}: imports LicenseType (doesn't exist)")
+                if 'PaymentCategory' in content and 'PAYMENT_CATEGORIES' not in content:
+                    import_issues.append(f"{file_path}: imports PaymentCategory (doesn't exist)")
     
     if missing_files:
         errors.append(f"Missing GUI files: {missing_files}")
