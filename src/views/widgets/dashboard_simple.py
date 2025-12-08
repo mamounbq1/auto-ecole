@@ -87,9 +87,15 @@ class DashboardSimpleWidget(QWidget):
         layout.addWidget(title)
         
         # Message informatif
-        info = QLabel("✅ Dashboard chargé avec succès (version simplifiée)")
+        info = QLabel("✅ Dashboard chargé avec succès - Vue d'ensemble de votre auto-école")
         info.setStyleSheet("color: #27ae60; background-color: #d4edda; padding: 10px; border-radius: 5px;")
         layout.addWidget(info)
+        
+        # Note pour l'utilisateur
+        note = QLabel("💡 Conseil : Accédez aux modules via la barre latérale pour gérer élèves, paiements, planning, etc.")
+        note.setStyleSheet("color: #7f8c8d; font-size: 11px; padding: 5px; font-style: italic;")
+        note.setWordWrap(True)
+        layout.addWidget(note)
         
         # Grille de statistiques
         self.stats_grid = QGridLayout()

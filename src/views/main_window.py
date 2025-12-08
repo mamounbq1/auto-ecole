@@ -274,17 +274,22 @@ class MainWindow(QMainWindow):
     # Méthodes pour afficher les différents modules
     def show_dashboard(self):
         """Afficher le dashboard"""
-        try:
-            # Essayer le dashboard avancé avec graphiques
-            from .widgets.dashboard_advanced import DashboardAdvancedWidget
-            self.set_current_module(DashboardAdvancedWidget(self.user))
-            self.statusBar().showMessage("Dashboard")
-        except Exception as e:
-            # En cas d'erreur, utiliser le dashboard simple
-            logger.error(f"Erreur chargement dashboard avancé: {e}")
-            from .widgets.dashboard_simple import DashboardSimpleWidget
-            self.set_current_module(DashboardSimpleWidget(self.user))
-            self.statusBar().showMessage("Dashboard (mode simplifié)")
+        # Utiliser le dashboard simple par défaut (stable, pas de matplotlib)
+        # Pour réactiver le dashboard avancé, décommentez les lignes ci-dessous
+        from .widgets.dashboard_simple import DashboardSimpleWidget
+        self.set_current_module(DashboardSimpleWidget(self.user))
+        self.statusBar().showMessage("Dashboard")
+        
+        # Version avec graphiques matplotlib (peut causer des crashes)
+        # try:
+        #     from .widgets.dashboard_advanced import DashboardAdvancedWidget
+        #     self.set_current_module(DashboardAdvancedWidget(self.user))
+        #     self.statusBar().showMessage("Dashboard avec graphiques")
+        # except Exception as e:
+        #     logger.error(f"Erreur dashboard avancé: {e}")
+        #     from .widgets.dashboard_simple import DashboardSimpleWidget
+        #     self.set_current_module(DashboardSimpleWidget(self.user))
+        #     self.statusBar().showMessage("Dashboard (mode simplifié)")
         
     def show_students(self):
         """Afficher la gestion des élèves"""
