@@ -199,10 +199,19 @@ class PlanningStatsWidget(QWidget):
         # Sessions - CRÉER avec les VRAIES valeurs dès le début
         stats = self.stats_data
         
+        print(f"\n📊 [DEBUG] create_main_stats - Données calculées:")
+        print(f"   Total: {stats['total']}")
+        print(f"   Completed: {stats['completed']} ({stats['completed_pct']}%)")
+        print(f"   Cancelled: {stats['cancelled']} ({stats['cancelled_pct']}%)")
+        print(f"   Planned hours: {stats['planned_hours']:.1f}h")
+        print(f"   Realized hours: {stats['realized_hours']:.1f}h")
+        print(f"   Utilization: {stats['utilization']}%")
+        
         self.total_sessions_card = self.create_stat_card(
             "📅 SESSIONS TOTALES", str(stats['total']), "#3498db"
         )
         stats_layout.addWidget(self.total_sessions_card, 0, 0)
+        print(f"✓ Carte SESSIONS ajoutée à position (0,0)")
         
         self.completed_sessions_card = self.create_stat_card(
             "✅ TERMINÉES", f"{stats['completed']} ({stats['completed_pct']}%)", "#27ae60"
@@ -234,6 +243,11 @@ class PlanningStatsWidget(QWidget):
     
     def create_stat_card(self, title, value, color):
         """Créer une carte statistique"""
+        print(f"\n🎨 [DEBUG] create_stat_card appelée")
+        print(f"   Title: {title}")
+        print(f"   Value: {value}")
+        print(f"   Color: {color}")
+        
         card = QFrame()
         card.setFrameShape(QFrame.StyledPanel)
         card.setStyleSheet(f"""
@@ -269,9 +283,12 @@ class PlanningStatsWidget(QWidget):
         title_palette.setColor(QPalette.WindowText, QColor("#7f8c8d"))
         title_label.setPalette(title_palette)
         
+        print(f"   ✓ Title label créé: '{title_label.text()}'")
+        print(f"     Font: {title_font.pointSize()}pt, Bold: {title_font.bold()}")
+        
         card_layout.addWidget(title_label)
         
-        value_label = QLabel(value)
+        value_label = QLabel(str(value))
         # STYLE MINIMAL - pas de stylesheet complexe qui peut cacher le texte
         value_label.setObjectName("value")
         value_label.setTextFormat(Qt.PlainText)
@@ -283,10 +300,24 @@ class PlanningStatsWidget(QWidget):
         font.setBold(True)
         value_label.setFont(font)
         
+        print(f"   ✓ Value label créé: '{value_label.text()}'")
+        print(f"     Font: {font.pointSize()}pt, Bold: {font.bold()}")
+        print(f"     Color: {color}")
+        
         # Palette pour la couleur
         palette = value_label.palette()
+        original_color = palette.color(QPalette.WindowText)
+        print(f"     Palette AVANT: WindowText = {original_color.name()}")
+        
         palette.setColor(QPalette.WindowText, QColor(color))
+        palette.setColor(QPalette.Text, QColor(color))  # Essayer aussi Text
         value_label.setPalette(palette)
+        value_label.setAutoFillBackground(False)
+        
+        new_color = value_label.palette().color(QPalette.WindowText)
+        print(f"     Palette APRÈS: WindowText = {new_color.name()}")
+        print(f"     Label visible: {value_label.isVisible()}")
+        print(f"     Label enabled: {value_label.isEnabled()}")
         
         card_layout.addWidget(value_label)
         
@@ -294,6 +325,9 @@ class PlanningStatsWidget(QWidget):
         
         # Stocker la couleur pour les mises à jour
         card.setProperty("color", color)
+        
+        print(f"   ✓ Carte créée avec {card_layout.count()} widgets")
+        print(f"   ✓ Carte size: {card.minimumWidth()}x{card.minimumHeight()}")
         
         return card
     
