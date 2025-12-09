@@ -46,18 +46,11 @@ class StudentDetailViewDialog(QDialog):
         # CRITICAL: Reload student from database to get fresh balance calculation
         if student:
             from src.controllers.student_controller import StudentController
-            from src.models import get_session
             
-            # Force refresh from database
-            session = get_session()
-            session.expire_all()  # Expire all cached objects
-            
+            # Reload from database to get fresh data (no cache)
             self.student = StudentController.get_student_by_id(student.id)
             if not self.student:
                 self.student = student  # Fallback to passed object
-            else:
-                # Force refresh to get latest balance
-                session.refresh(self.student)
         else:
             self.student = None
         
