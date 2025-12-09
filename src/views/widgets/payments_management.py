@@ -265,33 +265,181 @@ class PaymentsManagement(QWidget):
     
     def setup_ui(self):
         """Configurer l'interface"""
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(15)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
         
-        # Header
-        header = self.create_header()
-        main_layout.addWidget(header)
+        # En-tête
+        self.create_header(layout)
         
-        # Barre d'outils (recherche, filtres, actions)
-        toolbar = self.create_toolbar()
-        main_layout.addWidget(toolbar)
+        # Barre de recherche et filtres
+        self.create_search_bar(layout)
+        
+        # Statistiques rapides
+        self.create_stats(layout)
         
         # Table des paiements
-        self.table = self.create_table()
-        main_layout.addWidget(self.table)
+        self.create_table(layout)
+    
+    def create_header(self, layout):
+        """Créer l'en-tête"""
+        header_layout = QHBoxLayout()
         
-        # Footer (statistiques rapides)
-        footer = self.create_footer()
-        main_layout.addWidget(footer)
+        title = QLabel("💳 Gestion des Paiements")
+        title_font = QFont()
+        title_font.setPointSize(20)
+        title_font.setBold(True)
+        title.setFont(title_font)
+        title.setStyleSheet("color: #2c3e50;")
+        
+        header_layout.addWidget(title)
+        header_layout.addStretch()
+        
+        # Boutons
+        add_btn = QPushButton("➕ Nouveau Paiement")
+        add_btn.clicked.connect(self.add_payment)
+        add_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-weight: bold;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #2980b9;
+            }
+        """)
+        add_btn.setCursor(Qt.PointingHandCursor)
+        
+        export_btn = QPushButton("📤 Exporter CSV")
+        export_btn.clicked.connect(self.export_payments)
+        export_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1abc9c;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-weight: bold;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #16a085;
+            }
+        """)
+        export_btn.setCursor(Qt.PointingHandCursor)
+        
+        refresh_btn = QPushButton("🔄 Actualiser")
+        refresh_btn.clicked.connect(self.load_payments)
+        refresh_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #9b59b6;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-weight: bold;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #8e44ad;
+            }
+        """)
+        refresh_btn.setCursor(Qt.PointingHandCursor)
+        
+        header_layout.addWidget(add_btn)
+        header_layout.addWidget(export_btn)
+        header_layout.addWidget(refresh_btn)
+        
+        layout.addLayout(header_layout)
     
-    def create_header(self) -> QFrame:
-        """Créer l'en-tête (vide maintenant)"""
-        header = QFrame()
-        header.setFixedHeight(0)
-        return header
+    def create_search_bar(self, layout):
+        """Créer la barre de recherche"""
+        search_layout = QHBoxLayout()
+        
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("🔍 Rechercher par nom, reçu, montant...")
+        self.search_input.textChanged.connect(self.filter_payments)
+        self.search_input.setMinimumHeight(40)
+        self.search_input.setStyleSheet("""
+            QLineEdit {
+                padding: 8px 12px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 13px;
+            }
+            QLineEdit:focus {
+                border-color: #3498db;
+            }
+        """)
+        
+        self.method_filter = QComboBox()
+        self.method_filter.addItem("💳 Toutes les méthodes", None)
+        for method in PaymentMethod:
+            self.method_filter.addItem(method.value.replace('_', ' ').title(), method)
+        self.method_filter.currentIndexChanged.connect(self.filter_payments)
+        self.method_filter.setMinimumHeight(40)
+        self.method_filter.setStyleSheet("""
+            QComboBox {
+                padding: 8px 12px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 13px;
+            }
+        """)
+        
+        self.status_filter = QComboBox()
+        self.status_filter.addItem("📊 Tous les statuts", None)
+        self.status_filter.addItem("✅ Validés", "validated")
+        self.status_filter.addItem("⏳ En attente", "pending")
+        self.status_filter.addItem("❌ Annulés", "cancelled")
+        self.status_filter.currentIndexChanged.connect(self.filter_payments)
+        self.status_filter.setMinimumHeight(40)
+        self.status_filter.setStyleSheet("""
+            QComboBox {
+                padding: 8px 12px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 13px;
+            }
+        """)
+        
+        search_layout.addWidget(self.search_input, stretch=3)
+        search_layout.addWidget(self.method_filter, stretch=1)
+        search_layout.addWidget(self.status_filter, stretch=1)
+        
+        layout.addLayout(search_layout)
     
-    def create_toolbar(self) -> QFrame:
+    def create_stats(self, layout):
+        """Créer les statistiques rapides"""
+        stats_layout = QHBoxLayout()
+        
+        self.total_label = QLabel("Total: 0 paiements")
+        self.sum_label = QLabel("Montant: 0.00 DH")
+        self.validated_label = QLabel("Validés: 0")
+        self.pending_label = QLabel("En attente: 0")
+        
+        for label in [self.total_label, self.sum_label, self.validated_label, self.pending_label]:
+            label.setStyleSheet("""
+                QLabel {
+                    background-color: white;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    font-weight: bold;
+                    font-size: 13px;
+                    color: #2c3e50;
+                    border: 2px solid #ecf0f1;
+                }
+            """)
+        
+        stats_layout.addWidget(self.total_label)
+        stats_layout.addWidget(self.sum_label)
+        stats_layout.addWidget(self.validated_label)
+        stats_layout.addWidget(self.pending_label)
+        
+        layout.addLayout(stats_layout)
+    
+    def create_old_toolbar(self) -> QFrame:
         """Créer la barre d'outils"""
         toolbar = QFrame()
         toolbar.setStyleSheet("""
@@ -484,20 +632,20 @@ class PaymentsManagement(QWidget):
         
         return toolbar
     
-    def create_table(self) -> QTableWidget:
+    def create_table(self, layout):
         """Créer la table des paiements"""
-        table = QTableWidget()
-        table.setColumnCount(9)
-        table.setHorizontalHeaderLabels([
+        self.table = QTableWidget()
+        self.table.setColumnCount(9)
+        self.table.setHorizontalHeaderLabels([
             "Date", "N° Reçu", "Élève", "Montant", "Méthode",
             "Catégorie", "Statut", "Validé par", "Actions"
         ])
         
         # Style
-        table.setAlternatingRowColors(True)
-        table.setSelectionBehavior(QTableWidget.SelectRows)
-        table.setSelectionMode(QTableWidget.SingleSelection)
-        table.setStyleSheet("""
+        self.table.setAlternatingRowColors(True)
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setSelectionMode(QTableWidget.SingleSelection)
+        self.table.setStyleSheet("""
             QTableWidget {
                 background-color: white;
                 border: 2px solid #ecf0f1;
@@ -512,7 +660,7 @@ class PaymentsManagement(QWidget):
                 color: #000;
             }
             QHeaderView::section {
-                background-color: #27ae60;
+                background-color: #3498db;
                 color: white;
                 padding: 10px;
                 border: none;
@@ -521,7 +669,7 @@ class PaymentsManagement(QWidget):
         """)
         
         # Ajuster colonnes
-        header = table.horizontalHeader()
+        header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Date
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Reçu
         header.setSectionResizeMode(2, QHeaderView.Stretch)  # Élève
@@ -532,9 +680,9 @@ class PaymentsManagement(QWidget):
         header.setSectionResizeMode(7, QHeaderView.ResizeToContents)  # Validé par
         header.setSectionResizeMode(8, QHeaderView.ResizeToContents)  # Actions
         
-        table.verticalHeader().setVisible(False)
+        self.table.verticalHeader().setVisible(False)
         
-        return table
+        layout.addWidget(self.table)
     
     def create_footer(self) -> QFrame:
         """Créer le footer avec stats"""
@@ -567,6 +715,7 @@ class PaymentsManagement(QWidget):
         """Charger tous les paiements"""
         self.all_payments = PaymentController.get_all_payments()
         self.display_payments(self.all_payments)
+        self.update_stats()
     
     def display_payments(self, payments: list):
         """Afficher les paiements dans la table"""
@@ -717,18 +866,27 @@ class PaymentsManagement(QWidget):
             actions_layout.addWidget(delete_btn)
             
             self.table.setCellWidget(row, 8, actions_widget)
+    
+    def update_stats(self):
+        """Mettre à jour les statistiques"""
+        if not self.all_payments:
+            return
         
-        # Mettre à jour footer
-        self.total_label.setText(f"Total: {len(payments)} paiements")
-        self.sum_label.setText(f"Montant total: {total_amount:,.2f} DH")
+        total = len([p for p in self.all_payments if not p.is_cancelled])
+        validated = len([p for p in self.all_payments if p.is_validated and not p.is_cancelled])
+        pending = len([p for p in self.all_payments if not p.is_validated and not p.is_cancelled])
+        total_amount = sum(float(p.amount) for p in self.all_payments if not p.is_cancelled)
+        
+        self.total_label.setText(f"Total: {total} paiements")
+        self.sum_label.setText(f"Montant: {total_amount:,.2f} DH")
+        self.validated_label.setText(f"Validés: {validated}")
+        self.pending_label.setText(f"En attente: {pending}")
     
     def filter_payments(self):
         """Filtrer les paiements selon critères"""
         search_text = self.search_input.text().lower()
         method_filter = self.method_filter.currentData()
         status_filter = self.status_filter.currentData()
-        date_from = self.date_from.date().toPython()
-        date_to = self.date_to.date().toPython()
         
         filtered = []
         all_students = {s.id: s for s in StudentController.get_all_students()}
@@ -757,15 +915,10 @@ class PaymentsManagement(QWidget):
                 if status_filter == "cancelled" and not payment.is_cancelled:
                     continue
             
-            # Filtre date
-            if payment.payment_date:
-                payment_date = payment.payment_date.date() if hasattr(payment.payment_date, 'date') else payment.payment_date
-                if payment_date < date_from or payment_date > date_to:
-                    continue
-            
             filtered.append(payment)
         
         self.display_payments(filtered)
+        self.update_stats()
     
     def add_payment(self):
         """Ouvrir dialogue ajout paiement"""
