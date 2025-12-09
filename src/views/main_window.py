@@ -174,9 +174,10 @@ class MainWindow(QMainWindow):
         help_menu.addAction(about_action)
         
     def create_toolbar(self):
-        """Créer la barre d'outils"""
-        toolbar = QToolBar("Outils principaux")
+        """Créer la barre d'outils avec actions rapides"""
+        toolbar = QToolBar("Actions Rapides")
         toolbar.setMovable(False)
+        toolbar.setIconSize(QSize(24, 24))
         self.addToolBar(toolbar)
         
         # Actions rapides selon le rôle
@@ -192,6 +193,7 @@ class MainWindow(QMainWindow):
         
         toolbar.addSeparator()
         
+        # Actualiser
         refresh = QAction("🔄 Actualiser", self)
         refresh.triggered.connect(self.refresh_current_view)
         toolbar.addAction(refresh)
@@ -411,11 +413,34 @@ class MainWindow(QMainWindow):
     # Actions rapides
     def quick_add_student(self):
         """Action rapide : Ajouter un élève"""
-        QMessageBox.information(self, "Action rapide", "Formulaire d'ajout d'élève (à implémenter)")
+        try:
+            from src.views.widgets.students_enhanced import StudentDialog
+            from src.controllers import StudentController
+            
+            dialog = StudentDialog(self)
+            if dialog.exec():
+                self.statusBar().showMessage("✅ Élève ajouté avec succès", 3000)
+                # Actualiser si on est sur le module étudiants
+                if hasattr(self.current_module, 'load_students'):
+                    self.current_module.load_students()
+        except Exception as e:
+            logger.error(f"Erreur quick_add_student: {e}")
+            QMessageBox.critical(self, "Erreur", f"Impossible d'ouvrir le formulaire:\n{str(e)}")
         
     def quick_add_payment(self):
         """Action rapide : Ajouter un paiement"""
-        QMessageBox.information(self, "Action rapide", "Formulaire d'ajout de paiement (à implémenter)")
+        try:
+            from src.views.widgets.payments_management import PaymentDialog
+            
+            dialog = PaymentDialog(self)
+            if dialog.exec():
+                self.statusBar().showMessage("✅ Paiement enregistré avec succès", 3000)
+                # Actualiser si on est sur le module paiements
+                if hasattr(self.current_module, 'load_payments'):
+                    self.current_module.load_payments()
+        except Exception as e:
+            logger.error(f"Erreur quick_add_payment: {e}")
+            QMessageBox.critical(self, "Erreur", f"Impossible d'ouvrir le formulaire:\n{str(e)}")
         
     def refresh_current_view(self):
         """Actualiser la vue actuelle"""
