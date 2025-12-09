@@ -860,6 +860,18 @@ class StudentDetailViewDialog(QDialog):
         if not self.student:
             return
         
+        # CRITICAL: Update balance label in header immediately
+        if hasattr(self, 'balance_label') and self.balance_label:
+            from decimal import Decimal
+            balance_val = float(self.student.balance) if self.student.balance else 0.0
+            balance_color = "#e74c3c" if balance_val < 0 else "#27ae60"
+            if balance_val == 0:
+                balance_text = "0.00 DH"
+            else:
+                balance_text = f"{balance_val:+,.2f} DH"
+            self.balance_label.setText(balance_text)
+            self.balance_label.setStyleSheet(f"color: {balance_color}; font-size: 18px; font-weight: bold; background-color: white; padding: 8px 15px; border-radius: 5px;")
+        
         # Tab 1: Information
         self.full_name.setText(self.student.full_name or "")
         self.cin.setText(self.student.cin or "")
