@@ -288,14 +288,24 @@ class StudentsEnhancedWidget(QWidget):
         """Créer l'en-tête"""
         header_layout = QHBoxLayout()
         
-        title = QLabel("👥 Gestion des Élèves")
-        title_font = QFont()
-        title_font.setPointSize(20)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        title.setStyleSheet("color: #2c3e50;")
+        # Barre de recherche à gauche
+        self.header_search = QLineEdit()
+        self.header_search.setPlaceholderText("🔍 Rechercher par nom, CIN ou téléphone...")
+        self.header_search.textChanged.connect(self.apply_filters)
+        self.header_search.setMinimumHeight(40)
+        self.header_search.setStyleSheet("""
+            QLineEdit {
+                padding: 8px 12px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 13px;
+            }
+            QLineEdit:focus {
+                border-color: #3498db;
+            }
+        """)
+        header_layout.addWidget(self.header_search, stretch=2)
         
-        header_layout.addWidget(title)
         header_layout.addStretch()
         
         # Boutons
@@ -375,24 +385,8 @@ class StudentsEnhancedWidget(QWidget):
         layout.addLayout(header_layout)
     
     def create_search_bar(self, layout):
-        """Créer la barre de recherche"""
+        """Créer la barre de filtres"""
         search_layout = QHBoxLayout()
-        
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("🔍 Rechercher par nom, CIN ou téléphone...")
-        self.search_input.textChanged.connect(self.apply_filters)
-        self.search_input.setMinimumHeight(40)
-        self.search_input.setStyleSheet("""
-            QLineEdit {
-                padding: 8px 12px;
-                border: 2px solid #ddd;
-                border-radius: 8px;
-                font-size: 13px;
-            }
-            QLineEdit:focus {
-                border-color: #3498db;
-            }
-        """)
         
         self.status_filter = QComboBox()
         self.status_filter.addItem("📊 Tous les statuts", None)
@@ -424,9 +418,9 @@ class StudentsEnhancedWidget(QWidget):
             }
         """)
         
-        search_layout.addWidget(self.search_input, stretch=3)
         search_layout.addWidget(self.status_filter, stretch=1)
         search_layout.addWidget(self.license_filter, stretch=1)
+        search_layout.addStretch()
         
         layout.addLayout(search_layout)
     
@@ -513,7 +507,7 @@ class StudentsEnhancedWidget(QWidget):
     
     def apply_filters(self):
         """Appliquer les filtres"""
-        search_text = self.search_input.text().lower()
+        search_text = self.header_search.text().lower()
         status_filter = self.status_filter.currentData()
         license_filter = self.license_filter.currentData()
         
