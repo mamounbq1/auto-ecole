@@ -5,7 +5,7 @@ Centre de notifications avec historique et gestion
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget,
     QListWidgetItem, QPushButton, QComboBox, QTabWidget,
-    QMessageBox, QMenu
+    QMessageBox, QMenu, QFileDialog
 )
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont, QColor
@@ -112,6 +112,25 @@ class NotificationCenter(QWidget):
         mark_all_btn.setCursor(Qt.PointingHandCursor)
         mark_all_btn.clicked.connect(self.mark_all_as_read)
         layout.addWidget(mark_all_btn)
+        
+        # Bouton Export CSV
+        export_btn = QPushButton("📤 Export")
+        export_btn.setStyleSheet("""
+            QPushButton {
+                background-color: white;
+                color: #c0392b;
+                border: none;
+                border-radius: 5px;
+                padding: 8px 15px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #ecf0f1;
+            }
+        """)
+        export_btn.setCursor(Qt.PointingHandCursor)
+        export_btn.clicked.connect(self.export_notifications)
+        layout.addWidget(export_btn)
         
         # Bouton Rafraîchir
         refresh_btn = QPushButton("🔄")
@@ -381,6 +400,35 @@ Statut: {'Lu' if notif.is_read else 'Non lu'}
             
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Erreur: {e}")
+    
+    def export_notifications(self):
+        """Exporter les notifications en CSV"""
+        try:
+            filename, _ = QFileDialog.getSaveFileName(
+                self,
+                "Exporter les notifications",
+                f"notifications_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                "CSV Files (*.csv)"
+            )
+            
+            if filename:
+                # Exporter les notifications actuelles (filtrées)
+                success, result = NotificationController.export_to_csv(
+                    self.current_notifications,
+                    filename
+                )
+                
+                if success:
+                    QMessageBox.information(
+                        self,
+                        "✅ Export réussi",
+                        f"{len(self.current_notifications)} notifications exportées vers:\n{result}"
+                    )
+                else:
+                    QMessageBox.warning(self, "⚠️ Erreur", f"Erreur lors de l'export:\n{result}")
+                    
+        except Exception as e:
+            QMessageBox.critical(self, "Erreur", f"Erreur export: {e}")
     
     def get_unread_count(self) -> int:
         """Obtenir le nombre de notifications non lues"""
