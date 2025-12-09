@@ -990,18 +990,27 @@ class StudentDetailViewDialog(QDialog):
             self.payments_table.setRowCount(0)
             
             total_paid = 0
-            for row, payment in enumerate(payments):
+            payment_count = 0
+            
+            for payment in payments:
+                # Exclure les paiements annulés
+                if payment.is_cancelled:
+                    continue
+                
+                row = self.payments_table.rowCount()
                 self.payments_table.insertRow(row)
                 
                 # Date
                 date_str = payment.payment_date.strftime('%d/%m/%Y') if payment.payment_date else "N/A"
                 self.payments_table.setItem(row, 0, QTableWidgetItem(date_str))
                 
-                # Amount
-                amount_item = QTableWidgetItem(f"{payment.amount:,.2f}")
+                # Amount (convertir Decimal en float)
+                amount_value = float(payment.amount) if payment.amount else 0.0
+                amount_item = QTableWidgetItem(f"{amount_value:,.2f}")
                 amount_item.setForeground(QColor("#27ae60"))
                 self.payments_table.setItem(row, 1, amount_item)
-                total_paid += payment.amount
+                total_paid += amount_value
+                payment_count += 1
                 
                 # Method
                 method_text = payment.payment_method.value if payment.payment_method else "N/A"
@@ -1010,12 +1019,12 @@ class StudentDetailViewDialog(QDialog):
                 # Reference
                 self.payments_table.setItem(row, 3, QTableWidgetItem(payment.reference_number or ""))
                 
-                # Notes
-                self.payments_table.setItem(row, 4, QTableWidgetItem(payment.notes or ""))
+                # Notes/Description
+                self.payments_table.setItem(row, 4, QTableWidgetItem(payment.description or ""))
             
             # Update summary
             self.payments_total_label.setText(f"Total Payé: {total_paid:,.2f} DH")
-            self.payments_count_label.setText(f"Nombre de Paiements: {len(payments)}")
+            self.payments_count_label.setText(f"Nombre de Paiements: {payment_count}")
             
         except Exception as e:
             print(f"Error loading payments: {e}")
