@@ -12,6 +12,7 @@ from .payment import Payment, PaymentMethod
 from .exam import Exam, ExamType, ExamResult
 from .maintenance import VehicleMaintenance, MaintenanceType, MaintenanceStatus
 from .notification import Notification, NotificationType, NotificationCategory, NotificationStatus, NotificationPriority
+from .document import Document, DocumentType, DocumentStatus
 
 __all__ = [
     # Base
@@ -51,4 +52,8 @@ __all__ = [
     'NotificationCategory',
     'NotificationStatus',
     'NotificationPriority',
+    # Document
+    'Document',
+    'DocumentType',
+    'DocumentStatus',
 ]

@@ -11,6 +11,7 @@ from .exam_controller import ExamController
 from .maintenance_controller import MaintenanceController
 from .notification_controller import NotificationController
 from .statistics_controller import StatisticsController
+from .document_controller import DocumentController
 
 __all__ = [
     'StudentController',
@@ -22,4 +23,5 @@ __all__ = [
     'MaintenanceController',
     'NotificationController',
     'StatisticsController',
+    'DocumentController',
 ]
