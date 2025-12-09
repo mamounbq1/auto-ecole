@@ -46,9 +46,18 @@ class StudentDetailViewDialog(QDialog):
         # CRITICAL: Reload student from database to get fresh balance calculation
         if student:
             from src.controllers.student_controller import StudentController
+            from src.models import get_session
+            
+            # Force refresh from database
+            session = get_session()
+            session.expire_all()  # Expire all cached objects
+            
             self.student = StudentController.get_student_by_id(student.id)
             if not self.student:
                 self.student = student  # Fallback to passed object
+            else:
+                # Force refresh to get latest balance
+                session.refresh(self.student)
         else:
             self.student = None
         
@@ -157,11 +166,13 @@ class StudentDetailViewDialog(QDialog):
         
         # Balance = total_paid - total_due
         # Simple display: just show +/- amount (no "Dette"/"Crédit" text)
-        balance_color = "#e74c3c" if self.student.balance < 0 else "#27ae60"
-        if self.student.balance == 0:
+        # CRITICAL: Convert to float to ensure we get the latest value
+        balance_val = float(self.student.balance) if self.student.balance else 0.0
+        balance_color = "#e74c3c" if balance_val < 0 else "#27ae60"
+        if balance_val == 0:
             balance_text = "0.00 DH"
         else:
-            balance_text = f"{self.student.balance:+,.2f} DH"
+            balance_text = f"{balance_val:+,.2f} DH"
         self.balance_label = QLabel(balance_text)
         self.balance_label.setStyleSheet(f"color: {balance_color}; font-size: 18px; font-weight: bold; background-color: white; padding: 8px 15px; border-radius: 5px;")
         
