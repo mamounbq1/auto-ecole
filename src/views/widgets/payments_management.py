@@ -932,14 +932,22 @@ class PaymentsManagement(QWidget):
         dialog.exec()
     
     def generate_pdf(self, payment):
-        """Générer PDF pour un paiement"""
+        """Générer PDF pour un paiement et l'ouvrir automatiquement"""
+        import os
+        import webbrowser
+        
         if not payment.receipt_number:
             QMessageBox.warning(self, "Erreur", "Ce paiement n'a pas de numéro de reçu")
             return
         
         success, result = PaymentController.generate_receipt_pdf(payment.id)
         if success:
-            QMessageBox.information(self, "Succès", f"Reçu PDF généré :\n{result}")
+            # Ouvrir automatiquement le PDF
+            if os.path.exists(result):
+                webbrowser.open('file://' + os.path.abspath(result))
+                QMessageBox.information(self, "Succès", f"Reçu PDF généré et ouvert :\n{result}")
+            else:
+                QMessageBox.information(self, "Succès", f"Reçu PDF généré :\n{result}")
         else:
             QMessageBox.critical(self, "Erreur", f"Erreur lors de la génération :\n{result}")
     
