@@ -64,11 +64,7 @@ class PaymentsDashboard(QWidget):
         content_layout.setContentsMargins(20, 20, 20, 20)
         content_layout.setSpacing(20)
         
-        # En-tête du centre (compact)
-        center_header = create_center_header_widget(compact=True)
-        content_layout.addWidget(center_header)
-        
-        # Header
+        # Header (sans le titre ECOLE)
         header = self.create_header()
         content_layout.addWidget(header)
         

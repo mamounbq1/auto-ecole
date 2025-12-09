@@ -566,7 +566,7 @@ class PaymentsManagement(QWidget):
             # Validé par
             self.table.setItem(row, 7, QTableWidgetItem(payment.validated_by or '-'))
             
-            # Actions (bouton PDF)
+            # Actions (boutons PDF et Imprimer)
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             actions_layout.setContentsMargins(4, 4, 4, 4)
@@ -589,6 +589,24 @@ class PaymentsManagement(QWidget):
             """)
             pdf_btn.clicked.connect(lambda checked, p=payment: self.generate_pdf(p))
             actions_layout.addWidget(pdf_btn)
+            
+            print_btn = QPushButton("🖨️")
+            print_btn.setFixedSize(30, 30)
+            print_btn.setToolTip("Imprimer Reçu")
+            print_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #3498db;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 14px;
+                }
+                QPushButton:hover {
+                    background-color: #2980b9;
+                }
+            """)
+            print_btn.clicked.connect(lambda checked, p=payment: self.print_receipt(p))
+            actions_layout.addWidget(print_btn)
             
             self.table.setCellWidget(row, 8, actions_widget)
         
@@ -650,6 +668,97 @@ class PaymentsManagement(QWidget):
             QMessageBox.information(self, "Succès", f"Reçu PDF généré :\n{result}")
         else:
             QMessageBox.critical(self, "Erreur", f"Erreur lors de la génération :\n{result}")
+    
+    def print_receipt(self, payment):
+        """Imprimer le reçu de paiement"""
+        from PySide6.QtPrintSupport import QPrinter, QPrintDialog
+        from PySide6.QtGui import QTextDocument
+        
+        if not payment.receipt_number:
+            QMessageBox.warning(self, "Erreur", "Ce paiement n'a pas de numéro de reçu")
+            return
+        
+        # Récupérer l'élève
+        student = StudentController.get_student_by_id(payment.student_id)
+        if not student:
+            QMessageBox.warning(self, "Erreur", "Élève introuvable")
+            return
+        
+        # Créer contenu HTML pour le reçu
+        html_content = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                .header {{ text-align: center; margin-bottom: 30px; }}
+                .header h1 {{ color: #2c3e50; margin: 5px 0; }}
+                .info-section {{ margin: 20px 0; }}
+                .info-row {{ margin: 10px 0; }}
+                .label {{ font-weight: bold; color: #34495e; }}
+                .value {{ color: #2c3e50; }}
+                .amount {{ font-size: 24px; font-weight: bold; color: #27ae60; text-align: center; margin: 30px 0; }}
+                .footer {{ margin-top: 40px; text-align: center; font-size: 12px; color: #7f8c8d; }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>REÇU DE PAIEMENT</h1>
+                <p>Auto-École</p>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-row">
+                    <span class="label">Numéro de reçu:</span>
+                    <span class="value">{payment.receipt_number}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Date:</span>
+                    <span class="value">{payment.payment_date.strftime('%d/%m/%Y %H:%M') if payment.payment_date else 'N/A'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Élève:</span>
+                    <span class="value">{student.full_name}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">CIN:</span>
+                    <span class="value">{student.cin or 'N/A'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Méthode de paiement:</span>
+                    <span class="value">{payment.payment_method.value.replace('_', ' ').title()}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Catégorie:</span>
+                    <span class="value">{(payment.category or 'autre').replace('_', ' ').title()}</span>
+                </div>
+                {f'<div class="info-row"><span class="label">Référence:</span><span class="value">{payment.reference_number}</span></div>' if payment.reference_number else ''}
+                {f'<div class="info-row"><span class="label">Description:</span><span class="value">{payment.description}</span></div>' if payment.description else ''}
+            </div>
+            
+            <div class="amount">
+                MONTANT: {float(payment.amount):,.2f} DH
+            </div>
+            
+            <div class="footer">
+                <p>Ce reçu est valide et certifie le paiement effectué.</p>
+                <p>Généré le {date.today().strftime('%d/%m/%Y')}</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Créer le document
+        document = QTextDocument()
+        document.setHtml(html_content)
+        
+        # Créer le printer
+        printer = QPrinter(QPrinter.HighResolution)
+        
+        # Ouvrir la boîte de dialogue d'impression
+        dialog = QPrintDialog(printer, self)
+        if dialog.exec() == QPrintDialog.Accepted:
+            document.print(printer)
+            QMessageBox.information(self, "Succès", "Impression lancée")
     
     def export_payments(self):
         """Exporter les paiements en CSV"""

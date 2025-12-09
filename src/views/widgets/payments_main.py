@@ -50,13 +50,13 @@ class PaymentsMainWidget(QWidget):
             }
         """)
         
-        # Onglet Dashboard
-        self.dashboard = PaymentsDashboard()
-        self.tabs.addTab(self.dashboard, "📊 Dashboard Financier")
-        
-        # Onglet Gestion
+        # Onglet Gestion (en premier)
         self.management = PaymentsManagement()
         self.tabs.addTab(self.management, "💳 Gestion des Paiements")
+        
+        # Onglet Dashboard (en deuxième)
+        self.dashboard = PaymentsDashboard()
+        self.tabs.addTab(self.dashboard, "📊 Dashboard Financier")
         
         layout.addWidget(self.tabs)
     
