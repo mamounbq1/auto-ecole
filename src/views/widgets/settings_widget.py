@@ -932,8 +932,43 @@ class SettingsWidget(QWidget):
         )
         
         if reply == QMessageBox.Yes:
-            # TODO: Implémenter l'optimisation réelle avec VACUUM SQLite
-            QMessageBox.information(self, "Succès", "✅ Base de données optimisée!")
+            try:
+                from src.models import get_session
+                
+                # Afficher progression
+                progress = QMessageBox(self)
+                progress.setWindowTitle("Optimisation en cours...")
+                progress.setText("Optimisation de la base de données...\nVeuillez patienter.")
+                progress.setStandardButtons(QMessageBox.NoButton)
+                progress.show()
+                QApplication.processEvents()
+                
+                # Exécuter VACUUM et ANALYZE
+                session = get_session()
+                engine = session.get_bind()
+                
+                # VACUUM pour compacter et défragmenter
+                with engine.connect() as conn:
+                    conn.execute("VACUUM")
+                    conn.execute("ANALYZE")
+                    conn.commit()
+                
+                progress.close()
+                
+                QMessageBox.information(
+                    self,
+                    "✅ Succès",
+                    "Base de données optimisée avec succès!\n\n"
+                    "Les opérations VACUUM et ANALYZE ont été exécutées."
+                )
+                
+            except Exception as e:
+                progress.close()
+                QMessageBox.critical(
+                    self,
+                    "❌ Erreur",
+                    f"Erreur lors de l'optimisation:\n{str(e)}"
+                )
     
     def reset_config(self):
         """Réinitialise la configuration"""

@@ -347,8 +347,22 @@ Statut: {'Lu' if notif.is_read else 'Non lu'}
             NotificationController.mark_notification_as_read(notif_id)
             self.load_notifications()
         elif action == delete_action:
-            # TODO: Implémenter suppression de notification
-            QMessageBox.information(self, "Info", "Suppression de notification à implémenter")
+            # Confirmation de suppression
+            reply = QMessageBox.question(
+                self,
+                "Confirmation",
+                "Voulez-vous vraiment supprimer cette notification ?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            
+            if reply == QMessageBox.Yes:
+                success = NotificationController.delete_notification(notif_id)
+                if success:
+                    QMessageBox.information(self, "✅ Succès", "Notification supprimée")
+                    self.load_notifications()
+                else:
+                    QMessageBox.warning(self, "⚠️ Erreur", "Impossible de supprimer la notification")
     
     def mark_all_as_read(self):
         """Marquer toutes les notifications comme lues"""

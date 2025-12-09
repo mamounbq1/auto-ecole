@@ -11,6 +11,7 @@ from PySide6.QtGui import QFont, QPixmap, QDesktopServices
 
 from src.controllers import DocumentController
 from src.models import DocumentStatus
+from src.utils.auth import get_current_user
 import os
 
 
@@ -213,12 +214,17 @@ class DocumentViewerDialog(QDialog):
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Impossible d'ouvrir le fichier:\n{e}")
     
+    def _get_current_username(self) -> str:
+        """Récupérer le nom d'utilisateur actuel"""
+        user = get_current_user()
+        return user.full_name if user and user.full_name else (user.username if user else "Système")
+    
     def verify_document(self):
         """Marquer le document comme vérifié"""
         try:
             success = DocumentController.verify_document(
                 self.document_id,
-                verified_by="current_user"  # TODO: Obtenir l'utilisateur actuel
+                verified_by=self._get_current_username()
             )
             
             if success:

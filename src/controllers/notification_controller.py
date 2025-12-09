@@ -176,6 +176,37 @@ class NotificationController:
             session.rollback()
             return False
     
+    @staticmethod
+    def delete_notification(notification_id: int) -> bool:
+        """
+        Supprimer une notification
+        
+        Args:
+            notification_id: ID de la notification à supprimer
+            
+        Returns:
+            True si succès, False sinon
+        """
+        try:
+            session = get_session()
+            notification = session.query(Notification).filter(
+                Notification.id == notification_id
+            ).first()
+            
+            if notification:
+                session.delete(notification)
+                session.commit()
+                logger.info(f"Notification {notification_id} supprimée")
+                return True
+            
+            logger.warning(f"Notification {notification_id} introuvable")
+            return False
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la suppression de la notification : {e}")
+            session.rollback()
+            return False
+    
     # ========== Envoi de Notifications ==========
     
     def send_notification(self, notification_id: int) -> bool:

@@ -350,12 +350,83 @@ class MaintenanceManagementWidget(QWidget):
     def complete_maintenance(self, maint_id: int):
         """Terminer une maintenance"""
         try:
-            # TODO: Dialogue pour saisir coût final et pièces
-            success = MaintenanceController.complete_maintenance(maint_id)
-            if success:
-                QMessageBox.information(self, "Succès", "Maintenance terminée!")
-                self.load_maintenances()
-                self.maintenance_changed.emit()
+            # Récupérer les infos de la maintenance
+            maint = MaintenanceController.get_maintenance(maint_id)
+            if not maint:
+                return
+            
+            # Dialogue pour saisir coût final et pièces
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🏁 Terminer la maintenance")
+            dialog.setMinimumWidth(500)
+            
+            layout = QVBoxLayout(dialog)
+            
+            # Info maintenance
+            info_label = QLabel(f"<b>Véhicule:</b> {maint.vehicle.immatriculation}<br>"
+                              f"<b>Type:</b> {maint.maintenance_type.value}<br>"
+                              f"<b>Coût estimé:</b> {maint.estimated_cost or 0:.2f} DH")
+            layout.addWidget(info_label)
+            
+            # Coût final
+            cost_group = QGroupBox("💰 Coût final")
+            cost_layout = QFormLayout()
+            cost_input = QDoubleSpinBox()
+            cost_input.setRange(0, 999999)
+            cost_input.setDecimals(2)
+            cost_input.setSuffix(" DH")
+            cost_input.setValue(maint.estimated_cost or 0)
+            cost_layout.addRow("Coût final:", cost_input)
+            cost_group.setLayout(cost_layout)
+            layout.addWidget(cost_group)
+            
+            # Pièces remplacées
+            parts_group = QGroupBox("🔧 Pièces remplacées")
+            parts_layout = QVBoxLayout()
+            parts_text = QTextEdit()
+            parts_text.setPlaceholderText("Liste des pièces remplacées (une par ligne):\nEx: Plaquettes de frein x2\nFiltre à huile x1")
+            parts_text.setMaximumHeight(100)
+            parts_layout.addWidget(parts_text)
+            parts_group.setLayout(parts_layout)
+            layout.addWidget(parts_group)
+            
+            # Notes finales
+            notes_group = QGroupBox("📝 Notes finales")
+            notes_layout = QVBoxLayout()
+            notes_text = QTextEdit()
+            notes_text.setPlaceholderText("Notes sur l'intervention...")
+            notes_text.setMaximumHeight(80)
+            notes_layout.addWidget(notes_text)
+            notes_group.setLayout(notes_layout)
+            layout.addWidget(notes_group)
+            
+            # Boutons
+            btn_layout = QHBoxLayout()
+            btn_ok = QPushButton("✅ Terminer")
+            btn_cancel = QPushButton("❌ Annuler")
+            btn_ok.clicked.connect(dialog.accept)
+            btn_cancel.clicked.connect(dialog.reject)
+            btn_layout.addWidget(btn_ok)
+            btn_layout.addWidget(btn_cancel)
+            layout.addLayout(btn_layout)
+            
+            if dialog.exec() == QDialog.Accepted:
+                # Mettre à jour avec les données finales
+                success = MaintenanceController.update_maintenance(
+                    maint_id,
+                    actual_cost=cost_input.value(),
+                    parts_replaced=parts_text.toPlainText(),
+                    notes=(maint.notes or "") + "\n\nNotes finales:\n" + notes_text.toPlainText()
+                )
+                
+                if success:
+                    # Marquer comme terminée
+                    success = MaintenanceController.complete_maintenance(maint_id)
+                    if success:
+                        QMessageBox.information(self, "✅ Succès", "Maintenance terminée avec succès!")
+                        self.load_maintenances()
+                        self.maintenance_changed.emit()
+                        
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Erreur: {e}")
     

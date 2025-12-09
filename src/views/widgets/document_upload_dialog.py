@@ -12,6 +12,7 @@ from PySide6.QtGui import QFont
 
 from src.controllers import DocumentController
 from src.models import DocumentType
+from src.utils.auth import get_current_user
 from datetime import datetime
 
 
@@ -168,6 +169,11 @@ class DocumentUploadDialog(QDialog):
                 title_without_ext = os.path.splitext(basename)[0]
                 self.title_input.setText(title_without_ext)
     
+    def _get_current_username(self) -> str:
+        """Récupérer le nom d'utilisateur actuel"""
+        user = get_current_user()
+        return user.full_name if user and user.full_name else (user.username if user else "Système")
+    
     def upload_document(self):
         """Uploader le document"""
         # Validation
@@ -200,7 +206,7 @@ class DocumentUploadDialog(QDialog):
                 issue_date=issue_date_py,
                 expiry_date=expiry_date_py,
                 tags=self.tags_input.text().strip() or None,
-                created_by="current_user"  # TODO: Obtenir l'utilisateur actuel
+                created_by=self._get_current_username()
             )
             
             if document:

@@ -346,8 +346,26 @@ class DocumentsManagementWidget(QWidget):
             )
             
             if filename:
-                # TODO: Implémenter DocumentController.export_to_csv()
-                QMessageBox.information(self, "Export", "Export CSV à implémenter dans DocumentController")
+                # Récupérer les documents filtrés actuels
+                documents = []
+                for row in range(self.table.rowCount()):
+                    doc_id = self.table.item(row, 0).data(Qt.UserRole)
+                    if doc_id:
+                        doc = DocumentController.get_document(doc_id)
+                        if doc:
+                            documents.append(doc)
+                
+                # Exporter via le contrôleur
+                success, result = DocumentController.export_to_csv(documents, filename)
+                
+                if success:
+                    QMessageBox.information(
+                        self,
+                        "✅ Export réussi",
+                        f"{len(documents)} documents exportés vers:\n{result}"
+                    )
+                else:
+                    QMessageBox.warning(self, "⚠️ Erreur", f"Erreur lors de l'export:\n{result}")
                 
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Erreur export: {e}")
