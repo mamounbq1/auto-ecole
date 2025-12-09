@@ -6,8 +6,9 @@ import enum
 from datetime import datetime, date
 from typing import Optional, List
 
-from sqlalchemy import Column, Integer, String, Enum, Date, Float, Text
+from sqlalchemy import Column, Integer, String, Enum, Date, Float, Text, Numeric
 from sqlalchemy.orm import relationship
+from decimal import Decimal
 
 from .base import Base, BaseModel
 
@@ -46,9 +47,9 @@ class Student(Base, BaseModel):
     practical_exam_attempts = Column(Integer, default=0, nullable=False)
     
     # Informations financières
-    total_paid = Column(Float, default=0.0, nullable=False)
-    total_due = Column(Float, default=0.0, nullable=False)
-    balance = Column(Float, default=0.0, nullable=False)  # Solde (négatif = dette)
+    total_paid = Column(Numeric(10, 2), default=0.0, nullable=False)
+    total_due = Column(Numeric(10, 2), default=0.0, nullable=False)
+    balance = Column(Numeric(10, 2), default=0.0, nullable=False)  # Solde (négatif = dette)
     
     # Progression
     hours_completed = Column(Integer, default=0, nullable=False)  # Heures de conduite
@@ -124,7 +125,10 @@ class Student(Base, BaseModel):
         - Balance < 0 : L'étudiant a une DETTE
         - Balance = 0 : À jour
         """
-        self.total_paid += amount
+        # Convertir en Decimal pour précision
+        amount_decimal = Decimal(str(round(float(amount), 2)))
+        self.total_paid = Decimal(str(self.total_paid)) + amount_decimal
+        self.total_due = Decimal(str(self.total_due))
         self.balance = self.total_paid - self.total_due
     
     def add_charge(self, amount: float) -> None:
@@ -139,7 +143,10 @@ class Student(Base, BaseModel):
         - Balance < 0 : L'étudiant a une DETTE
         - Balance = 0 : À jour
         """
-        self.total_due += amount
+        # Convertir en Decimal pour précision
+        amount_decimal = Decimal(str(round(float(amount), 2)))
+        self.total_paid = Decimal(str(self.total_paid))
+        self.total_due = Decimal(str(self.total_due)) + amount_decimal
         self.balance = self.total_paid - self.total_due
     
     def record_session(self, duration_hours: float = 1.0) -> None:
@@ -192,9 +199,9 @@ class Student(Base, BaseModel):
             'practical_exam_passed': self.practical_exam_passed,
             'theoretical_exam_attempts': self.theoretical_exam_attempts,
             'practical_exam_attempts': self.practical_exam_attempts,
-            'total_paid': self.total_paid,
-            'total_due': self.total_due,
-            'balance': self.balance,
+            'total_paid': float(self.total_paid) if self.total_paid else 0.0,
+            'total_due': float(self.total_due) if self.total_due else 0.0,
+            'balance': float(self.balance) if self.balance else 0.0,
             'is_solvent': self.is_solvent,
             'hours_completed': self.hours_completed,
             'hours_planned': self.hours_planned,

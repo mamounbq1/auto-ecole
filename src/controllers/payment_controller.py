@@ -4,11 +4,16 @@ Contrôleur pour la gestion des paiements
 
 from typing import List, Optional, Dict, Any
 from datetime import date
+from decimal import Decimal
 
 from src.models import Payment, PaymentMethod, Student, get_session
 from src.utils import get_logger, get_export_manager
 
 logger = get_logger()
+
+# Constantes de validation
+MIN_AMOUNT = 0.01
+MAX_AMOUNT = 100000.00
 
 
 class PaymentController:
@@ -18,7 +23,7 @@ class PaymentController:
     def create_payment(student_id: int, amount: float, payment_method: PaymentMethod,
                       description: str = "", validated_by: str = "") -> tuple[bool, str, Optional[Payment]]:
         """
-        Créer un nouveau paiement
+        Créer un nouveau paiement avec validation stricte
         
         Args:
             student_id: ID de l'élève
@@ -30,10 +35,18 @@ class PaymentController:
         Returns:
             Tuple (success, message, payment)
         """
+        session = get_session()
         try:
-            session = get_session()
+            # VALIDATION 1: Montant
+            if amount <= 0:
+                return False, "Le montant doit être positif", None
+            if amount > MAX_AMOUNT:
+                return False, f"Le montant ne peut pas dépasser {MAX_AMOUNT:,.2f} DH", None
             
-            # Vérifier que l'élève existe
+            # Arrondir à 2 décimales
+            amount = round(float(amount), 2)
+            
+            # VALIDATION 2: Élève existe
             student = session.query(Student).filter(Student.id == student_id).first()
             if not student:
                 return False, "Élève introuvable", None
@@ -52,17 +65,26 @@ class PaymentController:
             
             session.add(payment)
             
-            # Mettre à jour le solde de l'élève
+            # Mettre à jour le solde de l'élève (dans la même transaction)
             student.add_payment(amount)
             
+            # Commit de la transaction complète
             session.commit()
-            session.refresh(payment)
             
-            logger.info(f"Paiement créé : {amount} DH pour {student.full_name}")
+            # Rafraîchir les objets après commit
+            session.refresh(payment)
+            session.refresh(student)
+            
+            logger.info(f"Paiement créé : {amount} DH pour {student.full_name} (nouveau solde: {student.balance})")
             return True, "Paiement enregistré avec succès", payment
             
         except Exception as e:
             session.rollback()
+            # Rafraîchir l'élève pour annuler les modifications en mémoire
+            try:
+                session.refresh(session.query(Student).filter(Student.id == student_id).first())
+            except:
+                pass
             error_msg = f"Erreur lors de la création du paiement : {str(e)}"
             logger.error(error_msg)
             return False, error_msg, None
@@ -80,7 +102,7 @@ class PaymentController:
     @staticmethod
     def get_monthly_revenue(year: int, month: int) -> float:
         """
-        Calculer le chiffre d'affaires mensuel
+        Calculer le chiffre d'affaires mensuel (EXCLUT les paiements annulés)
         
         Args:
             year: Année
@@ -96,11 +118,12 @@ class PaymentController:
             session = get_session()
             payments = session.query(Payment).filter(
                 extract('year', Payment.payment_date) == year,
-                extract('month', Payment.payment_date) == month
+                extract('month', Payment.payment_date) == month,
+                Payment.is_cancelled == False  # IMPORTANT: Exclure annulés
             ).all()
             
-            total = sum(p.amount for p in payments)
-            return total
+            total = sum(float(p.amount) for p in payments)
+            return round(total, 2)
         except Exception as e:
             logger.error(f"Erreur lors du calcul du CA mensuel : {e}")
             return 0.0
@@ -185,7 +208,7 @@ class PaymentController:
     @staticmethod
     def update_payment(payment_id: int, **kwargs) -> tuple[bool, str]:
         """
-        Mettre à jour un paiement
+        Mettre à jour un paiement avec synchronisation du solde
         
         Args:
             payment_id: ID du paiement
@@ -194,21 +217,41 @@ class PaymentController:
         Returns:
             Tuple (success, message)
         """
+        session = get_session()
         try:
-            session = get_session()
             payment = session.query(Payment).filter(Payment.id == payment_id).first()
             
             if not payment:
                 return False, "Paiement introuvable"
             
-            # Si le montant change, mettre à jour le solde de l'élève
-            if 'amount' in kwargs and kwargs['amount'] != payment.amount:
-                old_amount = payment.amount
-                new_amount = kwargs['amount']
+            # Vérifier si le paiement est annulé
+            if payment.is_cancelled:
+                return False, "Impossible de modifier un paiement annulé"
+            
+            # TRAITEMENT SPÉCIAL POUR LE MONTANT (pour éviter double ajustement)
+            new_amount = kwargs.pop('amount', None)
+            
+            if new_amount is not None:
+                # Validation du nouveau montant
+                if new_amount <= 0:
+                    return False, "Le montant doit être positif"
+                if new_amount > MAX_AMOUNT:
+                    return False, f"Le montant ne peut pas dépasser {MAX_AMOUNT:,.2f} DH"
+                
+                # Arrondir
+                new_amount = round(float(new_amount), 2)
+                
+                # Calculer la différence
+                old_amount = float(payment.amount)
                 difference = new_amount - old_amount
                 
-                if payment.student:
+                # Synchroniser le solde de l'élève SI différence non nulle
+                if difference != 0 and payment.student:
                     payment.student.add_payment(difference)
+                    logger.info(f"Solde élève {payment.student.id} ajusté de {difference:+.2f} DH")
+                
+                # Appliquer le nouveau montant
+                payment.amount = Decimal(str(new_amount))
             
             # Mettre à jour les autres champs
             for key, value in kwargs.items():
@@ -216,11 +259,24 @@ class PaymentController:
                     setattr(payment, key, value)
             
             session.commit()
-            logger.info(f"Paiement {payment_id} mis à jour")
+            
+            # Rafraîchir les objets
+            session.refresh(payment)
+            if payment.student:
+                session.refresh(payment.student)
+            
+            logger.info(f"Paiement {payment_id} mis à jour avec succès")
             return True, "Paiement mis à jour avec succès"
             
         except Exception as e:
             session.rollback()
+            # Rafraîchir pour annuler les modifications
+            try:
+                session.refresh(payment)
+                if payment.student:
+                    session.refresh(payment.student)
+            except:
+                pass
             error_msg = f"Erreur lors de la mise à jour du paiement : {str(e)}"
             logger.error(error_msg)
             return False, error_msg
@@ -228,41 +284,59 @@ class PaymentController:
     @staticmethod
     def cancel_payment(payment_id: int, reason: str = "") -> tuple[bool, str]:
         """
-        Annuler un paiement
+        Annuler un paiement (utilise correctement is_cancelled)
         
         Args:
             payment_id: ID du paiement
-            reason: Raison de l'annulation
+            reason: Raison de l'annulation (OBLIGATOIRE)
         
         Returns:
             Tuple (success, message)
         """
+        session = get_session()
         try:
-            session = get_session()
             payment = session.query(Payment).filter(Payment.id == payment_id).first()
             
             if not payment:
                 return False, "Paiement introuvable"
             
-            # Mettre à jour le solde de l'élève (retirer le paiement)
+            # Vérifier si déjà annulé
+            if payment.is_cancelled:
+                return False, "Ce paiement est déjà annulé"
+            
+            # Exiger une raison
+            if not reason or reason.strip() == "":
+                return False, "Une raison d'annulation est obligatoire"
+            
+            old_amount = float(payment.amount)
+            
+            # Utiliser la méthode cancel() du modèle (correctement!)
+            payment.cancel(reason)
+            
+            # Synchroniser le solde de l'élève (retirer le paiement)
             if payment.student:
-                payment.student.add_payment(-payment.amount)
-            
-            # Ajouter une note d'annulation
-            cancellation_note = f"Annulé le {date.today().strftime('%d/%m/%Y')}"
-            if reason:
-                cancellation_note += f" - Raison: {reason}"
-            
-            current_description = payment.description or ""
-            payment.description = f"{current_description}\n{cancellation_note}"
-            payment.is_validated = False
+                payment.student.add_payment(-old_amount)
+                logger.info(f"Solde élève {payment.student.id} ajusté de {-old_amount:.2f} DH")
             
             session.commit()
-            logger.info(f"Paiement {payment_id} annulé")
+            
+            # Rafraîchir
+            session.refresh(payment)
+            if payment.student:
+                session.refresh(payment.student)
+            
+            logger.warning(f"Paiement {payment_id} annulé par raison: {reason}")
             return True, "Paiement annulé avec succès"
             
         except Exception as e:
             session.rollback()
+            # Rafraîchir pour annuler les modifications
+            try:
+                session.refresh(payment)
+                if payment.student:
+                    session.refresh(payment.student)
+            except:
+                pass
             error_msg = f"Erreur lors de l'annulation du paiement : {str(e)}"
             logger.error(error_msg)
             return False, error_msg
@@ -374,7 +448,7 @@ class PaymentController:
     def get_payment_statistics(start_date: Optional[date] = None,
                                end_date: Optional[date] = None) -> Dict[str, Any]:
         """
-        Obtenir les statistiques de paiements
+        Obtenir les statistiques de paiements (EXCLUT les paiements annulés)
         
         Args:
             start_date: Date de début (optionnel)
@@ -385,7 +459,7 @@ class PaymentController:
         """
         try:
             session = get_session()
-            query = session.query(Payment)
+            query = session.query(Payment).filter(Payment.is_cancelled == False)  # IMPORTANT
             
             if start_date:
                 query = query.filter(Payment.payment_date >= start_date)
@@ -399,11 +473,14 @@ class PaymentController:
                     'total_payments': 0,
                     'total_amount': 0.0,
                     'average_amount': 0.0,
-                    'by_method': {}
+                    'by_method': {},
+                    'validated_count': 0,
+                    'pending_count': 0,
+                    'cancelled_count': 0
                 }
             
             total = len(payments)
-            total_amount = sum(p.amount for p in payments)
+            total_amount = sum(float(p.amount) for p in payments)
             average_amount = total_amount / total if total > 0 else 0.0
             
             # Statistiques par méthode de paiement
@@ -413,8 +490,16 @@ class PaymentController:
                 if method_payments:
                     by_method[method.value] = {
                         'count': len(method_payments),
-                        'amount': sum(p.amount for p in method_payments)
+                        'amount': round(sum(float(p.amount) for p in method_payments), 2)
                     }
+            
+            # Compter aussi les annulés (pour info)
+            all_payments_query = session.query(Payment)
+            if start_date:
+                all_payments_query = all_payments_query.filter(Payment.payment_date >= start_date)
+            if end_date:
+                all_payments_query = all_payments_query.filter(Payment.payment_date <= end_date)
+            cancelled_count = all_payments_query.filter(Payment.is_cancelled == True).count()
             
             return {
                 'total_payments': total,
@@ -422,7 +507,8 @@ class PaymentController:
                 'average_amount': round(average_amount, 2),
                 'by_method': by_method,
                 'validated_count': len([p for p in payments if p.is_validated]),
-                'pending_count': len([p for p in payments if not p.is_validated])
+                'pending_count': len([p for p in payments if not p.is_validated and not p.is_cancelled]),
+                'cancelled_count': cancelled_count
             }
             
         except Exception as e:

@@ -270,27 +270,27 @@ class PaymentsDashboard(QWidget):
             value_label.setText(new_value)
     
     def load_all_stats(self):
-        """Charger toutes les statistiques"""
+        """Charger toutes les statistiques (EXCLUT paiements annulés)"""
         start_date, end_date = self.get_date_range()
         
         # Récupérer tous les paiements
         all_payments = PaymentController.get_all_payments()
         
-        # Filtrer par période
+        # Filtrer par période ET exclure annulés
         payments = [
             p for p in all_payments
             if p.payment_date and start_date <= p.payment_date <= end_date
-            and not p.is_cancelled
+            and not p.is_cancelled  # IMPORTANT: Exclure annulés
         ]
         
-        # Calculs principaux
-        total_revenue = sum(p.amount for p in payments)
+        # Calculs principaux (convertir Decimal en float)
+        total_revenue = sum(float(p.amount) for p in payments)
         total_payments = len(payments)
         avg_payment = total_revenue / total_payments if total_payments > 0 else 0
         
-        # Paiements en attente
-        pending_payments = [p for p in payments if not p.is_validated]
-        pending_amount = sum(p.amount for p in pending_payments)
+        # Paiements en attente (non validés ET non annulés)
+        pending_payments = [p for p in payments if not p.is_validated and not p.is_cancelled]
+        pending_amount = sum(float(p.amount) for p in pending_payments)
         
         # Mettre à jour les cartes
         self.update_card_value(self.card_revenue, f"{total_revenue:,.2f} DH")
@@ -322,7 +322,7 @@ class PaymentsDashboard(QWidget):
         for p in payments:
             method = p.payment_method.value
             methods_count[method] = methods_count.get(method, 0) + 1
-            methods_amount[method] = methods_amount.get(method, 0) + p.amount
+            methods_amount[method] = methods_amount.get(method, 0) + float(p.amount)
         
         # Mapping noms français
         method_labels = {
@@ -381,11 +381,11 @@ class PaymentsDashboard(QWidget):
         
         # Compter par catégorie
         categories_amount = {}
-        total_amount = sum(p.amount for p in payments)
+        total_amount = sum(float(p.amount) for p in payments)
         
         for p in payments:
             cat = p.category or 'autre'
-            categories_amount[cat] = categories_amount.get(cat, 0) + p.amount
+            categories_amount[cat] = categories_amount.get(cat, 0) + float(p.amount)
         
         # Mapping noms français
         category_labels = {
@@ -445,7 +445,7 @@ class PaymentsDashboard(QWidget):
         # Compter par élève
         student_amounts = {}
         for p in payments:
-            student_amounts[p.student_id] = student_amounts.get(p.student_id, 0) + p.amount
+            student_amounts[p.student_id] = student_amounts.get(p.student_id, 0) + float(p.amount)
         
         # Récupérer infos élèves
         all_students = {s.id: s for s in StudentController.get_all_students()}
@@ -493,11 +493,11 @@ class PaymentsDashboard(QWidget):
             if child.widget():
                 child.widget().deleteLater()
         
-        total_amount = sum(p.amount for p in payments)
+        total_amount = sum(float(p.amount) for p in payments)
         total_count = len(payments)
         
-        # Taux de validation
-        validated = len([p for p in payments if p.is_validated])
+        # Taux de validation (parmi les non annulés)
+        validated = len([p for p in payments if p.is_validated and not p.is_cancelled])
         validation_rate = int((validated / total_count * 100)) if total_count > 0 else 0
         
         val_label = QLabel(f"Taux de Validation: {validation_rate}%")

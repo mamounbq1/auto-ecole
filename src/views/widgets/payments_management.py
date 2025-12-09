@@ -53,11 +53,12 @@ class AddPaymentDialog(QDialog):
         students = StudentController.get_all_students()
         for student in students:
             # Balance = total_paid - total_due (negative = dette)
-            # Simple display: just +/- amount
-            if student.balance == 0:
+            # Convertir Decimal en float pour affichage
+            balance_value = float(student.balance) if student.balance else 0.0
+            if balance_value == 0:
                 balance_text = "0 DH"
             else:
-                balance_text = f"{student.balance:+,.0f} DH"
+                balance_text = f"{balance_value:+,.0f} DH"
             self.student_combo.addItem(
                 f"{student.full_name} - {balance_text}",
                 student.id
@@ -508,8 +509,9 @@ class PaymentsManagement(QWidget):
         total_amount = 0
         
         for payment in payments:
+            # Ne pas afficher les paiements annulés
             if payment.is_cancelled:
-                continue  # Ne pas afficher les annulés pour l'instant
+                continue
             
             row = self.table.rowCount()
             self.table.insertRow(row)
@@ -530,15 +532,16 @@ class PaymentsManagement(QWidget):
             # Élève
             self.table.setItem(row, 2, QTableWidgetItem(student_name))
             
-            # Montant
-            amount_item = QTableWidgetItem(f"{payment.amount:,.2f} DH")
+            # Montant (convertir Decimal en float)
+            amount_value = float(payment.amount) if payment.amount else 0.0
+            amount_item = QTableWidgetItem(f"{amount_value:,.2f} DH")
             amount_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
             amount_item.setForeground(QColor("#27ae60"))
             amount_font = QFont()
             amount_font.setBold(True)
             amount_item.setFont(amount_font)
             self.table.setItem(row, 3, amount_item)
-            total_amount += payment.amount
+            total_amount += amount_value
             
             # Méthode
             method_item = QTableWidgetItem(payment.payment_method.value.replace('_', ' ').title())
@@ -674,12 +677,15 @@ class PaymentsManagement(QWidget):
                     ])
                     
                     for p in self.all_payments:
+                        # Exclure les paiements annulés de l'export
+                        if p.is_cancelled:
+                            continue
                         student = all_students.get(p.student_id)
                         writer.writerow([
                             p.payment_date.strftime('%d/%m/%Y') if p.payment_date else '',
                             p.receipt_number or '',
                             student.full_name if student else '',
-                            p.amount,
+                            float(p.amount) if p.amount else 0.0,
                             p.payment_method.value,
                             p.category or '',
                             p.status,

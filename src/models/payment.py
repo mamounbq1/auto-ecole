@@ -6,8 +6,9 @@ import enum
 from datetime import datetime, date
 from typing import Optional
 
-from sqlalchemy import Column, Integer, String, Enum, Date, Float, ForeignKey, Text, Boolean
+from sqlalchemy import Column, Integer, String, Enum, Date, Float, ForeignKey, Text, Boolean, Numeric
 from sqlalchemy.orm import relationship
+from decimal import Decimal
 
 from .base import Base, BaseModel
 
@@ -30,7 +31,7 @@ class Payment(Base, BaseModel):
     student_id = Column(Integer, ForeignKey('students.id', ondelete='CASCADE'), nullable=False, index=True)
     
     # Informations du paiement
-    amount = Column(Float, nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)  # Precision: 10 chiffres, 2 décimales
     payment_method = Column(Enum(PaymentMethod), default=PaymentMethod.CASH, nullable=False)
     payment_date = Column(Date, default=date.today, nullable=False, index=True)
     
@@ -69,7 +70,8 @@ class Payment(Base, BaseModel):
             payment_method: Méthode de paiement
         """
         self.student_id = student_id
-        self.amount = amount
+        # Convertir en Decimal et arrondir à 2 décimales
+        self.amount = Decimal(str(round(float(amount), 2)))
         self.payment_method = payment_method
         
         # Appliquer les autres attributs
@@ -145,7 +147,7 @@ class Payment(Base, BaseModel):
         return {
             'id': self.id,
             'student_id': self.student_id,
-            'amount': self.amount,
+            'amount': float(self.amount) if self.amount else 0.0,
             'payment_method': self.payment_method.value,
             'payment_date': self.payment_date.isoformat() if self.payment_date else None,
             'receipt_number': self.receipt_number,
