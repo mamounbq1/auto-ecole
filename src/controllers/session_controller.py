@@ -6,7 +6,7 @@ from typing import List, Optional
 from datetime import datetime, date, timedelta
 
 from src.models import Session, SessionStatus, get_session
-from src.utils import get_logger
+from src.utils import get_logger, get_export_manager
 
 logger = get_logger()
 
@@ -260,3 +260,58 @@ class SessionController:
             logger.error(f"Erreur lors de la suppression de la session : {e}")
             session_db.rollback()
             return False
+    
+    @staticmethod
+    def export_to_csv(sessions: Optional[List[Session]] = None,
+                     filename: Optional[str] = None) -> tuple[bool, str]:
+        """
+        Exporter les sessions vers un fichier CSV
+        
+        Args:
+            sessions: Liste de sessions (optionnel, toutes si None)
+            filename: Nom du fichier (optionnel)
+        
+        Returns:
+            Tuple (success, filepath/message)
+        """
+        try:
+            if sessions is None:
+                sessions = SessionController.get_all_sessions()
+            
+            if not sessions:
+                return False, "Aucune session à exporter"
+            
+            # Préparer les données avec infos complètes
+            data = []
+            for session_obj in sessions:
+                session_dict = {
+                    'id': session_obj.id,
+                    'student_id': session_obj.student_id,
+                    'student_name': session_obj.student.full_name if session_obj.student else '',
+                    'student_cin': session_obj.student.cin if session_obj.student else '',
+                    'instructor_id': session_obj.instructor_id,
+                    'instructor_name': session_obj.instructor.full_name if session_obj.instructor else '',
+                    'vehicle_id': session_obj.vehicle_id,
+                    'vehicle_plate': session_obj.vehicle.plate_number if session_obj.vehicle else '',
+                    'session_type': session_obj.session_type,
+                    'start_datetime': session_obj.start_datetime.isoformat() if session_obj.start_datetime else '',
+                    'end_datetime': session_obj.end_datetime.isoformat() if session_obj.end_datetime else '',
+                    'duration_hours': session_obj.duration_hours,
+                    'status': session_obj.status.value if session_obj.status else '',
+                    'performance_rating': session_obj.performance_rating,
+                    'notes': session_obj.notes or '',
+                    'created_at': session_obj.created_at.isoformat() if session_obj.created_at else ''
+                }
+                data.append(session_dict)
+            
+            # Exporter avec ExportManager
+            export_mgr = get_export_manager()
+            filepath = export_mgr.export_to_csv(data, 'sessions', filename)
+            
+            logger.info(f"{len(sessions)} sessions exportées vers {filepath}")
+            return True, filepath
+            
+        except Exception as e:
+            error_msg = f"Erreur lors de l'export : {str(e)}"
+            logger.error(error_msg)
+            return False, error_msg
