@@ -710,6 +710,12 @@ class SettingsWidget(QWidget):
         btn_optimize.clicked.connect(self.optimize_database)
         data_layout.addWidget(btn_optimize)
         
+        # Bouton: Synchroniser les statuts
+        btn_sync = QPushButton("🔄 Synchroniser tous les statuts")
+        btn_sync.setStyleSheet(btn_style + "background: #FF9800; color: white;")
+        btn_sync.clicked.connect(self.sync_all_statuses)
+        data_layout.addWidget(btn_sync)
+        
         # Avertissement pour actions dangereuses
         warning_card = QLabel("""
         <div style='background: #ffebee; padding: 15px; border-radius: 8px; border-left: 4px solid #f44336;'>
@@ -968,6 +974,52 @@ class SettingsWidget(QWidget):
                     self,
                     "❌ Erreur",
                     f"Erreur lors de l'optimisation:\n{str(e)}"
+                )
+    
+    def sync_all_statuses(self):
+        """Synchroniser tous les statuts de l'application"""
+        reply = QMessageBox.question(
+            self,
+            "Confirmation",
+            "Synchroniser tous les statuts?\n\n" +
+            "Cette action va mettre à jour automatiquement les statuts basés sur les données actuelles:\n" +
+            "• Étudiants (basé sur progression)\n" +
+            "• Véhicules (basé sur maintenances)\n" +
+            "• Séances (basé sur dates passées)\n" +
+            "• Documents (basé sur dates d'expiration)",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            try:
+                from src.utils.sync_manager import SyncManager
+                
+                # Afficher progression
+                progress = QMessageBox(self)
+                progress.setWindowTitle("Synchronisation en cours...")
+                progress.setText("Synchronisation des statuts en cours...\nVeuillez patienter.")
+                progress.setStandardButtons(QMessageBox.NoButton)
+                progress.show()
+                QApplication.processEvents()
+                
+                # Exécuter synchronisation
+                results = SyncManager.sync_all()
+                report = SyncManager.get_sync_report(results)
+                
+                progress.close()
+                
+                QMessageBox.information(
+                    self,
+                    "✅ Synchronisation terminée",
+                    report
+                )
+                
+            except Exception as e:
+                progress.close()
+                QMessageBox.critical(
+                    self,
+                    "❌ Erreur",
+                    f"Erreur lors de la synchronisation:\n{str(e)}"
                 )
     
     def reset_config(self):
