@@ -299,63 +299,129 @@ class PaymentsManagement(QWidget):
                 background-color: white;
                 border: 2px solid #ecf0f1;
                 border-radius: 8px;
-                padding: 10px;
+                padding: 15px;
             }
         """)
         
-        layout = QHBoxLayout(toolbar)
-        layout.setSpacing(10)
+        main_layout = QVBoxLayout(toolbar)
+        main_layout.setSpacing(10)
         
-        # Recherche
+        # Première ligne: Recherche
+        first_row = QHBoxLayout()
+        first_row.setSpacing(10)
+        
         search_label = QLabel("🔍")
-        layout.addWidget(search_label)
+        search_label.setStyleSheet("font-size: 18px;")
+        first_row.addWidget(search_label)
         
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Rechercher par nom, reçu, montant...")
-        self.search_input.setMinimumHeight(35)
+        self.search_input.setMinimumHeight(40)
+        self.search_input.setStyleSheet("""
+            QLineEdit {
+                padding: 8px;
+                border: 2px solid #ecf0f1;
+                border-radius: 5px;
+                font-size: 13px;
+            }
+            QLineEdit:focus {
+                border-color: #27ae60;
+            }
+        """)
         self.search_input.textChanged.connect(self.filter_payments)
-        layout.addWidget(self.search_input, stretch=1)
+        first_row.addWidget(self.search_input, stretch=1)
+        
+        main_layout.addLayout(first_row)
+        
+        # Deuxième ligne: Filtres et Actions
+        second_row = QHBoxLayout()
+        second_row.setSpacing(10)
         
         # Filtre méthode
         self.method_filter = QComboBox()
-        self.method_filter.setMinimumHeight(35)
+        self.method_filter.setMinimumHeight(40)
+        self.method_filter.setMinimumWidth(160)
+        self.method_filter.setStyleSheet("""
+            QComboBox {
+                padding: 5px 10px;
+                border: 2px solid #ecf0f1;
+                border-radius: 5px;
+                font-size: 13px;
+            }
+        """)
         self.method_filter.addItem("Toutes les méthodes", None)
         for method in PaymentMethod:
             self.method_filter.addItem(method.value.replace('_', ' ').title(), method)
         self.method_filter.currentIndexChanged.connect(self.filter_payments)
-        layout.addWidget(self.method_filter)
+        second_row.addWidget(self.method_filter)
         
         # Filtre statut
         self.status_filter = QComboBox()
-        self.status_filter.setMinimumHeight(35)
+        self.status_filter.setMinimumHeight(40)
+        self.status_filter.setMinimumWidth(140)
+        self.status_filter.setStyleSheet("""
+            QComboBox {
+                padding: 5px 10px;
+                border: 2px solid #ecf0f1;
+                border-radius: 5px;
+                font-size: 13px;
+            }
+        """)
         self.status_filter.addItem("Tous les statuts", None)
         self.status_filter.addItem("✅ Validés", "validated")
         self.status_filter.addItem("⏳ En attente", "pending")
         self.status_filter.addItem("❌ Annulés", "cancelled")
         self.status_filter.currentIndexChanged.connect(self.filter_payments)
-        layout.addWidget(self.status_filter)
+        second_row.addWidget(self.status_filter)
         
         # Filtre date début
-        layout.addWidget(QLabel("Du:"))
+        date_label_from = QLabel("Du:")
+        date_label_from.setStyleSheet("font-weight: bold; font-size: 13px;")
+        second_row.addWidget(date_label_from)
+        
         self.date_from = QDateEdit()
         self.date_from.setCalendarPopup(True)
-        self.date_from.setMinimumHeight(35)
+        self.date_from.setMinimumHeight(40)
+        self.date_from.setMinimumWidth(120)
+        self.date_from.setStyleSheet("""
+            QDateEdit {
+                padding: 5px 10px;
+                border: 2px solid #ecf0f1;
+                border-radius: 5px;
+                font-size: 13px;
+            }
+        """)
         self.date_from.setDate(QDate.currentDate().addMonths(-1))
         self.date_from.dateChanged.connect(self.filter_payments)
-        layout.addWidget(self.date_from)
+        second_row.addWidget(self.date_from)
         
         # Filtre date fin
-        layout.addWidget(QLabel("Au:"))
+        date_label_to = QLabel("Au:")
+        date_label_to.setStyleSheet("font-weight: bold; font-size: 13px;")
+        second_row.addWidget(date_label_to)
+        
         self.date_to = QDateEdit()
         self.date_to.setCalendarPopup(True)
-        self.date_to.setMinimumHeight(35)
+        self.date_to.setMinimumHeight(40)
+        self.date_to.setMinimumWidth(120)
+        self.date_to.setStyleSheet("""
+            QDateEdit {
+                padding: 5px 10px;
+                border: 2px solid #ecf0f1;
+                border-radius: 5px;
+                font-size: 13px;
+            }
+        """)
         self.date_to.setDate(QDate.currentDate())
         self.date_to.dateChanged.connect(self.filter_payments)
-        layout.addWidget(self.date_to)
+        second_row.addWidget(self.date_to)
+        
+        second_row.addStretch()
         
         # Bouton nouveau paiement
         add_btn = QPushButton("➕ Nouveau Paiement")
-        add_btn.setMinimumHeight(35)
+        add_btn.setMinimumHeight(40)
+        add_btn.setMinimumWidth(160)
         add_btn.setStyleSheet("""
             QPushButton {
                 background-color: #27ae60;
@@ -363,18 +429,20 @@ class PaymentsManagement(QWidget):
                 border: none;
                 border-radius: 5px;
                 font-weight: bold;
-                padding: 8px 15px;
+                font-size: 13px;
+                padding: 0 15px;
             }
             QPushButton:hover {
                 background-color: #229954;
             }
         """)
         add_btn.clicked.connect(self.add_payment)
-        layout.addWidget(add_btn)
+        second_row.addWidget(add_btn)
         
         # Bouton exporter
         export_btn = QPushButton("📊 Exporter")
-        export_btn.setMinimumHeight(35)
+        export_btn.setMinimumHeight(40)
+        export_btn.setMinimumWidth(120)
         export_btn.setStyleSheet("""
             QPushButton {
                 background-color: #3498db;
@@ -382,19 +450,20 @@ class PaymentsManagement(QWidget):
                 border: none;
                 border-radius: 5px;
                 font-weight: bold;
-                padding: 8px 15px;
+                font-size: 13px;
+                padding: 0 15px;
             }
             QPushButton:hover {
                 background-color: #2980b9;
             }
         """)
         export_btn.clicked.connect(self.export_payments)
-        layout.addWidget(export_btn)
+        second_row.addWidget(export_btn)
         
         # Bouton rafraîchir
         refresh_btn = QPushButton("🔄")
-        refresh_btn.setMinimumHeight(35)
-        refresh_btn.setFixedWidth(45)
+        refresh_btn.setMinimumHeight(40)
+        refresh_btn.setFixedWidth(50)
         refresh_btn.setStyleSheet("""
             QPushButton {
                 background-color: #95a5a6;
@@ -402,13 +471,16 @@ class PaymentsManagement(QWidget):
                 border: none;
                 border-radius: 5px;
                 font-weight: bold;
+                font-size: 16px;
             }
             QPushButton:hover {
                 background-color: #7f8c8d;
             }
         """)
         refresh_btn.clicked.connect(self.load_payments)
-        layout.addWidget(refresh_btn)
+        second_row.addWidget(refresh_btn)
+        
+        main_layout.addLayout(second_row)
         
         return toolbar
     
@@ -566,25 +638,63 @@ class PaymentsManagement(QWidget):
             # Actions
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
-            actions_layout.setContentsMargins(4, 4, 4, 4)
-            actions_layout.setSpacing(4)
+            actions_layout.setContentsMargins(2, 2, 2, 2)
+            actions_layout.setSpacing(3)
+            actions_layout.setAlignment(Qt.AlignCenter)
             
             view_btn = QPushButton("👁️")
+            view_btn.setFixedSize(32, 32)
             view_btn.setToolTip("Voir reçu")
             view_btn.clicked.connect(lambda checked, p=payment: self.view_receipt(p))
             view_btn.setCursor(Qt.PointingHandCursor)
+            view_btn.setStyleSheet("""
+                QPushButton {
+                    border: none;
+                    border-radius: 4px;
+                    background-color: transparent;
+                    font-size: 16px;
+                }
+                QPushButton:hover {
+                    background-color: #ecf0f1;
+                }
+            """)
             
             edit_btn = QPushButton("✏️")
+            edit_btn.setFixedSize(32, 32)
             edit_btn.setToolTip("Modifier")
             edit_btn.clicked.connect(lambda checked, p=payment: self.edit_payment(p))
             edit_btn.setCursor(Qt.PointingHandCursor)
+            edit_btn.setStyleSheet("""
+                QPushButton {
+                    border: none;
+                    border-radius: 4px;
+                    background-color: transparent;
+                    font-size: 16px;
+                }
+                QPushButton:hover {
+                    background-color: #ecf0f1;
+                }
+            """)
             
             pdf_btn = QPushButton("📄")
+            pdf_btn.setFixedSize(32, 32)
             pdf_btn.setToolTip("Générer PDF")
             pdf_btn.clicked.connect(lambda checked, p=payment: self.generate_pdf(p))
             pdf_btn.setCursor(Qt.PointingHandCursor)
+            pdf_btn.setStyleSheet("""
+                QPushButton {
+                    border: none;
+                    border-radius: 4px;
+                    background-color: transparent;
+                    font-size: 16px;
+                }
+                QPushButton:hover {
+                    background-color: #ecf0f1;
+                }
+            """)
             
             delete_btn = QPushButton("🗑️")
+            delete_btn.setFixedSize(32, 32)
             delete_btn.setToolTip("Annuler/Supprimer")
             delete_btn.clicked.connect(lambda checked, p=payment: self.delete_payment(p))
             delete_btn.setCursor(Qt.PointingHandCursor)
@@ -592,8 +702,9 @@ class PaymentsManagement(QWidget):
                 QPushButton {
                     background-color: #e74c3c;
                     color: white;
-                    border-radius: 3px;
-                    padding: 5px;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 14px;
                 }
                 QPushButton:hover {
                     background-color: #c0392b;
