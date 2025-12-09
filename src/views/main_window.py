@@ -141,60 +141,85 @@ class MainWindow(QMainWindow):
         return btn
         
     def create_menu_bar(self):
-        """Créer la barre de menu"""
-        menubar = self.menuBar()
-        
-        # Menu Fichier
-        file_menu = menubar.addMenu("&Fichier")
-        
-        export_action = QAction("📤 Exporter les données", self)
-        export_action.triggered.connect(self.export_data)
-        file_menu.addAction(export_action)
-        
-        backup_action = QAction("💾 Sauvegarder", self)
-        backup_action.triggered.connect(self.create_backup)
-        file_menu.addAction(backup_action)
-        
-        file_menu.addSeparator()
-        
-        quit_action = QAction("🚪 Quitter", self)
-        quit_action.setShortcut("Ctrl+Q")
-        quit_action.triggered.connect(self.close)
-        file_menu.addAction(quit_action)
-        
-        # Menu Aide
-        help_menu = menubar.addMenu("&Aide")
-        
-        doc_action = QAction("📚 Documentation", self)
-        doc_action.triggered.connect(self.show_documentation)
-        help_menu.addAction(doc_action)
-        
-        about_action = QAction("ℹ️ À propos", self)
-        about_action.triggered.connect(self.show_about)
-        help_menu.addAction(about_action)
+        """Masquer la barre de menu classique pour une interface moderne"""
+        # Cache la menubar pour une interface plus épurée
+        self.menuBar().setVisible(False)
         
     def create_toolbar(self):
-        """Créer la barre d'outils avec actions rapides"""
+        """Créer la barre d'actions rapides moderne"""
         toolbar = QToolBar("Actions Rapides")
         toolbar.setMovable(False)
-        toolbar.setIconSize(QSize(24, 24))
+        toolbar.setIconSize(QSize(32, 32))
+        toolbar.setStyleSheet("""
+            QToolBar {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #ffffff, stop:1 #f5f7fa);
+                border-bottom: 2px solid #e1e8ed;
+                spacing: 8px;
+                padding: 8px 15px;
+            }
+            QToolBar QToolButton {
+                background-color: white;
+                border: 2px solid #e1e8ed;
+                border-radius: 8px;
+                padding: 8px 16px;
+                margin: 2px;
+                font-size: 13px;
+                font-weight: 600;
+                color: #2c3e50;
+            }
+            QToolBar QToolButton:hover {
+                background-color: #3498db;
+                border-color: #2980b9;
+                color: white;
+            }
+            QToolBar QToolButton:pressed {
+                background-color: #2980b9;
+            }
+            QToolBar::separator {
+                background-color: #bdc3c7;
+                width: 1px;
+                margin: 8px 12px;
+            }
+        """)
         self.addToolBar(toolbar)
         
         # Actions rapides selon le rôle
         if self.user.role in [UserRole.ADMIN, UserRole.RECEPTIONIST]:
-            add_student = QAction("➕ Nouvel Élève", self)
+            add_student = QAction("👤 Nouvel Élève", self)
+            add_student.setToolTip("Créer un nouveau dossier élève")
             add_student.triggered.connect(self.quick_add_student)
             toolbar.addAction(add_student)
         
         if self.user.role in [UserRole.ADMIN, UserRole.CASHIER]:
-            add_payment = QAction("💵 Nouveau Paiement", self)
+            add_payment = QAction("💳 Nouveau Paiement", self)
+            add_payment.setToolTip("Enregistrer un paiement")
             add_payment.triggered.connect(self.quick_add_payment)
             toolbar.addAction(add_payment)
+        
+        if self.user.role in [UserRole.ADMIN, UserRole.INSTRUCTOR]:
+            add_session = QAction("🚗 Nouvelle Session", self)
+            add_session.setToolTip("Planifier une session de conduite")
+            add_session.triggered.connect(self.quick_add_session)
+            toolbar.addAction(add_session)
+        
+        if self.user.role in [UserRole.ADMIN, UserRole.RECEPTIONIST]:
+            add_exam = QAction("📝 Nouvel Examen", self)
+            add_exam.setToolTip("Inscrire un élève à un examen")
+            add_exam.triggered.connect(self.quick_add_exam)
+            toolbar.addAction(add_exam)
+        
+        if self.user.role == UserRole.ADMIN:
+            add_instructor = QAction("👨‍🏫 Nouveau Moniteur", self)
+            add_instructor.setToolTip("Ajouter un moniteur")
+            add_instructor.triggered.connect(self.quick_add_instructor)
+            toolbar.addAction(add_instructor)
         
         toolbar.addSeparator()
         
         # Actualiser
         refresh = QAction("🔄 Actualiser", self)
+        refresh.setToolTip("Rafraîchir la vue actuelle")
         refresh.triggered.connect(self.refresh_current_view)
         toolbar.addAction(refresh)
         
@@ -440,6 +465,51 @@ class MainWindow(QMainWindow):
                     self.current_module.load_payments()
         except Exception as e:
             logger.error(f"Erreur quick_add_payment: {e}")
+            QMessageBox.critical(self, "Erreur", f"Impossible d'ouvrir le formulaire:\n{str(e)}")
+    
+    def quick_add_session(self):
+        """Action rapide : Ajouter une session de conduite"""
+        try:
+            from src.views.widgets.planning_enhanced import SessionDialog
+            
+            dialog = SessionDialog(self)
+            if dialog.exec():
+                self.statusBar().showMessage("✅ Session planifiée avec succès", 3000)
+                # Actualiser si on est sur le module planning
+                if hasattr(self.current_module, 'load_sessions'):
+                    self.current_module.load_sessions()
+        except Exception as e:
+            logger.error(f"Erreur quick_add_session: {e}")
+            QMessageBox.critical(self, "Erreur", f"Impossible d'ouvrir le formulaire:\n{str(e)}")
+    
+    def quick_add_exam(self):
+        """Action rapide : Inscrire un élève à un examen"""
+        try:
+            from src.views.widgets.exams_management import ExamDialog
+            
+            dialog = ExamDialog(self)
+            if dialog.exec():
+                self.statusBar().showMessage("✅ Examen enregistré avec succès", 3000)
+                # Actualiser si on est sur le module examens
+                if hasattr(self.current_module, 'load_exams'):
+                    self.current_module.load_exams()
+        except Exception as e:
+            logger.error(f"Erreur quick_add_exam: {e}")
+            QMessageBox.critical(self, "Erreur", f"Impossible d'ouvrir le formulaire:\n{str(e)}")
+    
+    def quick_add_instructor(self):
+        """Action rapide : Ajouter un moniteur"""
+        try:
+            from src.views.widgets.instructors_management import InstructorDialog
+            
+            dialog = InstructorDialog(self)
+            if dialog.exec():
+                self.statusBar().showMessage("✅ Moniteur ajouté avec succès", 3000)
+                # Actualiser si on est sur le module moniteurs
+                if hasattr(self.current_module, 'load_instructors'):
+                    self.current_module.load_instructors()
+        except Exception as e:
+            logger.error(f"Erreur quick_add_instructor: {e}")
             QMessageBox.critical(self, "Erreur", f"Impossible d'ouvrir le formulaire:\n{str(e)}")
         
     def refresh_current_view(self):
