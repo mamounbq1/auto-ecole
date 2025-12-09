@@ -40,19 +40,27 @@ class StudentDetailViewDialog(QDialog):
     
     def __init__(self, student=None, parent=None, read_only=False):
         super().__init__(parent)
-        self.student = student
         self.read_only = read_only
         self.photo_path = None
         
+        # CRITICAL: Reload student from database to get fresh balance calculation
+        if student:
+            from src.controllers.student_controller import StudentController
+            self.student = StudentController.get_student_by_id(student.id)
+            if not self.student:
+                self.student = student  # Fallback to passed object
+        else:
+            self.student = None
+        
         # Set window properties
-        self.setWindowTitle("Vue Détaillée - " + (student.full_name if student else "Nouvel Élève"))
+        self.setWindowTitle("Vue Détaillée - " + (self.student.full_name if self.student else "Nouvel Élève"))
         self.setMinimumSize(900, 700)
         
         # Setup UI
         self.setup_ui()
         
         # Load data if editing
-        if student:
+        if self.student:
             try:
                 self.load_student_data()
             except Exception as e:
@@ -148,15 +156,12 @@ class StudentDetailViewDialog(QDialog):
         stats_layout = QVBoxLayout()
         
         # Balance = total_paid - total_due
-        # Negative = Dette (rouge), Positive = Crédit (vert), Zero = À jour (vert)
+        # Simple display: just show +/- amount (no "Dette"/"Crédit" text)
         balance_color = "#e74c3c" if self.student.balance < 0 else "#27ae60"
-        balance_text = f"Solde: {abs(self.student.balance):,.2f} DH"
-        if self.student.balance < 0:
-            balance_text = f"Dette: {abs(self.student.balance):,.2f} DH"
-        elif self.student.balance > 0:
-            balance_text = f"Crédit: {abs(self.student.balance):,.2f} DH"
+        if self.student.balance == 0:
+            balance_text = "0.00 DH"
         else:
-            balance_text = "À jour"
+            balance_text = f"{self.student.balance:+,.2f} DH"
         self.balance_label = QLabel(balance_text)
         self.balance_label.setStyleSheet(f"color: {balance_color}; font-size: 18px; font-weight: bold; background-color: white; padding: 8px 15px; border-radius: 5px;")
         
@@ -1294,12 +1299,10 @@ class StudentDetailViewDialog(QDialog):
             # Update balance label in header if student exists
             if hasattr(self, 'balance_label') and self.balance_label:
                 balance_color = "#e74c3c" if new_balance < 0 else "#27ae60"
-                if new_balance < 0:
-                    balance_text = f"Dette: {abs(new_balance):,.2f} DH"
-                elif new_balance > 0:
-                    balance_text = f"Crédit: {abs(new_balance):,.2f} DH"
+                if new_balance == 0:
+                    balance_text = "0.00 DH"
                 else:
-                    balance_text = "À jour"
+                    balance_text = f"{new_balance:+,.2f} DH"
                 self.balance_label.setText(balance_text)
                 self.balance_label.setStyleSheet(f"color: {balance_color}; font-size: 18px; font-weight: bold; background-color: white; padding: 8px 15px; border-radius: 5px;")
                 
@@ -1320,12 +1323,10 @@ class StudentDetailViewDialog(QDialog):
                 # Update balance label in header
                 # Balance = total_paid - total_due (negative = dette)
                 balance_color = "#e74c3c" if self.student.balance < 0 else "#27ae60"
-                if self.student.balance < 0:
-                    balance_text = f"Dette: {abs(self.student.balance):,.2f} DH"
-                elif self.student.balance > 0:
-                    balance_text = f"Crédit: {abs(self.student.balance):,.2f} DH"
+                if self.student.balance == 0:
+                    balance_text = "0.00 DH"
                 else:
-                    balance_text = "À jour"
+                    balance_text = f"{self.student.balance:+,.2f} DH"
                 self.balance_label.setText(balance_text)
                 self.balance_label.setStyleSheet(f"color: {balance_color}; font-size: 18px; font-weight: bold; background-color: white; padding: 8px 15px; border-radius: 5px;")
                 

@@ -53,12 +53,11 @@ class AddPaymentDialog(QDialog):
         students = StudentController.get_all_students()
         for student in students:
             # Balance = total_paid - total_due (negative = dette)
-            if student.balance < 0:
-                balance_text = f"Dette: {abs(student.balance):,.0f} DH"
-            elif student.balance > 0:
-                balance_text = f"Crédit: {abs(student.balance):,.0f} DH"
+            # Simple display: just +/- amount
+            if student.balance == 0:
+                balance_text = "0 DH"
             else:
-                balance_text = "À jour"
+                balance_text = f"{student.balance:+,.0f} DH"
             self.student_combo.addItem(
                 f"{student.full_name} - {balance_text}",
                 student.id

@@ -587,17 +587,13 @@ class StudentsEnhancedWidget(QWidget):
             self.table.setItem(row, 6, QTableWidgetItem(hours_text))
             
             # Solde (Balance = total_paid - total_due, negative = dette)
-            if student.balance < 0:
-                balance_text = f"Dette: {abs(student.balance):,.2f}"
-                balance_item = QTableWidgetItem(balance_text)
-                balance_item.setForeground(QColor("#e74c3c"))  # Rouge pour dette
-            elif student.balance > 0:
-                balance_text = f"Crédit: {abs(student.balance):,.2f}"
-                balance_item = QTableWidgetItem(balance_text)
-                balance_item.setForeground(QColor("#27ae60"))  # Vert pour crédit
+            # Simple display: just +/- amount, no text
+            if student.balance == 0:
+                balance_text = "0.00"
             else:
-                balance_item = QTableWidgetItem("À jour")
-                balance_item.setForeground(QColor("#27ae60"))  # Vert pour à jour
+                balance_text = f"{student.balance:+,.2f}"
+            balance_item = QTableWidgetItem(balance_text)
+            balance_item.setForeground(QColor("#e74c3c") if student.balance < 0 else QColor("#27ae60"))
             self.table.setItem(row, 7, balance_item)
             
             # Actions
