@@ -170,7 +170,10 @@ class StudentController:
             if 'total_due' in student_data or old_total_due != student.total_due:
                 # Balance = total_paid - total_due
                 # Positive = CRÉDIT (trop-perçu), Negative = DETTE, Zero = À jour
-                student.balance = student.total_paid - student.total_due
+                from decimal import Decimal
+                paid = Decimal(str(float(student.total_paid) if student.total_paid else 0.0))
+                due = Decimal(str(float(student.total_due) if student.total_due else 0.0))
+                student.balance = paid - due
                 logger.info(f"Balance recalculé pour {student.full_name}: {student.balance} DH (Dû: {student.total_due}, Payé: {student.total_paid})")
             
             session.commit()

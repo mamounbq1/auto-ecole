@@ -273,7 +273,10 @@ def create_sample_students(session):
     
     for student in students:
         # Mettre à jour le solde
-        student.balance = student.total_paid - student.total_due
+        from decimal import Decimal
+        paid = Decimal(str(float(student.total_paid) if student.total_paid else 0.0))
+        due = Decimal(str(float(student.total_due) if student.total_due else 0.0))
+        student.balance = paid - due
         session.add(student)
     
     session.commit()
