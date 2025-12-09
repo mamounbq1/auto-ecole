@@ -228,10 +228,14 @@ class StudentController:
     
     @staticmethod
     def get_students_with_debt() -> List[Student]:
-        """Obtenir les élèves ayant des dettes"""
+        """Obtenir les élèves ayant des dettes
+        
+        Balance = total_due - total_paid
+        Balance > 0 = L'étudiant doit de l'argent (dette)
+        """
         try:
             session = get_session()
-            return session.query(Student).filter(Student.balance < 0).order_by(Student.balance).all()
+            return session.query(Student).filter(Student.balance > 0).order_by(Student.balance.desc()).all()
         except Exception as e:
             logger.error(f"Erreur lors de la récupération des élèves endettés : {e}")
             return []

@@ -578,18 +578,23 @@ class NotificationController:
         student: Student,
         notification_types: List[NotificationType] = None
     ) -> List[Notification]:
-        """Envoyer un rappel de paiement pour un élève avec un solde négatif"""
+        """Envoyer un rappel de paiement pour un élève avec une dette
+        
+        Balance = total_due - total_paid
+        Balance > 0 = Dette (l'étudiant doit de l'argent)
+        """
         if notification_types is None:
             notification_types = [NotificationType.SMS, NotificationType.IN_APP]
         
         notifications = []
         
-        if student.balance >= 0:
+        # Balance > 0 signifie dette maintenant
+        if student.balance <= 0:
             return notifications
         
-        debt_amount = abs(student.balance)
+        debt_amount = student.balance  # Plus besoin de abs() car balance est déjà positif
         message = (
-            f"Rappel : Votre solde est de {debt_amount:,.2f} DH. "
+            f"Rappel : Vous avez une dette de {debt_amount:,.2f} DH. "
             f"Merci de régulariser votre situation."
         )
         

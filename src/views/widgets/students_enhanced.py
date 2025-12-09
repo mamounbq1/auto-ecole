@@ -569,12 +569,18 @@ class StudentsEnhancedWidget(QWidget):
             hours_text = f"{student.hours_completed}/{student.hours_planned}"
             self.table.setItem(row, 6, QTableWidgetItem(hours_text))
             
-            # Solde
-            balance_item = QTableWidgetItem(f"{student.balance:,.2f}")
-            if student.balance < 0:
-                balance_item.setForeground(QColor("#e74c3c"))
+            # Solde (Balance = total_due - total_paid, positive = dette)
+            if student.balance > 0:
+                balance_text = f"Dette: {abs(student.balance):,.2f}"
+                balance_item = QTableWidgetItem(balance_text)
+                balance_item.setForeground(QColor("#e74c3c"))  # Rouge pour dette
+            elif student.balance < 0:
+                balance_text = f"Crédit: {abs(student.balance):,.2f}"
+                balance_item = QTableWidgetItem(balance_text)
+                balance_item.setForeground(QColor("#27ae60"))  # Vert pour crédit
             else:
-                balance_item.setForeground(QColor("#27ae60"))
+                balance_item = QTableWidgetItem("À jour")
+                balance_item.setForeground(QColor("#27ae60"))  # Vert pour à jour
             self.table.setItem(row, 7, balance_item)
             
             # Actions

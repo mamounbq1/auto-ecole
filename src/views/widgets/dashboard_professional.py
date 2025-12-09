@@ -467,9 +467,9 @@ class DashboardProfessionalWidget(QWidget):
         # Sessions aujourd'hui
         sessions_today = SessionController.get_today_sessions()
         
-        # Élèves avec dette
-        students_with_debt = sum(1 for s in students if s.balance < 0)
-        total_debt = sum(abs(s.balance) for s in students if s.balance < 0)
+        # Élèves avec dette (balance > 0 maintenant car balance = total_due - total_paid)
+        students_with_debt = sum(1 for s in students if s.balance > 0)
+        total_debt = sum(s.balance for s in students if s.balance > 0)
         
         # Créer les cartes
         cards = [
@@ -732,9 +732,10 @@ class DashboardProfessionalWidget(QWidget):
         students = StudentController.get_all_students()
         
         # 1. Élèves avec dette (PRIORITÉ HAUTE)
-        students_with_debt = [s for s in students if s.balance < 0]
+        # Balance > 0 = dette (nouvelle logique: balance = total_due - total_paid)
+        students_with_debt = [s for s in students if s.balance > 0]
         if students_with_debt:
-            total_debt = sum(abs(s.balance) for s in students_with_debt)
+            total_debt = sum(s.balance for s in students_with_debt)
             self.add_alert(
                 "⚠️", 
                 f"{len(students_with_debt)} élève(s) impayés - Total: {total_debt:.0f} DH",

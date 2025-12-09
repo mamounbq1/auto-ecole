@@ -101,7 +101,9 @@ class Student(Base, BaseModel):
     @property
     def is_solvent(self) -> bool:
         """Vérifier si l'élève est à jour dans ses paiements"""
-        return self.balance >= 0
+        # Balance = total_due - total_paid
+        # Solvent if balance <= 0 (no debt or credit)
+        return self.balance <= 0
     
     @property
     def completion_rate(self) -> float:
@@ -116,9 +118,14 @@ class Student(Base, BaseModel):
         
         Args:
             amount: Montant du paiement
+        
+        Balance = total_due - total_paid
+        - Balance > 0 : L'étudiant doit de l'argent (dette)
+        - Balance < 0 : L'école doit de l'argent (crédit/trop-perçu)
+        - Balance = 0 : À jour
         """
         self.total_paid += amount
-        self.balance = self.total_paid - self.total_due
+        self.balance = self.total_due - self.total_paid
     
     def add_charge(self, amount: float) -> None:
         """
@@ -126,9 +133,14 @@ class Student(Base, BaseModel):
         
         Args:
             amount: Montant de la charge
+        
+        Balance = total_due - total_paid
+        - Balance > 0 : L'étudiant doit de l'argent (dette)
+        - Balance < 0 : L'école doit de l'argent (crédit/trop-perçu)
+        - Balance = 0 : À jour
         """
         self.total_due += amount
-        self.balance = self.total_paid - self.total_due
+        self.balance = self.total_due - self.total_paid
     
     def record_session(self, duration_hours: float = 1.0) -> None:
         """
