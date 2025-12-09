@@ -148,14 +148,34 @@ class StudentDetailViewDialog(QDialog):
         stats_layout = QVBoxLayout()
         
         balance_color = "#e74c3c" if self.student.balance < 0 else "#27ae60"
-        balance_label = QLabel(f"Solde: {self.student.balance:,.2f} DH")
-        balance_label.setStyleSheet(f"color: {balance_color}; font-size: 18px; font-weight: bold; background-color: white; padding: 8px 15px; border-radius: 5px;")
+        self.balance_label = QLabel(f"Solde: {self.student.balance:,.2f} DH")
+        self.balance_label.setStyleSheet(f"color: {balance_color}; font-size: 18px; font-weight: bold; background-color: white; padding: 8px 15px; border-radius: 5px;")
         
         completion = (self.student.hours_completed / self.student.hours_planned * 100) if self.student.hours_planned > 0 else 0
         completion_label = QLabel(f"Taux de complétion: {completion:.1f}%")
         completion_label.setStyleSheet("color: white; font-size: 14px;")
         
-        stats_layout.addWidget(balance_label)
+        # Refresh button next to balance
+        refresh_btn = QPushButton("🔄")
+        refresh_btn.setToolTip("Rafraîchir le solde")
+        refresh_btn.setFixedSize(40, 40)
+        refresh_btn.setStyleSheet("""
+            QPushButton {
+                background-color: white;
+                border-radius: 20px;
+                font-size: 18px;
+            }
+            QPushButton:hover {
+                background-color: #ecf0f1;
+            }
+        """)
+        refresh_btn.clicked.connect(self.refresh_balance)
+        
+        balance_with_refresh = QHBoxLayout()
+        balance_with_refresh.addWidget(self.balance_label)
+        balance_with_refresh.addWidget(refresh_btn)
+        
+        stats_layout.addLayout(balance_with_refresh)
         stats_layout.addWidget(completion_label)
         
         header_layout.addLayout(stats_layout)
@@ -1247,6 +1267,37 @@ class StudentDetailViewDialog(QDialog):
             
         except Exception as e:
             print(f"Error loading history: {e}")
+    
+    def refresh_balance(self):
+        """Refresh the student balance display after changes"""
+        if not self.student:
+            return
+        
+        try:
+            # Reload student from database to get updated balance
+            updated_student = StudentController.get_student_by_id(self.student.id)
+            if updated_student:
+                self.student = updated_student
+                
+                # Update balance label in header
+                balance_color = "#e74c3c" if self.student.balance < 0 else "#27ae60"
+                self.balance_label.setText(f"Solde: {self.student.balance:,.2f} DH")
+                self.balance_label.setStyleSheet(f"color: {balance_color}; font-size: 18px; font-weight: bold; background-color: white; padding: 8px 15px; border-radius: 5px;")
+                
+                # Update balance field in info tab
+                self.balance.setValue(self.student.balance or 0)
+                
+                # Update total paid
+                self.total_paid.setValue(self.student.total_paid or 0)
+                
+                # Reload payments tab to show new totals
+                self.load_payments()
+                
+                # Reload history to show new activity
+                self.load_history()
+                
+        except Exception as e:
+            print(f"Error refreshing balance: {e}")
     
     def save_student(self):
         """Save student data with comprehensive validation"""
