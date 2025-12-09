@@ -125,10 +125,13 @@ class Student(Base, BaseModel):
         - Balance < 0 : L'étudiant a une DETTE
         - Balance = 0 : À jour
         """
-        # Convertir en Decimal pour précision
+        # Convertir en Decimal pour précision (même si déjà Decimal)
         amount_decimal = Decimal(str(round(float(amount), 2)))
-        self.total_paid = Decimal(str(self.total_paid)) + amount_decimal
-        self.total_due = Decimal(str(self.total_due))
+        current_paid = Decimal(str(float(self.total_paid) if self.total_paid else 0.0))
+        current_due = Decimal(str(float(self.total_due) if self.total_due else 0.0))
+        
+        self.total_paid = current_paid + amount_decimal
+        self.total_due = current_due
         self.balance = self.total_paid - self.total_due
     
     def add_charge(self, amount: float) -> None:
@@ -143,10 +146,13 @@ class Student(Base, BaseModel):
         - Balance < 0 : L'étudiant a une DETTE
         - Balance = 0 : À jour
         """
-        # Convertir en Decimal pour précision
+        # Convertir en Decimal pour précision (même si déjà Decimal)
         amount_decimal = Decimal(str(round(float(amount), 2)))
-        self.total_paid = Decimal(str(self.total_paid))
-        self.total_due = Decimal(str(self.total_due)) + amount_decimal
+        current_paid = Decimal(str(float(self.total_paid) if self.total_paid else 0.0))
+        current_due = Decimal(str(float(self.total_due) if self.total_due else 0.0))
+        
+        self.total_paid = current_paid
+        self.total_due = current_due + amount_decimal
         self.balance = self.total_paid - self.total_due
     
     def record_session(self, duration_hours: float = 1.0) -> None:
