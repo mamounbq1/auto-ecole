@@ -61,6 +61,32 @@ class StudentValidator:
             errors.append(result)
         
         return errors
+    
+    @staticmethod
+    def validate(data: Dict[str, Any]) -> tuple[bool, Dict[str, str]]:
+        """
+        Valider les données d'un étudiant et retourner (is_valid, errors_dict)
+        
+        Args:
+            data: Dictionnaire des données à valider
+            
+        Returns:
+            Tuple (is_valid, errors_dict) où errors_dict est un dict {field: error_message}
+        """
+        validation_results = StudentValidator.validate_student_data(data)
+        
+        if not validation_results:
+            return (True, {})
+        
+        # Convertir les ValidationResult en dictionnaire
+        errors_dict = {}
+        for result in validation_results:
+            if not result.is_valid:
+                # Extraire le nom du champ du message (ex: "Le nom complet" -> "nom_complet")
+                field_name = result.message.split(':')[0].strip() if ':' in result.message else "Champ"
+                errors_dict[field_name] = result.message
+        
+        return (len(errors_dict) == 0, errors_dict)
 
 
 class InstructorValidator:

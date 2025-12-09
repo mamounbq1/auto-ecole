@@ -379,7 +379,7 @@ class ReportsDashboard(QWidget):
         # Filtrer sessions par période
         sessions_period = [
             s for s in sessions
-            if start_date <= s.session_date <= end_date
+            if start_date <= s.start_datetime.date() <= end_date
         ]
         
         # KPIs

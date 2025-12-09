@@ -259,7 +259,7 @@ class DocumentsManagementWidget(QWidget):
     
     def upload_document(self):
         """Ouvrir le dialogue d'upload"""
-        dialog = DocumentUploadDialog(self)
+        dialog = DocumentUploadDialog(parent=self)
         if dialog.exec():
             self.load_documents()
             self.document_changed.emit()
