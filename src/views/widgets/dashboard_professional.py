@@ -433,7 +433,7 @@ class DashboardProfessionalWidget(QWidget):
         
         # Récupérer les données
         students = StudentController.get_all_students()
-        active_students = sum(1 for s in students if s.status in [StudentStatus.ACTIVE, StudentStatus.IN_TRAINING])
+        active_students = sum(1 for s in students if s.status == StudentStatus.ACTIVE)
         
         # CA mensuel
         today = datetime.now()
@@ -459,9 +459,8 @@ class DashboardProfessionalWidget(QWidget):
         
         # Sessions aujourd'hui
         sessions_today = SessionController.get_today_sessions()
-        sessions_today_count = len([s for s in sessions_today if s.status == SessionStatus.PLANNED])
         
-        # Élèves avec dette (impayés)
+        # Élèves avec dette
         students_with_debt = sum(1 for s in students if s.balance < 0)
         total_debt = sum(abs(s.balance) for s in students if s.balance < 0)
         
@@ -476,7 +475,7 @@ class DashboardProfessionalWidget(QWidget):
             ),
             ModernStatCard(
                 "CA Mensuel", 
-                f"{int(monthly_revenue):,} DH".replace(',', ' '),
+                f"{monthly_revenue:,.0f} DH",
                 f"vs mois dernier",
                 "💰", 
                 "#27ae60",
@@ -484,7 +483,7 @@ class DashboardProfessionalWidget(QWidget):
             ),
             ModernStatCard(
                 "Sessions Aujourd'hui", 
-                sessions_today_count,
+                len(sessions_today),
                 "planifiées",
                 "📅", 
                 "#f39c12"
@@ -492,7 +491,7 @@ class DashboardProfessionalWidget(QWidget):
             ModernStatCard(
                 "Impayés", 
                 students_with_debt,
-                f"{int(total_debt):,} DH de dette".replace(',', ' '),
+                f"{total_debt:,.0f} DH de dette",
                 "⚠️", 
                 "#e74c3c"
             ),
