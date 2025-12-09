@@ -19,12 +19,22 @@ from datetime import datetime
 class DocumentUploadDialog(QDialog):
     """Dialogue pour uploader un document"""
     
-    def __init__(self, parent=None):
+    def __init__(self, entity_type=None, entity_id=None, parent=None):
         super().__init__(parent)
         self.selected_file = None
+        self.entity_type = entity_type
+        self.entity_id = entity_id
         self.setWindowTitle("⬆️ Upload Document")
         self.setMinimumSize(600, 600)
         self.setup_ui()
+        
+        # Pré-remplir entity_type et entity_id si fournis
+        if self.entity_type:
+            index = self.entity_type_combo.findText(self.entity_type)
+            if index >= 0:
+                self.entity_type_combo.setCurrentIndex(index)
+        if self.entity_id:
+            self.entity_id_input.setValue(self.entity_id)
     
     def setup_ui(self):
         """Configurer l'interface"""

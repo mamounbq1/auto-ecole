@@ -927,7 +927,7 @@ class StudentDetailViewDialog(QDialog):
                 self.payments_table.setItem(row, 2, QTableWidgetItem(method_text))
                 
                 # Reference
-                self.payments_table.setItem(row, 3, QTableWidgetItem(payment.reference or ""))
+                self.payments_table.setItem(row, 3, QTableWidgetItem(payment.reference_number or ""))
                 
                 # Notes
                 self.payments_table.setItem(row, 4, QTableWidgetItem(payment.notes or ""))
