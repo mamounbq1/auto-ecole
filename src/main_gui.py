@@ -50,6 +50,9 @@ def main():
     # Créer et afficher la fenêtre de connexion
     login_window = LoginWindow()
     
+    # Variable pour stocker la fenêtre principale (important pour éviter qu'elle soit détruite)
+    main_window_ref = [None]  # Liste pour pouvoir modifier dans la closure
+    
     # Fonction appelée lors d'une connexion réussie
     def on_login_success(user):
         logger.info(f"Interface graphique lancée pour : {user.username}")
@@ -57,6 +60,7 @@ def main():
         try:
             # Créer et afficher la fenêtre principale
             main_window = MainWindow(user)
+            main_window_ref[0] = main_window  # Stocker la référence !
             main_window.show()
             logger.info("✅ Fenêtre principale affichée avec succès")
         except Exception as e:
