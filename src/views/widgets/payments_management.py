@@ -15,7 +15,7 @@ from datetime import datetime, date
 
 from src.controllers.payment_controller import PaymentController
 from src.controllers.student_controller import StudentController
-from src.models import PaymentMethod
+from src.models import PaymentMethod, Payment
 
 
 class AddPaymentDialog(QDialog):
@@ -566,47 +566,53 @@ class PaymentsManagement(QWidget):
             # Validé par
             self.table.setItem(row, 7, QTableWidgetItem(payment.validated_by or '-'))
             
-            # Actions (boutons PDF et Imprimer)
+            # Actions
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             actions_layout.setContentsMargins(4, 4, 4, 4)
             actions_layout.setSpacing(4)
             
+            view_btn = QPushButton("👁️")
+            view_btn.setToolTip("Voir détails")
+            view_btn.clicked.connect(lambda checked, p=payment: self.view_payment(p))
+            view_btn.setCursor(Qt.PointingHandCursor)
+            
+            edit_btn = QPushButton("✏️")
+            edit_btn.setToolTip("Modifier")
+            edit_btn.clicked.connect(lambda checked, p=payment: self.edit_payment(p))
+            edit_btn.setCursor(Qt.PointingHandCursor)
+            
             pdf_btn = QPushButton("📄")
-            pdf_btn.setFixedSize(30, 30)
             pdf_btn.setToolTip("Générer PDF")
-            pdf_btn.setStyleSheet("""
+            pdf_btn.clicked.connect(lambda checked, p=payment: self.generate_pdf(p))
+            pdf_btn.setCursor(Qt.PointingHandCursor)
+            
+            print_btn = QPushButton("🖨️")
+            print_btn.setToolTip("Imprimer Reçu")
+            print_btn.clicked.connect(lambda checked, p=payment: self.print_receipt(p))
+            print_btn.setCursor(Qt.PointingHandCursor)
+            
+            delete_btn = QPushButton("🗑️")
+            delete_btn.setToolTip("Annuler/Supprimer")
+            delete_btn.clicked.connect(lambda checked, p=payment: self.delete_payment(p))
+            delete_btn.setCursor(Qt.PointingHandCursor)
+            delete_btn.setStyleSheet("""
                 QPushButton {
                     background-color: #e74c3c;
                     color: white;
-                    border: none;
-                    border-radius: 4px;
-                    font-size: 14px;
+                    border-radius: 3px;
+                    padding: 5px;
                 }
                 QPushButton:hover {
                     background-color: #c0392b;
                 }
             """)
-            pdf_btn.clicked.connect(lambda checked, p=payment: self.generate_pdf(p))
-            actions_layout.addWidget(pdf_btn)
             
-            print_btn = QPushButton("🖨️")
-            print_btn.setFixedSize(30, 30)
-            print_btn.setToolTip("Imprimer Reçu")
-            print_btn.setStyleSheet("""
-                QPushButton {
-                    background-color: #3498db;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    font-size: 14px;
-                }
-                QPushButton:hover {
-                    background-color: #2980b9;
-                }
-            """)
-            print_btn.clicked.connect(lambda checked, p=payment: self.print_receipt(p))
+            actions_layout.addWidget(view_btn)
+            actions_layout.addWidget(edit_btn)
+            actions_layout.addWidget(pdf_btn)
             actions_layout.addWidget(print_btn)
+            actions_layout.addWidget(delete_btn)
             
             self.table.setCellWidget(row, 8, actions_widget)
         
@@ -886,3 +892,215 @@ class PaymentsManagement(QWidget):
                 QMessageBox.information(self, "Succès", f"Paiements exportés vers :\n{filename}")
             except Exception as e:
                 QMessageBox.critical(self, "Erreur", f"Erreur lors de l'export :\n{str(e)}")
+    
+    def view_payment(self, payment):
+        """Voir détails d'un paiement"""
+        student = StudentController.get_student_by_id(payment.student_id)
+        
+        details = f"""
+DÉTAILS DU PAIEMENT
+{'='*50}
+
+Numéro de reçu: {payment.receipt_number or 'N/A'}
+Date: {payment.payment_date.strftime('%d/%m/%Y %H:%M') if payment.payment_date else 'N/A'}
+
+Élève: {student.full_name if student else 'N/A'}
+CIN: {student.cin or 'N/A'}
+
+Montant: {float(payment.amount):,.2f} DH
+Méthode: {payment.payment_method.value.replace('_', ' ').title()}
+Catégorie: {(payment.category or 'autre').replace('_', ' ').title()}
+
+Statut: {payment.status}
+Validé par: {payment.validated_by or 'Non validé'}
+{f'Date validation: {payment.validated_at.strftime("%d/%m/%Y %H:%M")}' if payment.validated_at else ''}
+
+{f'Référence: {payment.reference_number}' if payment.reference_number else ''}
+{f'Description: {payment.description}' if payment.description else ''}
+
+{f'❌ ANNULÉ - Raison: {payment.cancellation_reason}' if payment.is_cancelled else ''}
+        """
+        
+        QMessageBox.information(self, "Détails du Paiement", details)
+    
+    def edit_payment(self, payment):
+        """Modifier un paiement"""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QDoubleSpinBox, QComboBox, QTextEdit, QLineEdit, QDateEdit
+        from PySide6.QtCore import QDate
+        
+        if payment.is_cancelled:
+            QMessageBox.warning(self, "Erreur", "Impossible de modifier un paiement annulé")
+            return
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Modifier Paiement - {payment.receipt_number}")
+        dialog.setMinimumWidth(500)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Élève (non modifiable)
+        student = StudentController.get_student_by_id(payment.student_id)
+        layout.addWidget(QLabel(f"<b>Élève:</b> {student.full_name if student else 'N/A'}"))
+        layout.addWidget(QLabel(f"<b>Reçu N°:</b> {payment.receipt_number}"))
+        
+        # Montant
+        layout.addWidget(QLabel("Montant (DH):"))
+        amount_input = QDoubleSpinBox()
+        amount_input.setRange(0.01, 100000)
+        amount_input.setValue(float(payment.amount))
+        amount_input.setDecimals(2)
+        layout.addWidget(amount_input)
+        
+        # Date
+        layout.addWidget(QLabel("Date:"))
+        date_input = QDateEdit()
+        date_input.setCalendarPopup(True)
+        date_input.setDate(QDate(payment.payment_date) if payment.payment_date else QDate.currentDate())
+        layout.addWidget(date_input)
+        
+        # Méthode
+        layout.addWidget(QLabel("Méthode de paiement:"))
+        method_combo = QComboBox()
+        for method in PaymentMethod:
+            method_combo.addItem(method.value.replace('_', ' ').title(), method)
+        method_combo.setCurrentText(payment.payment_method.value.replace('_', ' ').title())
+        layout.addWidget(method_combo)
+        
+        # Catégorie
+        layout.addWidget(QLabel("Catégorie:"))
+        category_combo = QComboBox()
+        categories = [
+            ('inscription', 'Inscription'),
+            ('conduite', 'Conduite'),
+            ('examen_theorique', 'Examen Théorique'),
+            ('examen_pratique', 'Examen Pratique'),
+            ('materiel_pedagogique', 'Matériel Pédagogique'),
+            ('autre', 'Autre')
+        ]
+        for cat_val, cat_label in categories:
+            category_combo.addItem(cat_label, cat_val)
+        if payment.category:
+            category_combo.setCurrentText(payment.category.replace('_', ' ').title())
+        layout.addWidget(category_combo)
+        
+        # Référence
+        layout.addWidget(QLabel("Référence (optionnel):"))
+        reference_input = QLineEdit(payment.reference_number or '')
+        layout.addWidget(reference_input)
+        
+        # Description
+        layout.addWidget(QLabel("Description (optionnel):"))
+        description_input = QTextEdit()
+        description_input.setPlainText(payment.description or '')
+        description_input.setMaximumHeight(80)
+        layout.addWidget(description_input)
+        
+        # Boutons
+        btn_layout = QHBoxLayout()
+        save_btn = QPushButton("💾 Enregistrer")
+        save_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px 20px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #229954;
+            }
+        """)
+        cancel_btn = QPushButton("❌ Annuler")
+        cancel_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #95a5a6;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px 20px;
+            }
+            QPushButton:hover {
+                background-color: #7f8c8d;
+            }
+        """)
+        
+        def save_changes():
+            new_amount = amount_input.value()
+            new_date = date_input.date().toPython()
+            new_method = method_combo.currentData()
+            new_category = category_combo.currentData()
+            new_reference = reference_input.text()
+            new_description = description_input.toPlainText()
+            
+            # Mettre à jour via controller
+            success, message = PaymentController.update_payment(
+                payment_id=payment.id,
+                amount=new_amount,
+                payment_method=new_method,
+                description=new_description
+            )
+            
+            if success:
+                # Mettre à jour champs supplémentaires
+                from src.models import get_session
+                session = get_session()
+                session.expire_all()
+                updated_payment = session.query(Payment).filter_by(id=payment.id).first()
+                if updated_payment:
+                    updated_payment.payment_date = new_date
+                    updated_payment.category = new_category
+                    updated_payment.reference_number = new_reference
+                    session.commit()
+                
+                QMessageBox.information(dialog, "Succès", "Paiement modifié avec succès")
+                dialog.accept()
+                self.load_payments()
+            else:
+                QMessageBox.critical(dialog, "Erreur", f"Erreur: {message}")
+        
+        save_btn.clicked.connect(save_changes)
+        cancel_btn.clicked.connect(dialog.reject)
+        
+        btn_layout.addWidget(save_btn)
+        btn_layout.addWidget(cancel_btn)
+        layout.addLayout(btn_layout)
+        
+        dialog.exec()
+    
+    def delete_payment(self, payment):
+        """Annuler/Supprimer un paiement"""
+        if payment.is_cancelled:
+            QMessageBox.warning(self, "Erreur", "Ce paiement est déjà annulé")
+            return
+        
+        student = StudentController.get_student_by_id(payment.student_id)
+        
+        reply = QMessageBox.question(
+            self,
+            "Confirmer l'annulation",
+            f"Voulez-vous annuler le paiement ?\n\n"
+            f"Reçu: {payment.receipt_number}\n"
+            f"Élève: {student.full_name if student else 'N/A'}\n"
+            f"Montant: {float(payment.amount):,.2f} DH\n\n"
+            f"⚠️ Le solde de l'élève sera ajusté",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            # Demander raison
+            from PySide6.QtWidgets import QInputDialog
+            reason, ok = QInputDialog.getText(
+                self,
+                "Raison de l'annulation",
+                "Veuillez indiquer la raison de l'annulation:"
+            )
+            
+            if ok and reason:
+                success, message = PaymentController.cancel_payment(payment.id, reason)
+                if success:
+                    QMessageBox.information(self, "Succès", "Paiement annulé avec succès")
+                    self.load_payments()
+                else:
+                    QMessageBox.critical(self, "Erreur", f"Erreur: {message}")
