@@ -43,7 +43,7 @@ class StudentDetailViewDialog(QDialog):
         self.read_only = read_only
         self.photo_path = None
         
-        # CRITICAL: Reload student from database to get fresh balance calculation
+        # CRITICAL: Reload student from database BEFORE creating UI
         if student:
             from src.models import get_session, Student
             from decimal import Decimal
@@ -67,25 +67,20 @@ class StudentDetailViewDialog(QDialog):
                 due = Decimal(str(float(self.student.total_due) if self.student.total_due else 0.0))
                 calculated_balance = paid - due
                 
-                # Debug: print to console
-                print(f"[DEBUG] Student {self.student.full_name} (ID: {self.student.id})")
-                print(f"  DB total_paid: {self.student.total_paid}")
-                print(f"  DB total_due: {self.student.total_due}")
-                print(f"  DB balance: {self.student.balance}")
-                print(f"  Calculated: {calculated_balance}")
-                
-                # Use the freshly calculated balance
+                # Use the freshly calculated balance (this is correct from DB)
                 self.student.balance = calculated_balance
+                
+                print(f"[DEBUG] Student {self.student.full_name}: balance={self.student.balance}")
             else:
                 self.student = student  # Fallback to passed object
         else:
             self.student = None
         
-        # Set window properties
+        # Set window properties AFTER reloading student
         self.setWindowTitle("Vue Détaillée - " + (self.student.full_name if self.student else "Nouvel Élève"))
         self.setMinimumSize(900, 700)
         
-        # Setup UI
+        # Setup UI (NOW self.student has the correct balance)
         self.setup_ui()
         
         # Load data if editing
@@ -936,10 +931,17 @@ class StudentDetailViewDialog(QDialog):
         self.theory_test_attempts.setValue(self.student.theoretical_exam_attempts or 0)
         self.practical_test_attempts.setValue(self.student.practical_exam_attempts or 0)
         
-        # Financial
-        self.total_due.setValue(self.student.total_due or 0)
-        self.total_paid.setValue(self.student.total_paid or 0)
-        self.balance.setValue(self.student.balance or 0)
+        # Financial - disconnect signal to avoid triggering update during load
+        self.total_due.valueChanged.disconnect()
+        self.total_paid.valueChanged.disconnect()
+        
+        self.total_due.setValue(float(self.student.total_due) if self.student.total_due else 0.0)
+        self.total_paid.setValue(float(self.student.total_paid) if self.student.total_paid else 0.0)
+        self.balance.setValue(float(self.student.balance) if self.student.balance else 0.0)
+        
+        # Reconnect signals after loading
+        self.total_due.valueChanged.connect(self.update_balance_display)
+        self.total_paid.valueChanged.connect(self.update_balance_display)
         
         # Tab 2: Load Payments
         try:
