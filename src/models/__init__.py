@@ -10,6 +10,7 @@ from .vehicle import Vehicle, VehicleStatus
 from .session import Session, SessionType, SessionStatus
 from .payment import Payment, PaymentMethod
 from .exam import Exam, ExamType, ExamResult
+from .maintenance import VehicleMaintenance, MaintenanceType, MaintenanceStatus
 
 __all__ = [
     # Base
@@ -39,4 +40,8 @@ __all__ = [
     'Exam',
     'ExamType',
     'ExamResult',
+    # Maintenance
+    'VehicleMaintenance',
+    'MaintenanceType',
+    'MaintenanceStatus',
 ]

@@ -8,6 +8,7 @@ from .vehicle_controller import VehicleController
 from .session_controller import SessionController
 from .payment_controller import PaymentController
 from .exam_controller import ExamController
+from .maintenance_controller import MaintenanceController
 
 __all__ = [
     'StudentController',
@@ -16,4 +17,5 @@ __all__ = [
     'SessionController',
     'PaymentController',
     'ExamController',
+    'MaintenanceController',
 ]
