@@ -286,49 +286,9 @@ class PaymentsManagement(QWidget):
         main_layout.addWidget(footer)
     
     def create_header(self) -> QFrame:
-        """Créer l'en-tête"""
+        """Créer l'en-tête (vide maintenant)"""
         header = QFrame()
-        header.setFixedHeight(60)
-        header.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #27ae60, stop:1 #229954);
-                border-radius: 8px;
-            }
-        """)
-        
-        layout = QHBoxLayout(header)
-        layout.setContentsMargins(20, 0, 20, 0)
-        
-        title = QLabel("💳 Gestion des Paiements")
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        title.setStyleSheet("color: white;")
-        layout.addWidget(title)
-        
-        layout.addStretch()
-        
-        # Bouton ajouter
-        add_btn = QPushButton("➕ Nouveau Paiement")
-        add_btn.setMinimumHeight(35)
-        add_btn.setStyleSheet("""
-            QPushButton {
-                background-color: white;
-                color: #27ae60;
-                border: none;
-                border-radius: 5px;
-                font-weight: bold;
-                padding: 8px 20px;
-            }
-            QPushButton:hover {
-                background-color: #f8f9fa;
-            }
-        """)
-        add_btn.clicked.connect(self.add_payment)
-        layout.addWidget(add_btn)
-        
+        header.setFixedHeight(0)
         return header
     
     def create_toolbar(self) -> QFrame:
@@ -374,6 +334,43 @@ class PaymentsManagement(QWidget):
         self.status_filter.addItem("❌ Annulés", "cancelled")
         self.status_filter.currentIndexChanged.connect(self.filter_payments)
         layout.addWidget(self.status_filter)
+        
+        # Filtre date début
+        layout.addWidget(QLabel("Du:"))
+        self.date_from = QDateEdit()
+        self.date_from.setCalendarPopup(True)
+        self.date_from.setMinimumHeight(35)
+        self.date_from.setDate(QDate.currentDate().addMonths(-1))
+        self.date_from.dateChanged.connect(self.filter_payments)
+        layout.addWidget(self.date_from)
+        
+        # Filtre date fin
+        layout.addWidget(QLabel("Au:"))
+        self.date_to = QDateEdit()
+        self.date_to.setCalendarPopup(True)
+        self.date_to.setMinimumHeight(35)
+        self.date_to.setDate(QDate.currentDate())
+        self.date_to.dateChanged.connect(self.filter_payments)
+        layout.addWidget(self.date_to)
+        
+        # Bouton nouveau paiement
+        add_btn = QPushButton("➕ Nouveau Paiement")
+        add_btn.setMinimumHeight(35)
+        add_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-weight: bold;
+                padding: 8px 15px;
+            }
+            QPushButton:hover {
+                background-color: #229954;
+            }
+        """)
+        add_btn.clicked.connect(self.add_payment)
+        layout.addWidget(add_btn)
         
         # Bouton exporter
         export_btn = QPushButton("📊 Exporter")
@@ -625,6 +622,8 @@ class PaymentsManagement(QWidget):
         search_text = self.search_input.text().lower()
         method_filter = self.method_filter.currentData()
         status_filter = self.status_filter.currentData()
+        date_from = self.date_from.date().toPython()
+        date_to = self.date_to.date().toPython()
         
         filtered = []
         all_students = {s.id: s for s in StudentController.get_all_students()}
@@ -651,6 +650,12 @@ class PaymentsManagement(QWidget):
                 if status_filter == "pending" and payment.is_validated:
                     continue
                 if status_filter == "cancelled" and not payment.is_cancelled:
+                    continue
+            
+            # Filtre date
+            if payment.payment_date:
+                payment_date = payment.payment_date.date() if hasattr(payment.payment_date, 'date') else payment.payment_date
+                if payment_date < date_from or payment_date > date_to:
                     continue
             
             filtered.append(payment)
