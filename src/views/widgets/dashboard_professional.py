@@ -743,7 +743,7 @@ class DashboardProfessionalWidget(QWidget):
         
         # 2. Sessions aujourd'hui
         sessions_today = SessionController.get_today_sessions()
-        planned_sessions = [s for s in sessions_today if s.status == SessionStatus.PLANNED]
+        planned_sessions = [s for s in sessions_today if s.status == SessionStatus.SCHEDULED]
         
         if planned_sessions:
             self.add_alert(

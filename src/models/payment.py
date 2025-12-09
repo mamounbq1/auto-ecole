@@ -89,7 +89,10 @@ class Payment(Base, BaseModel):
         date_str = payment_date.strftime('%Y%m%d')
         if self.id:
             return f"REC-{date_str}-{self.id:05d}"
-        return f"REC-{date_str}-DRAFT"
+        # Use timestamp for draft to ensure uniqueness
+        import time
+        timestamp = int(time.time() * 1000)  # milliseconds
+        return f"REC-{date_str}-DRAFT-{timestamp}"
     
     def validate(self, validated_by: str) -> None:
         """

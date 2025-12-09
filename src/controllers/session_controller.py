@@ -65,6 +65,16 @@ class SessionController:
             return None
     
     @staticmethod
+    def get_sessions_by_student(student_id: int) -> List[Session]:
+        """Obtenir toutes les sessions d'un élève"""
+        try:
+            session_db = get_session()
+            return session_db.query(Session).filter(Session.student_id == student_id).order_by(Session.start_datetime.desc()).all()
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des sessions de l'élève : {e}")
+            return []
+    
+    @staticmethod
     def check_instructor_conflict(instructor_id: int, start_dt: datetime, end_dt: datetime, 
                                   exclude_session_id: Optional[int] = None) -> List[Session]:
         """

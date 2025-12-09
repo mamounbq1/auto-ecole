@@ -905,7 +905,7 @@ class StudentDetailViewDialog(QDialog):
             return
         
         try:
-            payments = PaymentController.get_student_payments(self.student.id)
+            payments = PaymentController.get_payments_by_student(self.student.id)
             self.payments_table.setRowCount(0)
             
             total_paid = 0
@@ -944,7 +944,7 @@ class StudentDetailViewDialog(QDialog):
             return
         
         try:
-            sessions = SessionController.get_student_sessions(self.student.id)
+            sessions = SessionController.get_sessions_by_student(self.student.id)
             self.sessions_table.setRowCount(0)
             
             total_hours = 0
@@ -1042,7 +1042,7 @@ class StudentDetailViewDialog(QDialog):
         
         try:
             # Get all documents for this student
-            documents = DocumentController.get_entity_documents('student', self.student.id)
+            documents = DocumentController.get_documents_by_entity('student', self.student.id)
             self.documents_table.setRowCount(0)
             
             total_size = 0
@@ -1107,7 +1107,7 @@ class StudentDetailViewDialog(QDialog):
             return
         
         try:
-            documents = DocumentController.get_entity_documents('student', self.student.id)
+            documents = DocumentController.get_documents_by_entity('student', self.student.id)
             if selected_row < len(documents):
                 doc = documents[selected_row]
                 from src.views.widgets.document_viewer_dialog import DocumentViewerDialog
@@ -1124,7 +1124,7 @@ class StudentDetailViewDialog(QDialog):
             return
         
         try:
-            documents = DocumentController.get_entity_documents('student', self.student.id)
+            documents = DocumentController.get_documents_by_entity('student', self.student.id)
             if selected_row < len(documents):
                 doc = documents[selected_row]
                 
@@ -1156,7 +1156,7 @@ class StudentDetailViewDialog(QDialog):
             # Load payments
             if filter_type in ['all', 'payments']:
                 try:
-                    payments = PaymentController.get_student_payments(self.student.id)
+                    payments = PaymentController.get_payments_by_student(self.student.id)
                     for payment in payments:
                         all_activities.append({
                             'date': payment.payment_date,
@@ -1170,7 +1170,7 @@ class StudentDetailViewDialog(QDialog):
             # Load sessions
             if filter_type in ['all', 'sessions']:
                 try:
-                    sessions = SessionController.get_student_sessions(self.student.id)
+                    sessions = SessionController.get_sessions_by_student(self.student.id)
                     for session in sessions:
                         all_activities.append({
                             'date': session.start_datetime,
@@ -1199,7 +1199,7 @@ class StudentDetailViewDialog(QDialog):
             # Load documents
             if filter_type in ['all', 'documents']:
                 try:
-                    documents = DocumentController.get_entity_documents('student', self.student.id)
+                    documents = DocumentController.get_documents_by_entity('student', self.student.id)
                     for doc in documents:
                         all_activities.append({
                             'date': doc.created_at,
