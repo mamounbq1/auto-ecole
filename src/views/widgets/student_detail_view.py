@@ -373,6 +373,8 @@ class StudentDetailViewDialog(QDialog):
         self.total_due.setValue(0)
         self.total_due.setSuffix(" DH")
         self.total_due.setReadOnly(self.read_only)
+        # Connect signal to recalculate balance when total_due changes
+        self.total_due.valueChanged.connect(self.update_balance_display)
         
         self.total_paid = QDoubleSpinBox()
         self.total_paid.setMinimum(0)
@@ -1268,6 +1270,26 @@ class StudentDetailViewDialog(QDialog):
         except Exception as e:
             print(f"Error loading history: {e}")
     
+    def update_balance_display(self):
+        """Update balance display when total_due changes"""
+        try:
+            # Calculate new balance: Total Paid - Total Due
+            total_paid = self.total_paid.value()
+            total_due = self.total_due.value()
+            new_balance = total_paid - total_due
+            
+            # Update balance field
+            self.balance.setValue(new_balance)
+            
+            # Update balance label in header if student exists
+            if hasattr(self, 'balance_label') and self.balance_label:
+                balance_color = "#e74c3c" if new_balance < 0 else "#27ae60"
+                self.balance_label.setText(f"Solde: {new_balance:,.2f} DH")
+                self.balance_label.setStyleSheet(f"color: {balance_color}; font-size: 18px; font-weight: bold; background-color: white; padding: 8px 15px; border-radius: 5px;")
+                
+        except Exception as e:
+            print(f"Error updating balance display: {e}")
+    
     def refresh_balance(self):
         """Refresh the student balance display after changes"""
         if not self.student:
@@ -1284,11 +1306,10 @@ class StudentDetailViewDialog(QDialog):
                 self.balance_label.setText(f"Solde: {self.student.balance:,.2f} DH")
                 self.balance_label.setStyleSheet(f"color: {balance_color}; font-size: 18px; font-weight: bold; background-color: white; padding: 8px 15px; border-radius: 5px;")
                 
-                # Update balance field in info tab
+                # Update financial fields in info tab
                 self.balance.setValue(self.student.balance or 0)
-                
-                # Update total paid
                 self.total_paid.setValue(self.student.total_paid or 0)
+                self.total_due.setValue(self.student.total_due or 0)
                 
                 # Reload payments tab to show new totals
                 self.load_payments()
