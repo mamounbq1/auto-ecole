@@ -179,8 +179,8 @@ class DashboardSimpleWidget(QWidget):
             # Statistiques sessions
             sessions_today = SessionController.get_today_sessions()
             
-            # Élèves avec dette (balance > 0 car balance = total_due - total_paid)
-            students_with_debt = sum(1 for s in students if s.balance > 0)
+            # Élèves avec dette (balance < 0 car balance = total_paid - total_due)
+            students_with_debt = sum(1 for s in students if s.balance < 0)
             
             # Créer les cartes
             cards = [

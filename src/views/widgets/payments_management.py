@@ -52,10 +52,10 @@ class AddPaymentDialog(QDialog):
         self.student_combo.setMinimumHeight(35)
         students = StudentController.get_all_students()
         for student in students:
-            # Balance = total_due - total_paid (positive = dette)
-            if student.balance > 0:
+            # Balance = total_paid - total_due (negative = dette)
+            if student.balance < 0:
                 balance_text = f"Dette: {abs(student.balance):,.0f} DH"
-            elif student.balance < 0:
+            elif student.balance > 0:
                 balance_text = f"Crédit: {abs(student.balance):,.0f} DH"
             else:
                 balance_text = "À jour"

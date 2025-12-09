@@ -1,15 +1,12 @@
 """
-Script de migration pour inverser la logique du solde
+Script de migration pour corriger la logique du solde
 
-ANCIENNE LOGIQUE: balance = total_paid - total_due
-- Balance négative = Dette
-- Balance positive = Crédit
+LOGIQUE CORRECTE: balance = total_paid - total_due
+- Balance négative = Dette (l'étudiant doit de l'argent)
+- Balance positive = Crédit (l'école doit de l'argent à l'étudiant)
+- Balance zéro = À jour
 
-NOUVELLE LOGIQUE: balance = total_due - total_paid
-- Balance positive = Dette
-- Balance négative = Crédit
-
-Ce script inverse tous les soldes existants dans la base de données.
+Ce script recalcule tous les soldes existants avec la formule correcte.
 """
 
 import sys
@@ -30,19 +27,18 @@ def migrate_balance():
         print(f"Migration de {len(students)} étudiants...")
         
         for student in students:
-            # Ancienne logique: balance = total_paid - total_due
-            # Nouvelle logique: balance = total_due - total_paid
-            # Donc on inverse simplement le signe
+            # Recalculer avec la formule CORRECTE:
+            # balance = total_paid - total_due
+            # Négatif = Dette, Positif = Crédit, Zéro = À jour
             old_balance = student.balance
-            new_balance = -old_balance
+            new_balance = student.total_paid - student.total_due
             
-            # Ou recalculer depuis les valeurs:
-            new_balance = student.total_due - student.total_paid
+            status = "DETTE" if new_balance < 0 else ("CRÉDIT" if new_balance > 0 else "À JOUR")
             
             print(f"  {student.full_name}: "
-                  f"Ancien solde={old_balance:,.2f}, "
-                  f"Nouveau solde={new_balance:,.2f} "
-                  f"(Total dû={student.total_due:,.2f}, Total payé={student.total_paid:,.2f})")
+                  f"Ancien={old_balance:,.2f}, "
+                  f"Nouveau={new_balance:,.2f} [{status}] "
+                  f"(Payé={student.total_paid:,.2f}, Dû={student.total_due:,.2f})")
             
             student.balance = new_balance
         
@@ -51,13 +47,13 @@ def migrate_balance():
         
         # Vérification
         print("\n📊 Vérification:")
-        students_with_debt = session.query(Student).filter(Student.balance > 0).count()
-        students_with_credit = session.query(Student).filter(Student.balance < 0).count()
+        students_with_debt = session.query(Student).filter(Student.balance < 0).count()
+        students_with_credit = session.query(Student).filter(Student.balance > 0).count()
         students_balanced = session.query(Student).filter(Student.balance == 0).count()
         
-        print(f"  - Étudiants avec dette (balance > 0): {students_with_debt}")
-        print(f"  - Étudiants avec crédit (balance < 0): {students_with_credit}")
-        print(f"  - Étudiants à jour (balance = 0): {students_balanced}")
+        print(f"  - Étudiants avec DETTE (balance < 0): {students_with_debt}")
+        print(f"  - Étudiants avec CRÉDIT (balance > 0): {students_with_credit}")
+        print(f"  - Étudiants À JOUR (balance = 0): {students_balanced}")
         
     except Exception as e:
         session.rollback()
@@ -68,11 +64,13 @@ def migrate_balance():
 
 if __name__ == "__main__":
     print("="*60)
-    print("MIGRATION DE LA LOGIQUE DU SOLDE")
+    print("CORRECTION DE LA LOGIQUE DU SOLDE")
     print("="*60)
-    print("\nCe script va inverser la logique du solde:")
-    print("  AVANT: balance = total_paid - total_due (négatif = dette)")
-    print("  APRÈS: balance = total_due - total_paid (positif = dette)")
+    print("\nCe script va recalculer TOUS les soldes avec la formule CORRECTE:")
+    print("  FORMULE: balance = total_paid - total_due")
+    print("  • balance < 0 → DETTE (l'étudiant doit de l'argent)")
+    print("  • balance > 0 → CRÉDIT (l'école doit de l'argent)")
+    print("  • balance = 0 → À JOUR")
     print()
     
     response = input("Voulez-vous continuer? (oui/non): ")

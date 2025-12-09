@@ -119,13 +119,13 @@ class Student(Base, BaseModel):
         Args:
             amount: Montant du paiement
         
-        Balance = total_due - total_paid
-        - Balance > 0 : L'étudiant doit de l'argent (dette)
-        - Balance < 0 : L'école doit de l'argent (crédit/trop-perçu)
+        Balance = total_paid - total_due
+        - Balance > 0 : L'étudiant a un CRÉDIT (trop-perçu)
+        - Balance < 0 : L'étudiant a une DETTE
         - Balance = 0 : À jour
         """
         self.total_paid += amount
-        self.balance = self.total_due - self.total_paid
+        self.balance = self.total_paid - self.total_due
     
     def add_charge(self, amount: float) -> None:
         """
@@ -134,13 +134,13 @@ class Student(Base, BaseModel):
         Args:
             amount: Montant de la charge
         
-        Balance = total_due - total_paid
-        - Balance > 0 : L'étudiant doit de l'argent (dette)
-        - Balance < 0 : L'école doit de l'argent (crédit/trop-perçu)
+        Balance = total_paid - total_due
+        - Balance > 0 : L'étudiant a un CRÉDIT (trop-perçu)
+        - Balance < 0 : L'étudiant a une DETTE
         - Balance = 0 : À jour
         """
         self.total_due += amount
-        self.balance = self.total_due - self.total_paid
+        self.balance = self.total_paid - self.total_due
     
     def record_session(self, duration_hours: float = 1.0) -> None:
         """

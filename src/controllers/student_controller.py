@@ -168,9 +168,9 @@ class StudentController:
             
             # CRITIQUE : Recalculer le balance si total_due ou total_paid ont changé
             if 'total_due' in student_data or old_total_due != student.total_due:
-                # Balance = total_due - total_paid
-                # Positive = Dette, Negative = Crédit, Zero = À jour
-                student.balance = student.total_due - student.total_paid
+                # Balance = total_paid - total_due
+                # Positive = CRÉDIT (trop-perçu), Negative = DETTE, Zero = À jour
+                student.balance = student.total_paid - student.total_due
                 logger.info(f"Balance recalculé pour {student.full_name}: {student.balance} DH (Dû: {student.total_due}, Payé: {student.total_paid})")
             
             session.commit()
@@ -246,7 +246,7 @@ class StudentController:
         """
         try:
             session = get_session()
-            return session.query(Student).filter(Student.balance > 0).order_by(Student.balance.desc()).all()
+            return session.query(Student).filter(Student.balance < 0).order_by(Student.balance).all()
         except Exception as e:
             logger.error(f"Erreur lors de la récupération des élèves endettés : {e}")
             return []

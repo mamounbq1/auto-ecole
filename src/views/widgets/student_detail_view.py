@@ -147,13 +147,13 @@ class StudentDetailViewDialog(QDialog):
         # Quick stats
         stats_layout = QVBoxLayout()
         
-        # Balance = total_due - total_paid
-        # Positive = Dette (rouge), Negative = Crédit (vert), Zero = À jour (vert)
-        balance_color = "#e74c3c" if self.student.balance > 0 else "#27ae60"
+        # Balance = total_paid - total_due
+        # Negative = Dette (rouge), Positive = Crédit (vert), Zero = À jour (vert)
+        balance_color = "#e74c3c" if self.student.balance < 0 else "#27ae60"
         balance_text = f"Solde: {abs(self.student.balance):,.2f} DH"
-        if self.student.balance > 0:
+        if self.student.balance < 0:
             balance_text = f"Dette: {abs(self.student.balance):,.2f} DH"
-        elif self.student.balance < 0:
+        elif self.student.balance > 0:
             balance_text = f"Crédit: {abs(self.student.balance):,.2f} DH"
         else:
             balance_text = "À jour"
@@ -1282,21 +1282,21 @@ class StudentDetailViewDialog(QDialog):
     def update_balance_display(self):
         """Update balance display when total_due changes"""
         try:
-            # Calculate new balance: Total Due - Total Paid
-            # Positive = Dette, Negative = Crédit, Zero = À jour
+            # Calculate new balance: Total Paid - Total Due
+            # Positive = CRÉDIT (trop-perçu), Negative = DETTE, Zero = À jour
             total_paid = self.total_paid.value()
             total_due = self.total_due.value()
-            new_balance = total_due - total_paid
+            new_balance = total_paid - total_due
             
             # Update balance field
             self.balance.setValue(new_balance)
             
             # Update balance label in header if student exists
             if hasattr(self, 'balance_label') and self.balance_label:
-                balance_color = "#e74c3c" if new_balance > 0 else "#27ae60"
-                if new_balance > 0:
+                balance_color = "#e74c3c" if new_balance < 0 else "#27ae60"
+                if new_balance < 0:
                     balance_text = f"Dette: {abs(new_balance):,.2f} DH"
-                elif new_balance < 0:
+                elif new_balance > 0:
                     balance_text = f"Crédit: {abs(new_balance):,.2f} DH"
                 else:
                     balance_text = "À jour"
@@ -1318,11 +1318,11 @@ class StudentDetailViewDialog(QDialog):
                 self.student = updated_student
                 
                 # Update balance label in header
-                # Balance = total_due - total_paid (positive = dette)
-                balance_color = "#e74c3c" if self.student.balance > 0 else "#27ae60"
-                if self.student.balance > 0:
+                # Balance = total_paid - total_due (negative = dette)
+                balance_color = "#e74c3c" if self.student.balance < 0 else "#27ae60"
+                if self.student.balance < 0:
                     balance_text = f"Dette: {abs(self.student.balance):,.2f} DH"
-                elif self.student.balance < 0:
+                elif self.student.balance > 0:
                     balance_text = f"Crédit: {abs(self.student.balance):,.2f} DH"
                 else:
                     balance_text = "À jour"

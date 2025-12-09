@@ -196,11 +196,11 @@ class StudentDetailDialog(QDialog):
     def update_balance_display(self):
         """Update balance display when total_due changes"""
         try:
-            # Calculate new balance: Total Due - Total Paid
-            # Positive = Dette, Negative = Crédit, Zero = À jour
+            # Calculate new balance: Total Paid - Total Due
+            # Positive = CRÉDIT (trop-perçu), Negative = DETTE, Zero = À jour
             total_paid = self.total_paid.value()
             total_due = self.total_due.value()
-            new_balance = total_due - total_paid
+            new_balance = total_paid - total_due
             
             # Update balance field
             self.balance.setValue(new_balance)
@@ -586,12 +586,12 @@ class StudentsEnhancedWidget(QWidget):
             hours_text = f"{student.hours_completed}/{student.hours_planned}"
             self.table.setItem(row, 6, QTableWidgetItem(hours_text))
             
-            # Solde (Balance = total_due - total_paid, positive = dette)
-            if student.balance > 0:
+            # Solde (Balance = total_paid - total_due, negative = dette)
+            if student.balance < 0:
                 balance_text = f"Dette: {abs(student.balance):,.2f}"
                 balance_item = QTableWidgetItem(balance_text)
                 balance_item.setForeground(QColor("#e74c3c"))  # Rouge pour dette
-            elif student.balance < 0:
+            elif student.balance > 0:
                 balance_text = f"Crédit: {abs(student.balance):,.2f}"
                 balance_item = QTableWidgetItem(balance_text)
                 balance_item.setForeground(QColor("#27ae60"))  # Vert pour crédit

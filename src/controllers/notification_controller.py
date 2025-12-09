@@ -588,8 +588,8 @@ class NotificationController:
         
         notifications = []
         
-        # Balance > 0 signifie dette maintenant
-        if student.balance <= 0:
+        # Balance < 0 signifie dette (balance = total_paid - total_due)
+        if student.balance >= 0:
             return notifications
         
         debt_amount = student.balance  # Plus besoin de abs() car balance est déjà positif
