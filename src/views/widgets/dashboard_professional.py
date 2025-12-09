@@ -160,41 +160,48 @@ class DashboardProfessionalWidget(QWidget):
         self.stats_grid.setSpacing(20)
         layout.addLayout(self.stats_grid)
         
-        # Grille principale pour tous les graphiques (2x3)
-        main_grid = QGridLayout()
-        main_grid.setSpacing(10)
-        
-        # Ligne 1: CA Evolution + Répartition Paiements + Statut Élèves
-        self.revenue_chart_view = self.create_revenue_chart()
-        self.revenue_chart_view.setMinimumHeight(280)
-        self.revenue_chart_view.setMaximumHeight(320)
-        main_grid.addWidget(self.revenue_chart_view, 0, 0)
-        
-        self.payment_chart_view = self.create_payment_pie_chart()
-        self.payment_chart_view.setMinimumHeight(280)
-        self.payment_chart_view.setMaximumHeight(320)
-        main_grid.addWidget(self.payment_chart_view, 0, 1)
-        
-        self.students_chart_view = self.create_students_chart()
-        self.students_chart_view.setMinimumHeight(280)
-        self.students_chart_view.setMaximumHeight(320)
-        main_grid.addWidget(self.students_chart_view, 0, 2)
-        
-        # Ligne 2: Sessions Semaine + Activités Récentes + Alertes
-        self.sessions_chart_view = self.create_sessions_chart()
-        self.sessions_chart_view.setMinimumHeight(280)
-        self.sessions_chart_view.setMaximumHeight(320)
-        main_grid.addWidget(self.sessions_chart_view, 1, 0)
-        
-        self.recent_activities = self.create_recent_activities()
-        self.recent_activities.setMaximumHeight(320)
-        main_grid.addWidget(self.recent_activities, 1, 1)
+        # LIGNE 1: Alertes + Activités Récentes (côte à côte)
+        activities_alerts_layout = QHBoxLayout()
+        activities_alerts_layout.setSpacing(15)
         
         self.alerts_widget = self.create_alerts_widget()
+        self.alerts_widget.setMinimumHeight(280)
         self.alerts_widget.setMaximumHeight(320)
-        main_grid.addWidget(self.alerts_widget, 1, 2)
+        activities_alerts_layout.addWidget(self.alerts_widget)
         
-        layout.addLayout(main_grid)
+        self.recent_activities = self.create_recent_activities()
+        self.recent_activities.setMinimumHeight(280)
+        self.recent_activities.setMaximumHeight(320)
+        activities_alerts_layout.addWidget(self.recent_activities)
+        
+        layout.addLayout(activities_alerts_layout)
+        
+        # LIGNE 2: Grille des 3 graphiques principaux
+        charts_grid = QGridLayout()
+        charts_grid.setSpacing(15)
+        
+        self.revenue_chart_view = self.create_revenue_chart()
+        self.revenue_chart_view.setMinimumHeight(300)
+        self.revenue_chart_view.setMaximumHeight(350)
+        charts_grid.addWidget(self.revenue_chart_view, 0, 0)
+        
+        self.payment_chart_view = self.create_payment_pie_chart()
+        self.payment_chart_view.setMinimumHeight(300)
+        self.payment_chart_view.setMaximumHeight(350)
+        charts_grid.addWidget(self.payment_chart_view, 0, 1)
+        
+        self.students_chart_view = self.create_students_chart()
+        self.students_chart_view.setMinimumHeight(300)
+        self.students_chart_view.setMaximumHeight(350)
+        charts_grid.addWidget(self.students_chart_view, 0, 2)
+        
+        layout.addLayout(charts_grid)
+        
+        # LIGNE 3: Sessions de la semaine (pleine largeur)
+        self.sessions_chart_view = self.create_sessions_chart()
+        self.sessions_chart_view.setMinimumHeight(300)
+        self.sessions_chart_view.setMaximumHeight(350)
+        layout.addWidget(self.sessions_chart_view)
         
         scroll.setWidget(container)
         main_layout.addWidget(scroll)
@@ -655,63 +662,101 @@ class DashboardProfessionalWidget(QWidget):
         series.attachAxis(axis_y)
         
     def load_recent_activities(self):
-        """Charger les activités récentes"""
+        """Charger les activités récentes (mélange de tous types)"""
         self.activities_table.setRowCount(0)
         
-        # Récupérer les derniers paiements
+        activities = []
+        
+        # Récupérer les derniers paiements (3 derniers)
         all_payments = PaymentController.get_all_payments()
-        recent_payments = sorted(all_payments, key=lambda p: p.payment_date, reverse=True)[:5]
+        recent_payments = sorted([p for p in all_payments if p.payment_date], 
+                                key=lambda p: p.payment_date, reverse=True)[:3]
         
         for payment in recent_payments:
+            activities.append({
+                'date': payment.payment_date,
+                'type': '💰 Paiement',
+                'desc': f"{payment.amount:.0f} DH - {payment.student.full_name if payment.student else 'N/A'}"
+            })
+        
+        # Récupérer les sessions récentes (2 dernières)
+        all_sessions = SessionController.get_all_sessions()
+        recent_sessions = sorted([s for s in all_sessions if s.start_datetime], 
+                                key=lambda s: s.start_datetime, reverse=True)[:2]
+        
+        for session in recent_sessions:
+            activities.append({
+                'date': session.start_datetime.date(),
+                'type': '🚗 Session',
+                'desc': f"{session.student.full_name if session.student else 'N/A'} - {session.session_type.value if session.session_type else 'N/A'}"
+            })
+        
+        # Récupérer les nouveaux élèves (2 derniers)
+        all_students = StudentController.get_all_students()
+        recent_students = sorted([s for s in all_students if s.created_at], 
+                                key=lambda s: s.created_at, reverse=True)[:2]
+        
+        for student in recent_students:
+            activities.append({
+                'date': student.created_at.date(),
+                'type': '👤 Nouvel Élève',
+                'desc': f"{student.full_name} - {student.license_type}"
+            })
+        
+        # Trier toutes les activités par date (plus récentes en premier)
+        activities.sort(key=lambda x: x['date'], reverse=True)
+        
+        # Afficher les 7 plus récentes
+        for activity in activities[:7]:
             row = self.activities_table.rowCount()
             self.activities_table.insertRow(row)
             
             # Date
-            date_str = payment.payment_date.strftime("%d/%m/%Y")
+            date_str = activity['date'].strftime("%d/%m/%Y") if hasattr(activity['date'], 'strftime') else str(activity['date'])
             self.activities_table.setItem(row, 0, QTableWidgetItem(date_str))
             
             # Type
-            self.activities_table.setItem(row, 1, QTableWidgetItem("💰 Paiement"))
+            self.activities_table.setItem(row, 1, QTableWidgetItem(activity['type']))
             
             # Description
-            desc = f"{payment.amount:.0f} DH - {payment.student.full_name if payment.student else 'N/A'}"
-            self.activities_table.setItem(row, 2, QTableWidgetItem(desc))
+            self.activities_table.setItem(row, 2, QTableWidgetItem(activity['desc']))
             
     def load_alerts(self):
-        """Charger les alertes"""
+        """Charger les alertes et notifications importantes"""
         # Nettoyer
         while self.alerts_layout.count():
             item = self.alerts_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
         
-        # Récupérer les élèves avec dette
         students = StudentController.get_all_students()
-        students_with_debt = [s for s in students if s.balance < 0]
         
+        # 1. Élèves avec dette (PRIORITÉ HAUTE)
+        students_with_debt = [s for s in students if s.balance < 0]
         if students_with_debt:
+            total_debt = sum(abs(s.balance) for s in students_with_debt)
             self.add_alert(
                 "⚠️", 
-                f"{len(students_with_debt)} élève(s) avec impayés",
+                f"{len(students_with_debt)} élève(s) impayés - Total: {total_debt:.0f} DH",
                 "#e74c3c"
             )
         
-        # Sessions aujourd'hui
+        # 2. Sessions aujourd'hui
         sessions_today = SessionController.get_today_sessions()
-        if sessions_today:
+        planned_sessions = [s for s in sessions_today if s.status == SessionStatus.PLANNED]
+        
+        if planned_sessions:
             self.add_alert(
                 "📅", 
-                f"{len(sessions_today)} session(s) planifiée(s) aujourd'hui",
+                f"{len(planned_sessions)} session(s) planifiée(s) aujourd'hui",
                 "#f39c12"
             )
             
-            # Alertes sessions prochaines (dans les 2 heures)
-            from datetime import datetime, timedelta
+            # Sessions prochaines (dans les 2 heures)
             now = datetime.now()
             upcoming_sessions = [
-                s for s in sessions_today 
-                if s.status == SessionStatus.SCHEDULED 
-                and s.start_datetime > now 
+                s for s in planned_sessions 
+                if s.start_datetime > now 
                 and s.start_datetime < now + timedelta(hours=2)
             ]
             
@@ -720,21 +765,47 @@ class DashboardProfessionalWidget(QWidget):
                     time_until = session.start_datetime - now
                     minutes = int(time_until.total_seconds() / 60)
                     student_name = session.student.full_name if session.student else "N/A"
-                    instructor_name = session.instructor.full_name if session.instructor else "N/A"
                     
                     self.add_alert(
                         "🔔",
-                        f"Session dans {minutes} min: {student_name} avec {instructor_name}",
+                        f"Session dans {minutes} min - {student_name}",
                         "#e67e22"
                     )
         else:
             self.add_alert(
                 "ℹ️", 
                 "Aucune session planifiée aujourd'hui",
-                "#3498db"
+                "#95a5a6"
             )
         
-        # Message positif
+        # 3. Documents expirés
+        from src.controllers import DocumentController
+        try:
+            expired_docs = DocumentController.get_expired_documents()
+            if expired_docs and len(expired_docs) > 0:
+                self.add_alert(
+                    "📄",
+                    f"{len(expired_docs)} document(s) expiré(s)",
+                    "#e74c3c"
+                )
+        except:
+            pass
+        
+        # 4. Maintenance véhicules
+        from src.controllers import VehicleController
+        try:
+            vehicles = VehicleController.get_all_vehicles()
+            vehicles_in_maintenance = [v for v in vehicles if v.status and v.status.value == "under_maintenance"]
+            if vehicles_in_maintenance:
+                self.add_alert(
+                    "🔧",
+                    f"{len(vehicles_in_maintenance)} véhicule(s) en maintenance",
+                    "#f39c12"
+                )
+        except:
+            pass
+        
+        # 5. Élèves actifs (message positif)
         active_students = sum(1 for s in students if s.status == StudentStatus.ACTIVE)
         if active_students > 0:
             self.add_alert(
