@@ -47,14 +47,23 @@ class StudentDetailViewDialog(QDialog):
         if student:
             from src.models import get_session, Student
             
-            # Force fresh query without cache
+            # Get current session and commit any pending changes
             session = get_session()
-            session.expire_all()  # Expire all cached objects
+            try:
+                session.commit()  # Commit any pending changes first
+            except:
+                session.rollback()
             
-            # Query directly with fresh session
+            # Expire all and force fresh query
+            session.expire_all()
+            
+            # Query directly - this will hit the database, not cache
             self.student = session.query(Student).filter(Student.id == student.id).first()
             
-            if not self.student:
+            if self.student:
+                # Double-check by accessing balance to force load from DB
+                _ = self.student.balance
+            else:
                 self.student = student  # Fallback to passed object
         else:
             self.student = None
