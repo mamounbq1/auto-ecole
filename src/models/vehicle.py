@@ -70,6 +70,7 @@ class Vehicle(Base, BaseModel):
     
     # Relations
     sessions = relationship("Session", back_populates="vehicle")
+    maintenances = relationship("VehicleMaintenance", back_populates="vehicle", cascade="all, delete-orphan")
     
     def __init__(self, plate_number: str, make: str, model: str, **kwargs):
         """
