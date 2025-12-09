@@ -505,7 +505,7 @@ class InstructorsManagement(QWidget):
         
         total = len(self.all_instructors)
         available = len([i for i in self.all_instructors if i.is_available])
-        total_hours = sum(i.total_hours or 0 for i in self.all_instructors)
+        total_hours = sum(i.total_hours_taught or 0 for i in self.all_instructors)
         avg_rate = sum(i.success_rate or 0 for i in self.all_instructors) / total if total > 0 else 0
         
         self.total_label.setText(f"Total: {total} moniteurs")
@@ -612,7 +612,7 @@ Email: {instructor.email or 'N/A'}
 N° Permis: {instructor.license_number}
 Types de Permis: {instructor.license_types}
 
-Heures totales: {instructor.total_hours or 0}
+Heures totales: {instructor.total_hours_taught or 0}
 Taux de réussite: {instructor.success_rate or 0:.1f}%
 
 Disponibilité: {'✅ Disponible' if instructor.is_available else '❌ Indisponible'}
