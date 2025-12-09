@@ -1,5 +1,6 @@
 """
-Comprehensive Student Detail View Dialog with 6 tabs
+Comprehensive Student Detail View Dialog with 7 tabs
+All tabs are fully functional except 'Progression' (to be improved later)
 """
 
 from PySide6.QtWidgets import (
@@ -27,13 +28,14 @@ LICENSE_TYPES = ['A', 'B', 'C', 'D', 'E']
 
 class StudentDetailViewDialog(QDialog):
     """
-    Comprehensive Student Detail View Dialog with 6 tabs:
+    Comprehensive Student Detail View Dialog with 7 tabs:
     1. Informations - General information with profile photo
     2. Paiements - Payment history and financial summary
     3. Séances - Training session history
-    4. Documents - Document management
-    5. Historique - Complete activity history
-    6. Notes - Administrative notes
+    4. Progression - Visual progress tracking (to be improved later)
+    5. Documents - Document management
+    6. Historique - Complete activity history
+    7. Notes - Administrative notes
     """
     
     def __init__(self, student=None, parent=None, read_only=False):
@@ -51,7 +53,12 @@ class StudentDetailViewDialog(QDialog):
         
         # Load data if editing
         if student:
-            self.load_student_data()
+            try:
+                self.load_student_data()
+            except Exception as e:
+                QMessageBox.warning(self, "Avertissement", 
+                    f"Erreur lors du chargement des données: {str(e)}")
+                print(f"Error loading student data: {e}")
     
     def setup_ui(self):
         """Setup the complete user interface"""
@@ -989,23 +996,41 @@ class StudentDetailViewDialog(QDialog):
         self.balance.setValue(self.student.balance or 0)
         
         # Tab 2: Load Payments
-        self.load_payments()
+        try:
+            self.load_payments()
+        except Exception as e:
+            print(f"Error loading payments: {e}")
         
         # Tab 3: Load Sessions
-        self.load_sessions()
+        try:
+            self.load_sessions()
+        except Exception as e:
+            print(f"Error loading sessions: {e}")
         
-        # Tab 4: Load Progress Statistics
-        self.load_progress_stats()
+        # Tab 4: Load Progress Statistics (to be improved later)
+        try:
+            self.load_progress_stats()
+        except Exception as e:
+            print(f"Error loading progress stats: {e}")
         
         # Tab 5: Load Documents
-        self.load_documents()
+        try:
+            self.load_documents()
+        except Exception as e:
+            print(f"Error loading documents: {e}")
         
-        # Tab 5: Load History
-        self.load_history()
+        # Tab 6: Load History
+        try:
+            self.load_history()
+        except Exception as e:
+            print(f"Error loading history: {e}")
         
-        # Tab 6: Load Notes
-        if hasattr(self.student, 'notes'):
-            self.notes_edit.setPlainText(self.student.notes or "")
+        # Tab 7: Load Notes
+        try:
+            if hasattr(self.student, 'notes'):
+                self.notes_edit.setPlainText(self.student.notes or "")
+        except Exception as e:
+            print(f"Error loading notes: {e}")
     
     def load_payments(self):
         """Load payment history for the student"""
@@ -1128,7 +1153,7 @@ class StudentDetailViewDialog(QDialog):
             self.training_stats_labels[3].setText(f"📅 Moy. Heures/Semaine: {avg_hours_per_week:.1f}")
             self.training_stats_labels[4].setText(f"🚗 Permis: {self.student.license_type or 'N/A'}")
             
-            # Exam Statistics
+            # Exam Statistics (Progression tab - to be improved later)
             try:
                 exams = ExamController.get_exams_by_student(self.student.id)
                 total_exams = len(exams)
@@ -1142,7 +1167,8 @@ class StudentDetailViewDialog(QDialog):
                 self.exam_stats_labels[2].setText(f"📚 Tentatives Théorie: {theory_attempts}")
                 self.exam_stats_labels[3].setText(f"🚗 Tentatives Pratique: {practical_attempts}")
                 self.exam_stats_labels[4].setText(f"📊 Taux Réussite: {(passed_exams/total_exams*100):.0f}%" if total_exams > 0 else "📊 Taux Réussite: 0%")
-            except:
+            except Exception as e:
+                print(f"Error loading exam statistics for progression tab: {e}")
                 self.exam_stats_labels[0].setText(f"📝 Examens Passés: 0")
                 self.exam_stats_labels[1].setText(f"✅ Examens Réussis: 0")
                 self.exam_stats_labels[2].setText(f"📚 Tentatives Théorie: {self.student.theoretical_exam_attempts or 0}")
@@ -1361,8 +1387,8 @@ class StudentDetailViewDialog(QDialog):
                             'description': f"Paiement de {payment.amount:,.2f} DH",
                             'details': f"Méthode: {payment.payment_method or 'N/A'}"
                         })
-                except:
-                    pass
+                except Exception as e:
+                    print(f"Error loading payment history: {e}")
             
             # Load sessions
             if filter_type in ['all', 'sessions']:
@@ -1375,8 +1401,8 @@ class StudentDetailViewDialog(QDialog):
                             'description': f"Séance de conduite",
                             'details': f"Instructeur: {getattr(session, 'instructor_name', 'N/A')}"
                         })
-                except:
-                    pass
+                except Exception as e:
+                    print(f"Error loading session history: {e}")
             
             # Load exams
             if filter_type in ['all', 'exams']:
@@ -1390,8 +1416,8 @@ class StudentDetailViewDialog(QDialog):
                             'description': f"Examen {getattr(exam, 'exam_type', 'N/A')}",
                             'details': f"Résultat: {result_text}"
                         })
-                except:
-                    pass
+                except Exception as e:
+                    print(f"Error loading exam history: {e}")
             
             # Load documents
             if filter_type in ['all', 'documents']:
@@ -1404,8 +1430,8 @@ class StudentDetailViewDialog(QDialog):
                             'description': f"Document ajouté: {doc.title}",
                             'details': f"Type: {doc.document_type.value if doc.document_type else 'N/A'}"
                         })
-                except:
-                    pass
+                except Exception as e:
+                    print(f"Error loading document history: {e}")
             
             # Sort by date (most recent first)
             all_activities.sort(key=lambda x: x['date'] if x['date'] else datetime.min, reverse=True)
