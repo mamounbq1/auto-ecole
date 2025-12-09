@@ -710,7 +710,8 @@ class PaymentsManagement(QWidget):
         header.setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Catégorie
         header.setSectionResizeMode(6, QHeaderView.ResizeToContents)  # Statut
         header.setSectionResizeMode(7, QHeaderView.ResizeToContents)  # Validé par
-        header.setSectionResizeMode(8, QHeaderView.ResizeToContents)  # Actions
+        header.setSectionResizeMode(8, QHeaderView.Fixed)  # Actions
+        header.resizeSection(8, 180)  # Fixer largeur colonne Actions à 180px
         
         self.table.verticalHeader().setVisible(False)
         
