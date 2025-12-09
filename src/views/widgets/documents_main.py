@@ -26,7 +26,14 @@ class DocumentsMainWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         
-        # Header
+        # Créer les widgets AVANT le header (qui les référence)
+        # Onglet Dashboard
+        self.dashboard_widget = DocumentsDashboardWidget()
+        
+        # Onglet Gestion
+        self.management_widget = DocumentsManagementWidget()
+        
+        # Header (maintenant que management_widget existe)
         header = self.create_header()
         layout.addWidget(header)
         
@@ -34,12 +41,7 @@ class DocumentsMainWidget(QWidget):
         tabs = QTabWidget()
         tabs.setTabPosition(QTabWidget.North)
         
-        # Onglet Dashboard
-        self.dashboard_widget = DocumentsDashboardWidget()
         tabs.addTab(self.dashboard_widget, "📊 Dashboard")
-        
-        # Onglet Gestion
-        self.management_widget = DocumentsManagementWidget()
         tabs.addTab(self.management_widget, "📁 Gestion Documents")
         
         layout.addWidget(tabs)

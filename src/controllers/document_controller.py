@@ -107,6 +107,14 @@ class DocumentController:
             Document créé ou None si erreur
         """
         try:
+            # Convertir document_type en enum si c'est une string
+            if isinstance(document_type, str):
+                try:
+                    document_type = DocumentType(document_type)
+                except ValueError:
+                    logger.error(f"Type de document invalide : {document_type}")
+                    return None
+            
             # Valider le fichier
             is_valid, message = DocumentController._validate_file(file_path)
             if not is_valid:
