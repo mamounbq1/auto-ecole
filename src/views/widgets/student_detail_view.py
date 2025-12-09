@@ -1112,7 +1112,7 @@ class StudentDetailViewDialog(QDialog):
             if selected_row < len(documents):
                 doc = documents[selected_row]
                 from src.views.widgets.document_viewer_dialog import DocumentViewerDialog
-                dialog = DocumentViewerDialog(doc, parent=self)
+                dialog = DocumentViewerDialog(doc.id, parent=self)
                 dialog.exec()
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Erreur: {str(e)}")

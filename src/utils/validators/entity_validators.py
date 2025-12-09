@@ -82,9 +82,9 @@ class StudentValidator:
         errors_dict = {}
         for result in validation_results:
             if not result.is_valid:
-                # Extraire le nom du champ du message (ex: "Le nom complet" -> "nom_complet")
-                field_name = result.message.split(':')[0].strip() if ':' in result.message else "Champ"
-                errors_dict[field_name] = result.message
+                # Extraire le nom du champ du message d'erreur (ex: "Le nom complet" -> "nom_complet")
+                field_name = result.error_message.split(':')[0].strip() if ':' in result.error_message else "Champ"
+                errors_dict[field_name] = result.error_message
         
         return (len(errors_dict) == 0, errors_dict)
 
