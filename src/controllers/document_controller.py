@@ -8,6 +8,7 @@ from datetime import datetime, date, timedelta
 from sqlalchemy import and_, or_
 import os
 import shutil
+import csv
 from pathlib import Path
 
 from src.models import Document, DocumentType, DocumentStatus, get_session
@@ -436,3 +437,82 @@ class DocumentController:
         except Exception as e:
             logger.error(f"Erreur lors du calcul des statistiques : {e}")
             return {}
+    
+    @staticmethod
+    def export_to_csv(documents: Optional[List[Document]] = None, filename: Optional[str] = None) -> tuple[bool, str]:
+        """
+        Exporter les documents vers un fichier CSV
+        
+        Args:
+            documents: Liste des documents à exporter (None = tous)
+            filename: Nom du fichier CSV (None = généré automatiquement)
+        
+        Returns:
+            tuple[bool, str]: (succès, message ou chemin du fichier)
+        """
+        try:
+            session = get_session()
+            
+            # Si aucun document fourni, récupérer tous les documents
+            if documents is None:
+                documents = session.query(Document).order_by(Document.created_at.desc()).all()
+            
+            if not documents:
+                return False, "Aucun document à exporter"
+            
+            # Générer le nom de fichier si non fourni
+            if filename is None:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"documents_export_{timestamp}.csv"
+            
+            # Assurer l'extension .csv
+            if not filename.endswith('.csv'):
+                filename += '.csv'
+            
+            # Créer le répertoire d'export si nécessaire
+            export_dir = "exports"
+            Path(export_dir).mkdir(parents=True, exist_ok=True)
+            filepath = os.path.join(export_dir, filename)
+            
+            # Écrire le fichier CSV
+            with open(filepath, 'w', newline='', encoding='utf-8-sig') as csvfile:
+                fieldnames = [
+                    'ID', 'Titre', 'Type', 'Statut', 'Entité Type', 'Entité ID',
+                    'Numéro', 'Date Emission', 'Date Expiration', 'Autorité',
+                    'Fichier', 'Taille (Ko)', 'Vérifié', 'Vérifié Par', 'Date Vérification',
+                    'Notes', 'Créé Le', 'Créé Par', 'Modifié Le'
+                ]
+                
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                
+                for doc in documents:
+                    writer.writerow({
+                        'ID': doc.id,
+                        'Titre': doc.title,
+                        'Type': doc.document_type.value if doc.document_type else '',
+                        'Statut': doc.status.value if doc.status else '',
+                        'Entité Type': doc.entity_type or '',
+                        'Entité ID': doc.entity_id or '',
+                        'Numéro': doc.document_number or '',
+                        'Date Emission': doc.issue_date.strftime("%Y-%m-%d") if doc.issue_date else '',
+                        'Date Expiration': doc.expiry_date.strftime("%Y-%m-%d") if doc.expiry_date else '',
+                        'Autorité': doc.issuing_authority or '',
+                        'Fichier': doc.file_name or '',
+                        'Taille (Ko)': round((doc.file_size or 0) / 1024, 2),
+                        'Vérifié': 'Oui' if doc.is_verified else 'Non',
+                        'Vérifié Par': doc.verified_by or '',
+                        'Date Vérification': doc.verified_at.strftime("%Y-%m-%d %H:%M") if doc.verified_at else '',
+                        'Notes': doc.notes or '',
+                        'Créé Le': doc.created_at.strftime("%Y-%m-%d %H:%M") if doc.created_at else '',
+                        'Créé Par': doc.created_by or '',
+                        'Modifié Le': doc.updated_at.strftime("%Y-%m-%d %H:%M") if doc.updated_at else ''
+                    })
+            
+            logger.info(f"{len(documents)} documents exportés vers {filepath}")
+            return True, filepath
+            
+        except Exception as e:
+            error_msg = f"Erreur lors de l'export CSV : {str(e)}"
+            logger.error(error_msg)
+            return False, error_msg

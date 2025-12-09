@@ -7,6 +7,9 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, date
 from sqlalchemy import and_, or_
 import json
+import csv
+from pathlib import Path
+import os
 
 from src.models import (
     Notification, NotificationType, NotificationCategory, NotificationStatus, NotificationPriority,
@@ -175,6 +178,170 @@ class NotificationController:
             logger.error(f"Erreur lors du marquage de la notification comme lue : {e}")
             session.rollback()
             return False
+    
+    @staticmethod
+    def delete_notification(notification_id: int) -> bool:
+        """
+        Supprimer une notification
+        
+        Args:
+            notification_id: ID de la notification à supprimer
+            
+        Returns:
+            True si succès, False sinon
+        """
+        try:
+            session = get_session()
+            notification = session.query(Notification).filter(
+                Notification.id == notification_id
+            ).first()
+            
+            if notification:
+                session.delete(notification)
+                session.commit()
+                logger.info(f"Notification {notification_id} supprimée")
+                return True
+            
+            logger.warning(f"Notification {notification_id} introuvable")
+            return False
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la suppression de la notification : {e}")
+            session.rollback()
+            return False
+    
+    @staticmethod
+    def search_notifications(query: str, category: Optional[NotificationCategory] = None, 
+                           priority: Optional[NotificationPriority] = None,
+                           is_read: Optional[bool] = None) -> List[Notification]:
+        """
+        Rechercher des notifications
+        
+        Args:
+            query: Terme de recherche (dans titre, message, destinataire)
+            category: Filtrer par catégorie (optionnel)
+            priority: Filtrer par priorité (optionnel)
+            is_read: Filtrer par statut de lecture (optionnel)
+            
+        Returns:
+            Liste des notifications correspondantes
+        """
+        try:
+            session = get_session()
+            
+            filters = []
+            
+            # Recherche textuelle
+            if query:
+                filters.append(
+                    or_(
+                        Notification.title.ilike(f"%{query}%"),
+                        Notification.message.ilike(f"%{query}%"),
+                        Notification.recipient_name.ilike(f"%{query}%")
+                    )
+                )
+            
+            # Filtres additionnels
+            if category:
+                filters.append(Notification.category == category)
+            
+            if priority:
+                filters.append(Notification.priority == priority)
+            
+            if is_read is not None:
+                filters.append(Notification.is_read == is_read)
+            
+            # Requête
+            notifications_query = session.query(Notification)
+            
+            if filters:
+                notifications_query = notifications_query.filter(and_(*filters))
+            
+            notifications = notifications_query.order_by(
+                Notification.created_at.desc()
+            ).all()
+            
+            logger.info(f"{len(notifications)} notifications trouvées pour '{query}'")
+            return notifications
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la recherche de notifications : {e}")
+            return []
+    
+    @staticmethod
+    def export_to_csv(notifications: Optional[List[Notification]] = None, 
+                     filename: Optional[str] = None) -> tuple[bool, str]:
+        """
+        Exporter les notifications vers un fichier CSV
+        
+        Args:
+            notifications: Liste des notifications à exporter (None = toutes)
+            filename: Nom du fichier CSV (None = généré automatiquement)
+        
+        Returns:
+            tuple[bool, str]: (succès, message ou chemin du fichier)
+        """
+        try:
+            session = get_session()
+            
+            # Si aucune notification fournie, récupérer toutes
+            if notifications is None:
+                notifications = session.query(Notification).order_by(
+                    Notification.created_at.desc()
+                ).all()
+            
+            if not notifications:
+                return False, "Aucune notification à exporter"
+            
+            # Générer le nom de fichier si non fourni
+            if filename is None:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"notifications_export_{timestamp}.csv"
+            
+            # Assurer l'extension .csv
+            if not filename.endswith('.csv'):
+                filename += '.csv'
+            
+            # Créer le répertoire d'export si nécessaire
+            export_dir = "exports"
+            Path(export_dir).mkdir(parents=True, exist_ok=True)
+            filepath = os.path.join(export_dir, filename)
+            
+            # Écrire le fichier CSV
+            with open(filepath, 'w', newline='', encoding='utf-8-sig') as csvfile:
+                fieldnames = [
+                    'ID', 'Type', 'Catégorie', 'Priorité', 'Titre', 'Message',
+                    'Destinataire Type', 'Destinataire ID', 'Destinataire Nom',
+                    'Lu', 'Lu Le', 'Envoyé', 'Créé Le'
+                ]
+                
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                
+                for notif in notifications:
+                    writer.writerow({
+                        'ID': notif.id,
+                        'Type': notif.notification_type.value if notif.notification_type else '',
+                        'Catégorie': notif.category.value if notif.category else '',
+                        'Priorité': notif.priority.value if notif.priority else '',
+                        'Titre': notif.title or '',
+                        'Message': notif.message or '',
+                        'Destinataire Type': notif.recipient_type or '',
+                        'Destinataire ID': notif.recipient_id or '',
+                        'Destinataire Nom': notif.recipient_name or '',
+                        'Lu': 'Oui' if notif.is_read else 'Non',
+                        'Lu Le': notif.read_at.strftime("%Y-%m-%d %H:%M") if notif.read_at else '',
+                        'Envoyé': 'Oui' if notif.is_sent else 'Non',
+                        'Créé Le': notif.created_at.strftime("%Y-%m-%d %H:%M") if notif.created_at else ''
+                    })
+            
+            logger.info(f"{len(notifications)} notifications exportées vers {filepath}")
+            return True, filepath
+            
+        except Exception as e:
+            error_msg = f"Erreur lors de l'export CSV : {str(e)}"
+            logger.error(error_msg)
+            return False, error_msg
     
     # ========== Envoi de Notifications ==========
     
