@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem,
     QPushButton, QLineEdit, QComboBox, QHeaderView, QMessageBox, QDialog,
     QFormLayout, QDateEdit, QTextEdit, QSpinBox, QDoubleSpinBox, QGroupBox,
-    QTabWidget, QListWidget, QFileDialog, QScrollArea, QProgressBar
+    QTabWidget, QListWidget, QFileDialog, QScrollArea
 )
 from PySide6.QtCore import Qt, QDate, QSize
 from PySide6.QtGui import QFont, QColor, QPixmap
@@ -491,180 +491,47 @@ class StudentDetailViewDialog(QDialog):
         self.tabs.addTab(tab, "🎓 Séances")
     
     def create_progress_tab(self):
-        """Tab 4: Progress & Statistics - Visual Progress Tracking"""
+        """Tab 4: Progress & Statistics - Placeholder (to be improved later)"""
         tab = QWidget()
         layout = QVBoxLayout(tab)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(40, 40, 40, 40)
         
-        # Progress Overview
-        overview_group = QGroupBox("📊 Vue d'Ensemble de la Progression")
-        overview_group.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                font-size: 14px;
-                border: 2px solid #3498db;
-                border-radius: 10px;
-                margin-top: 10px;
-                padding-top: 15px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px;
+        # Simple placeholder message
+        placeholder_widget = QWidget()
+        placeholder_widget.setStyleSheet("""
+            QWidget {
+                background-color: #f8f9fa;
+                border: 2px dashed #dee2e6;
+                border-radius: 15px;
+                padding: 40px;
             }
         """)
-        overview_layout = QVBoxLayout()
+        placeholder_layout = QVBoxLayout(placeholder_widget)
         
-        # Hours Progress Bar
-        hours_label = QLabel("🕐 Progression des Heures de Conduite")
-        hours_label.setStyleSheet("font-weight: bold; font-size: 13px;")
-        self.hours_progress = QProgressBar()
-        self.hours_progress.setStyleSheet("""
-            QProgressBar {
-                border: 2px solid #3498db;
-                border-radius: 5px;
-                text-align: center;
-                height: 30px;
-                font-weight: bold;
-                font-size: 12px;
-            }
-            QProgressBar::chunk {
-                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #3498db, stop:1 #2980b9);
-                border-radius: 3px;
-            }
-        """)
+        icon_label = QLabel("📈")
+        icon_label.setAlignment(Qt.AlignCenter)
+        icon_label.setStyleSheet("font-size: 64px;")
         
-        overview_layout.addWidget(hours_label)
-        overview_layout.addWidget(self.hours_progress)
+        title_label = QLabel("Onglet Progression")
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setStyleSheet("font-size: 24px; font-weight: bold; color: #495057; margin-top: 20px;")
         
-        # Financial Progress Bar
-        financial_label = QLabel("💰 Progression des Paiements")
-        financial_label.setStyleSheet("font-weight: bold; font-size: 13px; margin-top: 10px;")
-        self.financial_progress = QProgressBar()
-        self.financial_progress.setStyleSheet("""
-            QProgressBar {
-                border: 2px solid #27ae60;
-                border-radius: 5px;
-                text-align: center;
-                height: 30px;
-                font-weight: bold;
-                font-size: 12px;
-            }
-            QProgressBar::chunk {
-                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #27ae60, stop:1 #229954);
-                border-radius: 3px;
-            }
-        """)
+        message_label = QLabel("Cet onglet sera amélioré prochainement avec :\n\n"
+                               "• Progression des heures de conduite\n"
+                               "• Suivi des paiements\n"
+                               "• Statistiques de formation\n"
+                               "• Statistiques d'examens\n"
+                               "• Jalons et objectifs")
+        message_label.setAlignment(Qt.AlignCenter)
+        message_label.setStyleSheet("font-size: 14px; color: #6c757d; margin-top: 20px; line-height: 1.6;")
         
-        overview_layout.addWidget(financial_label)
-        overview_layout.addWidget(self.financial_progress)
+        placeholder_layout.addWidget(icon_label)
+        placeholder_layout.addWidget(title_label)
+        placeholder_layout.addWidget(message_label)
+        placeholder_layout.addStretch()
         
-        overview_group.setLayout(overview_layout)
-        layout.addWidget(overview_group)
-        
-        # Statistics Grid
-        stats_grid = QHBoxLayout()
-        
-        # Training Stats
-        training_group = QGroupBox("🎓 Statistiques de Formation")
-        training_group.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 2px solid #9b59b6;
-                border-radius: 10px;
-                margin-top: 10px;
-                padding-top: 15px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px;
-            }
-        """)
-        training_layout = QVBoxLayout()
-        
-        self.training_stats_labels = []
-        for i in range(5):
-            label = QLabel("")
-            label.setStyleSheet("""
-                QLabel {
-                    background-color: white;
-                    padding: 8px;
-                    border-radius: 5px;
-                    border: 1px solid #ddd;
-                    font-size: 12px;
-                }
-            """)
-            self.training_stats_labels.append(label)
-            training_layout.addWidget(label)
-        
-        training_group.setLayout(training_layout)
-        stats_grid.addWidget(training_group)
-        
-        # Exam Stats
-        exam_group = QGroupBox("📝 Statistiques d'Examens")
-        exam_group.setStyleSheet(training_group.styleSheet())
-        exam_layout = QVBoxLayout()
-        
-        self.exam_stats_labels = []
-        for i in range(5):
-            label = QLabel("")
-            label.setStyleSheet("""
-                QLabel {
-                    background-color: white;
-                    padding: 8px;
-                    border-radius: 5px;
-                    border: 1px solid #ddd;
-                    font-size: 12px;
-                }
-            """)
-            self.exam_stats_labels.append(label)
-            exam_layout.addWidget(label)
-        
-        exam_group.setLayout(exam_layout)
-        stats_grid.addWidget(exam_group)
-        
-        layout.addLayout(stats_grid)
-        
-        # Milestones
-        milestones_group = QGroupBox("🏆 Jalons & Objectifs")
-        milestones_group.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 2px solid #f39c12;
-                border-radius: 10px;
-                margin-top: 10px;
-                padding-top: 15px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px;
-            }
-        """)
-        milestones_layout = QVBoxLayout()
-        
-        self.milestones_list = QListWidget()
-        self.milestones_list.setStyleSheet("""
-            QListWidget {
-                background-color: white;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                padding: 5px;
-                font-size: 12px;
-            }
-            QListWidget::item {
-                padding: 5px;
-                border-bottom: 1px solid #ecf0f1;
-            }
-        """)
-        
-        milestones_layout.addWidget(self.milestones_list)
-        milestones_group.setLayout(milestones_layout)
-        layout.addWidget(milestones_group)
+        layout.addWidget(placeholder_widget)
+        layout.addStretch()
         
         self.tabs.addTab(tab, "📈 Progression")
     
@@ -1121,99 +988,9 @@ class StudentDetailViewDialog(QDialog):
             print(f"Error loading sessions: {e}")
     
     def load_progress_stats(self):
-        """Load progress statistics for the student"""
-        if not self.student:
-            return
-        
-        try:
-            # Hours Progress
-            hours_completed = self.student.hours_completed or 0
-            hours_planned = self.student.hours_planned or 20
-            hours_percent = int((hours_completed / hours_planned * 100)) if hours_planned > 0 else 0
-            self.hours_progress.setValue(hours_percent)
-            self.hours_progress.setFormat(f"{hours_completed}/{hours_planned} heures ({hours_percent}%)")
-            
-            # Financial Progress
-            total_paid = self.student.total_paid or 0
-            total_due = self.student.total_due or 1
-            financial_percent = int((total_paid / total_due * 100)) if total_due > 0 else 0
-            self.financial_progress.setValue(financial_percent)
-            self.financial_progress.setFormat(f"{total_paid:,.0f}/{total_due:,.0f} DH ({financial_percent}%)")
-            
-            # Training Statistics
-            sessions = SessionController.get_student_sessions(self.student.id)
-            total_sessions = len(sessions)
-            completed_sessions = len([s for s in sessions if getattr(s, 'status', None) and s.status.value == 'completed'])
-            
-            avg_hours_per_week = (hours_completed / 4) if hours_completed > 0 else 0
-            
-            self.training_stats_labels[0].setText(f"✅ Séances Totales: {total_sessions}")
-            self.training_stats_labels[1].setText(f"🎯 Séances Complétées: {completed_sessions}")
-            self.training_stats_labels[2].setText(f"⏱️ Heures Effectuées: {hours_completed}")
-            self.training_stats_labels[3].setText(f"📅 Moy. Heures/Semaine: {avg_hours_per_week:.1f}")
-            self.training_stats_labels[4].setText(f"🚗 Permis: {self.student.license_type or 'N/A'}")
-            
-            # Exam Statistics (Progression tab - to be improved later)
-            try:
-                exams = ExamController.get_exams_by_student(self.student.id)
-                total_exams = len(exams)
-                passed_exams = len([e for e in exams if getattr(e, 'result', None) and e.result.value == 'passed'])
-                
-                theory_attempts = self.student.theoretical_exam_attempts or 0
-                practical_attempts = self.student.practical_exam_attempts or 0
-                
-                self.exam_stats_labels[0].setText(f"📝 Examens Passés: {total_exams}")
-                self.exam_stats_labels[1].setText(f"✅ Examens Réussis: {passed_exams}")
-                self.exam_stats_labels[2].setText(f"📚 Tentatives Théorie: {theory_attempts}")
-                self.exam_stats_labels[3].setText(f"🚗 Tentatives Pratique: {practical_attempts}")
-                self.exam_stats_labels[4].setText(f"📊 Taux Réussite: {(passed_exams/total_exams*100):.0f}%" if total_exams > 0 else "📊 Taux Réussite: 0%")
-            except Exception as e:
-                print(f"Error loading exam statistics for progression tab: {e}")
-                self.exam_stats_labels[0].setText(f"📝 Examens Passés: 0")
-                self.exam_stats_labels[1].setText(f"✅ Examens Réussis: 0")
-                self.exam_stats_labels[2].setText(f"📚 Tentatives Théorie: {self.student.theoretical_exam_attempts or 0}")
-                self.exam_stats_labels[3].setText(f"🚗 Tentatives Pratique: {self.student.practical_exam_attempts or 0}")
-                self.exam_stats_labels[4].setText(f"📊 Taux Réussite: 0%")
-            
-            # Milestones
-            self.milestones_list.clear()
-            milestones = []
-            
-            if self.student.status == StudentStatus.ACTIVE:
-                milestones.append("✅ Inscription complétée")
-            
-            if hours_completed >= 5:
-                milestones.append(f"✅ {hours_completed} heures de conduite effectuées")
-            else:
-                milestones.append(f"🔄 En cours: {hours_completed}/{5} heures initiales")
-            
-            if theory_attempts > 0:
-                milestones.append(f"✅ Examen théorique tenté ({theory_attempts} fois)")
-            else:
-                milestones.append("🎯 Objectif: Passer l'examen théorique")
-            
-            if hours_completed >= hours_planned * 0.5:
-                milestones.append(f"✅ Plus de 50% des heures complétées")
-            else:
-                milestones.append(f"🔄 Progression: {hours_percent}% des heures")
-            
-            if financial_percent >= 100:
-                milestones.append("✅ Paiements complets")
-            elif financial_percent >= 50:
-                milestones.append(f"🔄 Paiements: {financial_percent}% complétés")
-            else:
-                milestones.append(f"⚠️ Paiements: {financial_percent}% (Paiement nécessaire)")
-            
-            if self.student.status == StudentStatus.GRADUATED:
-                milestones.append("🎓 DIPLÔMÉ - Formation complétée!")
-            elif hours_completed >= hours_planned and practical_attempts > 0:
-                milestones.append("🎯 Prêt pour l'obtention du permis!")
-            
-            for milestone in milestones:
-                self.milestones_list.addItem(milestone)
-            
-        except Exception as e:
-            print(f"Error loading progress stats: {e}")
+        """Load progress statistics for the student - Placeholder (to be improved later)"""
+        # This method is currently disabled as the progress tab is being redesigned
+        pass
     
     def upload_photo(self):
         """Upload a profile photo"""
