@@ -504,7 +504,11 @@ class DashboardProfessionalWidget(QWidget):
     def load_revenue_chart(self):
         """Charger le graphique d'évolution du CA"""
         chart = self.revenue_chart_view.chart()
+        
+        # Supprimer séries et axes pour éviter duplication
         chart.removeAllSeries()
+        for axis in chart.axes():
+            chart.removeAxis(axis)
         
         series = QLineSeries()
         series.setName("CA journalier (DH)")
@@ -561,7 +565,11 @@ class DashboardProfessionalWidget(QWidget):
     def load_students_chart(self):
         """Charger le graphique des élèves"""
         chart = self.students_chart_view.chart()
+        
+        # Supprimer séries et axes pour éviter duplication
         chart.removeAllSeries()
+        for axis in chart.axes():
+            chart.removeAxis(axis)
         
         students = StudentController.get_all_students()
         
@@ -604,7 +612,11 @@ class DashboardProfessionalWidget(QWidget):
     def load_sessions_chart(self):
         """Charger le graphique des sessions de la semaine"""
         chart = self.sessions_chart_view.chart()
+        
+        # Supprimer toutes les séries ET les axes pour éviter la duplication
         chart.removeAllSeries()
+        for axis in chart.axes():
+            chart.removeAxis(axis)
         
         # Récupérer toutes les sessions
         from src.controllers.session_controller import SessionController
@@ -630,6 +642,7 @@ class DashboardProfessionalWidget(QWidget):
         
         chart.addSeries(series)
         
+        # Créer de nouveaux axes
         categories = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
         axis_x = QBarCategoryAxis()
         axis_x.append(categories)
