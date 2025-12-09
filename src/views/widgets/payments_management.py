@@ -819,9 +819,8 @@ class PaymentsManagement(QWidget):
             # Actions
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
-            actions_layout.setContentsMargins(2, 2, 2, 2)
-            actions_layout.setSpacing(3)
-            actions_layout.setAlignment(Qt.AlignCenter)
+            actions_layout.setContentsMargins(5, 2, 5, 2)
+            actions_layout.setSpacing(5)
             
             view_btn = QPushButton("👁️")
             view_btn.setToolTip("Voir reçu")
