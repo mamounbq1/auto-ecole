@@ -46,6 +46,7 @@ class StudentDetailViewDialog(QDialog):
         # CRITICAL: Reload student from database to get fresh balance calculation
         if student:
             from src.models import get_session, Student
+            from decimal import Decimal
             
             # Get current session and commit any pending changes
             session = get_session()
@@ -61,8 +62,20 @@ class StudentDetailViewDialog(QDialog):
             self.student = session.query(Student).filter(Student.id == student.id).first()
             
             if self.student:
-                # Double-check by accessing balance to force load from DB
-                _ = self.student.balance
+                # Force recalculate balance from DB values to ensure accuracy
+                paid = Decimal(str(float(self.student.total_paid) if self.student.total_paid else 0.0))
+                due = Decimal(str(float(self.student.total_due) if self.student.total_due else 0.0))
+                calculated_balance = paid - due
+                
+                # Debug: print to console
+                print(f"[DEBUG] Student {self.student.full_name} (ID: {self.student.id})")
+                print(f"  DB total_paid: {self.student.total_paid}")
+                print(f"  DB total_due: {self.student.total_due}")
+                print(f"  DB balance: {self.student.balance}")
+                print(f"  Calculated: {calculated_balance}")
+                
+                # Use the freshly calculated balance
+                self.student.balance = calculated_balance
             else:
                 self.student = student  # Fallback to passed object
         else:
