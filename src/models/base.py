@@ -27,12 +27,12 @@ _engine = None
 _SessionLocal = None
 
 
-def get_engine(database_path: str = "data/autoecole.db", echo: bool = False):
+def get_engine(database_path: Optional[str] = None, echo: bool = False):
     """
     Obtenir ou créer l'engine SQLAlchemy
     
     Args:
-        database_path: Chemin vers la base de données SQLite
+        database_path: Chemin vers la base de données SQLite (None = utiliser config)
         echo: Afficher les requêtes SQL (debug)
     
     Returns:
@@ -41,6 +41,26 @@ def get_engine(database_path: str = "data/autoecole.db", echo: bool = False):
     global _engine
     
     if _engine is None:
+        import os
+        from pathlib import Path
+        
+        # Si aucun chemin fourni, utiliser la configuration par défaut
+        if database_path is None:
+            try:
+                from src.config import DATABASE_PATH
+                database_path = str(DATABASE_PATH)
+            except ImportError:
+                # Fallback si config.py n'existe pas
+                current_file = Path(__file__).resolve()
+                project_root = current_file.parent.parent.parent
+                database_path = str(project_root / "data" / "autoecole.db")
+        
+        # Convertir en chemin absolu si c'est un chemin relatif
+        if not os.path.isabs(database_path):
+            current_file = Path(__file__).resolve()
+            project_root = current_file.parent.parent.parent
+            database_path = str(project_root / database_path)
+        
         # Créer l'engine avec support multi-threading pour SQLite
         _engine = create_engine(
             f"sqlite:///{database_path}",
@@ -83,15 +103,33 @@ def get_session() -> Session:
     return SessionLocal()
 
 
-def init_db(database_path: str = "data/autoecole.db", drop_all: bool = False):
+def init_db(database_path: Optional[str] = None, drop_all: bool = False):
     """
     Initialiser la base de données
     
     Args:
-        database_path: Chemin vers la base de données
+        database_path: Chemin vers la base de données (None = utiliser config)
         drop_all: Supprimer toutes les tables existantes
     """
     import os
+    from pathlib import Path
+    
+    # Si aucun chemin fourni, utiliser la configuration par défaut
+    if database_path is None:
+        try:
+            from src.config import DATABASE_PATH
+            database_path = str(DATABASE_PATH)
+        except ImportError:
+            # Fallback
+            current_file = Path(__file__).resolve()
+            project_root = current_file.parent.parent.parent
+            database_path = str(project_root / "data" / "autoecole.db")
+    
+    # Convertir en chemin absolu si c'est un chemin relatif
+    if not os.path.isabs(database_path):
+        current_file = Path(__file__).resolve()
+        project_root = current_file.parent.parent.parent
+        database_path = str(project_root / database_path)
     
     # Créer le dossier data s'il n'existe pas
     os.makedirs(os.path.dirname(database_path), exist_ok=True)
