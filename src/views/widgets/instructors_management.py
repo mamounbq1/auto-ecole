@@ -248,73 +248,140 @@ class InstructorsManagement(QWidget):
     
     def setup_ui(self):
         """Configurer l'interface"""
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(15)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
         
-        # Header
-        header = self.create_header()
-        main_layout.addWidget(header)
+        # En-tête
+        self.create_header(layout)
         
-        # Barre d'outils
-        toolbar = self.create_toolbar()
-        main_layout.addWidget(toolbar)
+        # Barre de recherche et filtres
+        self.create_search_bar(layout)
+        
+        # Statistiques rapides
+        self.create_stats(layout)
         
         # Table
-        self.table = self.create_table()
-        main_layout.addWidget(self.table)
-        
-        # Footer
-        footer = self.create_footer()
-        main_layout.addWidget(footer)
+        self.create_table(layout)
     
-    def create_header(self) -> QFrame:
+    def create_header(self, layout):
         """Créer l'en-tête"""
-        header = QFrame()
-        header.setFixedHeight(60)
-        header.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #3498db, stop:1 #2980b9);
+        header_layout = QHBoxLayout()
+        
+        # Barre de recherche à gauche
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("🔍 Rechercher par nom, CIN, permis...")
+        self.search_input.textChanged.connect(self.filter_instructors)
+        self.search_input.setMinimumHeight(40)
+        self.search_input.setStyleSheet("""
+            QLineEdit {
+                padding: 8px 12px;
+                border: 2px solid #ddd;
                 border-radius: 8px;
+                font-size: 13px;
+            }
+            QLineEdit:focus {
+                border-color: #3498db;
             }
         """)
+        header_layout.addWidget(self.search_input, stretch=2)
         
-        layout = QHBoxLayout(header)
-        layout.setContentsMargins(20, 0, 20, 0)
+        header_layout.addStretch()
         
-        title = QLabel("👨‍🏫 Gestion des Moniteurs")
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        title.setStyleSheet("color: white;")
-        layout.addWidget(title)
-        
-        layout.addStretch()
-        
-        # Bouton ajouter
+        # Boutons
         add_btn = QPushButton("➕ Nouveau Moniteur")
-        add_btn.setMinimumHeight(35)
+        add_btn.clicked.connect(self.add_instructor)
         add_btn.setStyleSheet("""
             QPushButton {
-                background-color: white;
-                color: #3498db;
-                border: none;
-                border-radius: 5px;
+                background-color: #3498db;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 8px;
                 font-weight: bold;
-                padding: 8px 20px;
+                border: none;
             }
             QPushButton:hover {
-                background-color: #f8f9fa;
+                background-color: #2980b9;
             }
         """)
-        add_btn.clicked.connect(self.add_instructor)
-        layout.addWidget(add_btn)
+        add_btn.setCursor(Qt.PointingHandCursor)
         
-        return header
+        refresh_btn = QPushButton("🔄 Actualiser")
+        refresh_btn.clicked.connect(self.load_instructors)
+        refresh_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #9b59b6;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-weight: bold;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #8e44ad;
+            }
+        """)
+        refresh_btn.setCursor(Qt.PointingHandCursor)
+        
+        header_layout.addWidget(add_btn)
+        header_layout.addWidget(refresh_btn)
+        
+        layout.addLayout(header_layout)
     
-    def create_toolbar(self) -> QFrame:
+    def create_search_bar(self, layout):
+        """Créer la barre de filtres"""
+        search_layout = QHBoxLayout()
+        
+        self.avail_filter = QComboBox()
+        self.avail_filter.addItem("📊 Tous", None)
+        self.avail_filter.addItem("✅ Disponibles", True)
+        self.avail_filter.addItem("❌ Indisponibles", False)
+        self.avail_filter.currentIndexChanged.connect(self.filter_instructors)
+        self.avail_filter.setMinimumHeight(40)
+        self.avail_filter.setStyleSheet("""
+            QComboBox {
+                padding: 8px 12px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 13px;
+            }
+        """)
+        
+        search_layout.addWidget(self.avail_filter, stretch=1)
+        search_layout.addStretch()
+        
+        layout.addLayout(search_layout)
+    
+    def create_stats(self, layout):
+        """Créer les statistiques rapides"""
+        stats_layout = QHBoxLayout()
+        
+        self.total_label = QLabel("Total: 0 moniteurs")
+        self.available_label = QLabel("Disponibles: 0")
+        self.hours_label = QLabel("Total heures: 0")
+        self.rate_label = QLabel("Taux réussite: 0%")
+        
+        for label in [self.total_label, self.available_label, self.hours_label, self.rate_label]:
+            label.setStyleSheet("""
+                QLabel {
+                    background-color: white;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    font-weight: bold;
+                    font-size: 13px;
+                    color: #2c3e50;
+                    border: 2px solid #ecf0f1;
+                }
+            """)
+        
+        stats_layout.addWidget(self.total_label)
+        stats_layout.addWidget(self.available_label)
+        stats_layout.addWidget(self.hours_label)
+        stats_layout.addWidget(self.rate_label)
+        
+        layout.addLayout(stats_layout)
+    
+    def create_old_toolbar(self) -> QFrame:
         """Créer la barre d'outils"""
         toolbar = QFrame()
         toolbar.setStyleSheet("""
@@ -369,20 +436,20 @@ class InstructorsManagement(QWidget):
         
         return toolbar
     
-    def create_table(self) -> QTableWidget:
+    def create_table(self, layout):
         """Créer la table des moniteurs"""
-        table = QTableWidget()
-        table.setColumnCount(9)
-        table.setHorizontalHeaderLabels([
+        self.table = QTableWidget()
+        self.table.setColumnCount(9)
+        self.table.setHorizontalHeaderLabels([
             "Nom", "CIN", "Téléphone", "N° Permis", "Types",
             "Heures", "Taux Réussite", "Disponibilité", "Actions"
         ])
         
         # Style
-        table.setAlternatingRowColors(True)
-        table.setSelectionBehavior(QTableWidget.SelectRows)
-        table.setSelectionMode(QTableWidget.SingleSelection)
-        table.setStyleSheet("""
+        self.table.setAlternatingRowColors(True)
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setSelectionMode(QTableWidget.SingleSelection)
+        self.table.setStyleSheet("""
             QTableWidget {
                 background-color: white;
                 border: 2px solid #ecf0f1;
@@ -406,7 +473,7 @@ class InstructorsManagement(QWidget):
         """)
         
         # Ajuster colonnes
-        header = table.horizontalHeader()
+        header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)  # Nom
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)  # CIN
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Téléphone
@@ -415,43 +482,36 @@ class InstructorsManagement(QWidget):
         header.setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Heures
         header.setSectionResizeMode(6, QHeaderView.ResizeToContents)  # Taux
         header.setSectionResizeMode(7, QHeaderView.ResizeToContents)  # Dispo
-        header.setSectionResizeMode(8, QHeaderView.ResizeToContents)  # Actions
+        header.setSectionResizeMode(8, QHeaderView.Fixed)  # Actions
+        header.resizeSection(8, 160)
         
-        table.verticalHeader().setVisible(False)
+        self.table.verticalHeader().setVisible(False)
+        self.table.verticalHeader().setDefaultSectionSize(45)
         
-        return table
+        layout.addWidget(self.table)
     
-    def create_footer(self) -> QFrame:
-        """Créer le footer"""
-        footer = QFrame()
-        footer.setFixedHeight(50)
-        footer.setStyleSheet("""
-            QFrame {
-                background-color: #f8f9fa;
-                border: 2px solid #ecf0f1;
-                border-radius: 8px;
-            }
-        """)
-        
-        layout = QHBoxLayout(footer)
-        layout.setContentsMargins(15, 0, 15, 0)
-        
-        self.total_label = QLabel("Total: 0 moniteurs")
-        self.total_label.setStyleSheet("font-weight: bold; color: #2c3e50;")
-        layout.addWidget(self.total_label)
-        
-        layout.addStretch()
-        
-        self.avail_label = QLabel("Disponibles: 0")
-        self.avail_label.setStyleSheet("font-weight: bold; color: #27ae60; font-size: 13px;")
-        layout.addWidget(self.avail_label)
-        
-        return footer
+
     
     def load_instructors(self):
         """Charger tous les moniteurs"""
         self.all_instructors = InstructorController.get_all_instructors()
         self.display_instructors(self.all_instructors)
+        self.update_stats()
+    
+    def update_stats(self):
+        """Mettre à jour les statistiques"""
+        if not hasattr(self, 'all_instructors') or not self.all_instructors:
+            return
+        
+        total = len(self.all_instructors)
+        available = len([i for i in self.all_instructors if i.is_available])
+        total_hours = sum(i.total_hours or 0 for i in self.all_instructors)
+        avg_rate = sum(i.success_rate or 0 for i in self.all_instructors) / total if total > 0 else 0
+        
+        self.total_label.setText(f"Total: {total} moniteurs")
+        self.available_label.setText(f"Disponibles: {available}")
+        self.hours_label.setText(f"Total heures: {total_hours:,.0f}")
+        self.rate_label.setText(f"Taux réussite: {avg_rate:.1f}%")
     
     def display_instructors(self, instructors: list):
         """Afficher les moniteurs dans la table"""
@@ -503,31 +563,79 @@ class InstructorsManagement(QWidget):
             # Actions
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
-            actions_layout.setContentsMargins(4, 4, 4, 4)
-            actions_layout.setSpacing(4)
+            actions_layout.setContentsMargins(5, 2, 5, 2)
+            actions_layout.setSpacing(5)
+            
+            view_btn = QPushButton("👁️")
+            view_btn.setToolTip("Voir détails")
+            view_btn.clicked.connect(lambda checked, i=instructor: self.view_instructor(i))
+            view_btn.setCursor(Qt.PointingHandCursor)
             
             edit_btn = QPushButton("✏️")
-            edit_btn.setFixedSize(30, 30)
             edit_btn.setToolTip("Modifier")
-            edit_btn.setStyleSheet("""
+            edit_btn.clicked.connect(lambda checked, i=instructor: self.edit_instructor(i))
+            edit_btn.setCursor(Qt.PointingHandCursor)
+            
+            delete_btn = QPushButton("🗑️")
+            delete_btn.setToolTip("Supprimer")
+            delete_btn.clicked.connect(lambda checked, i=instructor: self.delete_instructor(i))
+            delete_btn.setCursor(Qt.PointingHandCursor)
+            delete_btn.setStyleSheet("""
                 QPushButton {
-                    background-color: #3498db;
+                    background-color: #e74c3c;
                     color: white;
-                    border: none;
-                    border-radius: 4px;
+                    border-radius: 3px;
+                    padding: 5px;
                 }
                 QPushButton:hover {
-                    background-color: #2980b9;
+                    background-color: #c0392b;
                 }
             """)
-            edit_btn.clicked.connect(lambda checked, i=instructor: self.edit_instructor(i))
+            
+            actions_layout.addWidget(view_btn)
             actions_layout.addWidget(edit_btn)
+            actions_layout.addWidget(delete_btn)
             
             self.table.setCellWidget(row, 8, actions_widget)
+    
+    def view_instructor(self, instructor):
+        """Voir détails moniteur"""
+        details = f"""
+DÉTAILS DU MONITEUR
+{'='*50}
+
+Nom: {instructor.full_name}
+CIN: {instructor.cin}
+Téléphone: {instructor.phone}
+Email: {instructor.email or 'N/A'}
+
+N° Permis: {instructor.license_number}
+Types de Permis: {instructor.license_types}
+
+Heures totales: {instructor.total_hours or 0}
+Taux de réussite: {instructor.success_rate or 0:.1f}%
+
+Disponibilité: {'✅ Disponible' if instructor.is_available else '❌ Indisponible'}
+        """
+        QMessageBox.information(self, "Détails du Moniteur", details)
+    
+    def delete_instructor(self, instructor):
+        """Supprimer moniteur"""
+        reply = QMessageBox.question(
+            self,
+            "Confirmer la suppression",
+            f"Voulez-vous vraiment supprimer le moniteur ?\n\n{instructor.full_name}\n\n⚠️ Cette action est irréversible",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
         
-        # Mettre à jour footer
-        self.total_label.setText(f"Total: {len(instructors)} moniteurs")
-        self.avail_label.setText(f"Disponibles: {available_count}")
+        if reply == QMessageBox.Yes:
+            success, message = InstructorController.delete_instructor(instructor.id)
+            if success:
+                QMessageBox.information(self, "Succès", "Moniteur supprimé avec succès")
+                self.load_instructors()
+            else:
+                QMessageBox.critical(self, "Erreur", f"Erreur: {message}")
     
     def filter_instructors(self):
         """Filtrer les moniteurs"""
