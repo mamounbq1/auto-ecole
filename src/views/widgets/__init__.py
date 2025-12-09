@@ -8,38 +8,29 @@ pour éviter de charger matplotlib au démarrage si pas nécessaire
 # Import des widgets sans matplotlib (chargement rapide)
 from .dashboard_simple import DashboardSimpleWidget
 from .students_enhanced import StudentsEnhancedWidget
-from .payments_enhanced import PaymentsEnhancedWidget
-from .payments_main import PaymentsMainWidget  # NEW: Module Paiements complet
 from .planning_enhanced import PlanningEnhancedWidget
-from .instructors_widget import InstructorsWidget
-from .instructors_main import InstructorsMainWidget  # NEW: Module Moniteurs complet
-from .vehicles_widget import VehiclesWidget
-from .vehicles_main import VehiclesMainWidget  # NEW: Module Véhicules complet
-from .exams_widget import ExamsWidget
-from .exams_main import ExamsMainWidget  # NEW: Module Examens complet
-from .settings_widget import SettingsWidget  # NEW: Module Paramètres complet
-from .documents_main import DocumentsMainWidget  # NEW: Module Documents complet (Phase 4)
+from .payments_main import PaymentsMainWidget  # Module Paiements complet
+from .instructors_main import InstructorsMainWidget  # Module Moniteurs complet
+from .vehicles_main import VehiclesMainWidget  # Module Véhicules complet
+from .exams_main import ExamsMainWidget  # Module Examens complet
+from .settings_widget import SettingsWidget  # Module Paramètres complet
+from .documents_main import DocumentsMainWidget  # Module Documents complet (Phase 4)
 
-# Les widgets avec matplotlib sont importés dynamiquement:
-# - DashboardAdvancedWidget (dashboard avec graphiques)
-# - ReportsWidget (rapports avec graphiques - OLD)
-# - ReportsMainWidget (rapports avec graphiques - NEW)
+# Les widgets avec matplotlib sont importés dynamiquement dans main_window.py:
+# - DashboardAdvancedWidget (REMOVED - unused)
+# - ReportsWidget (REMOVED - unused)
+# - ReportsMainWidget (reports avec graphiques)
 
 __all__ = [
+    # Main widgets (used in main_window.py)
     'DashboardSimpleWidget',
     'StudentsEnhancedWidget',
-    'PaymentsEnhancedWidget',
-    'PaymentsMainWidget',  # NEW: Module Paiements complet
     'PlanningEnhancedWidget',
-    'InstructorsWidget',
-    'InstructorsMainWidget',  # NEW: Module Moniteurs complet
-    'VehiclesWidget',
-    'VehiclesMainWidget',  # NEW: Module Véhicules complet
-    'ExamsWidget',
-    'ExamsMainWidget',  # NEW: Module Examens complet
-    'SettingsWidget',  # NEW: Module Paramètres complet
-    'DocumentsMainWidget',  # NEW: Module Documents complet (Phase 4)
-    # 'DashboardAdvancedWidget',  # Import dynamique
-    # 'ReportsWidget',  # Import dynamique (OLD)
-    # 'ReportsMainWidget',  # Import dynamique (NEW)
+    'PaymentsMainWidget',
+    'InstructorsMainWidget',
+    'VehiclesMainWidget',
+    'ExamsMainWidget',
+    'SettingsWidget',
+    'DocumentsMainWidget',  # Phase 4: Gestion Documentaire
+    # 'ReportsMainWidget',  # Import dynamique (matplotlib)
 ]
