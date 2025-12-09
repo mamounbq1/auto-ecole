@@ -670,9 +670,9 @@ class PaymentsManagement(QWidget):
             QMessageBox.critical(self, "Erreur", f"Erreur lors de la génération :\n{result}")
     
     def print_receipt(self, payment):
-        """Imprimer le reçu de paiement"""
-        from PySide6.QtPrintSupport import QPrinter, QPrintDialog
-        from PySide6.QtGui import QTextDocument
+        """Sauvegarder et ouvrir le reçu HTML"""
+        import os
+        import webbrowser
         
         if not payment.receipt_number:
             QMessageBox.warning(self, "Erreur", "Ce paiement n'a pas de numéro de reçu")
@@ -684,81 +684,162 @@ class PaymentsManagement(QWidget):
             QMessageBox.warning(self, "Erreur", "Élève introuvable")
             return
         
+        # Créer le dossier export s'il n'existe pas
+        export_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'export')
+        os.makedirs(export_dir, exist_ok=True)
+        
+        # Nom du fichier
+        filename = f"recu_{payment.receipt_number.replace('/', '_')}_{date.today().strftime('%Y%m%d')}.html"
+        filepath = os.path.join(export_dir, filename)
+        
         # Créer contenu HTML pour le reçu
-        html_content = f"""
-        <html>
-        <head>
-            <style>
-                body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                .header {{ text-align: center; margin-bottom: 30px; }}
-                .header h1 {{ color: #2c3e50; margin: 5px 0; }}
-                .info-section {{ margin: 20px 0; }}
-                .info-row {{ margin: 10px 0; }}
-                .label {{ font-weight: bold; color: #34495e; }}
-                .value {{ color: #2c3e50; }}
-                .amount {{ font-size: 24px; font-weight: bold; color: #27ae60; text-align: center; margin: 30px 0; }}
-                .footer {{ margin-top: 40px; text-align: center; font-size: 12px; color: #7f8c8d; }}
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>REÇU DE PAIEMENT</h1>
-                <p>Auto-École</p>
-            </div>
-            
-            <div class="info-section">
-                <div class="info-row">
-                    <span class="label">Numéro de reçu:</span>
-                    <span class="value">{payment.receipt_number}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Date:</span>
-                    <span class="value">{payment.payment_date.strftime('%d/%m/%Y %H:%M') if payment.payment_date else 'N/A'}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Élève:</span>
-                    <span class="value">{student.full_name}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">CIN:</span>
-                    <span class="value">{student.cin or 'N/A'}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Méthode de paiement:</span>
-                    <span class="value">{payment.payment_method.value.replace('_', ' ').title()}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Catégorie:</span>
-                    <span class="value">{(payment.category or 'autre').replace('_', ' ').title()}</span>
-                </div>
-                {f'<div class="info-row"><span class="label">Référence:</span><span class="value">{payment.reference_number}</span></div>' if payment.reference_number else ''}
-                {f'<div class="info-row"><span class="label">Description:</span><span class="value">{payment.description}</span></div>' if payment.description else ''}
-            </div>
-            
-            <div class="amount">
-                MONTANT: {float(payment.amount):,.2f} DH
-            </div>
-            
-            <div class="footer">
-                <p>Ce reçu est valide et certifie le paiement effectué.</p>
-                <p>Généré le {date.today().strftime('%d/%m/%Y')}</p>
-            </div>
-        </body>
-        </html>
-        """
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reçu de Paiement - {payment.receipt_number}</title>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }}
+        .receipt {{
+            background: white;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+        }}
+        .header h1 {{
+            color: #2c3e50;
+            margin: 5px 0;
+            font-size: 32px;
+        }}
+        .header p {{
+            color: #7f8c8d;
+            margin: 5px 0;
+        }}
+        .info-section {{
+            margin: 30px 0;
+        }}
+        .info-row {{
+            margin: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }}
+        .label {{
+            font-weight: bold;
+            color: #34495e;
+        }}
+        .value {{
+            color: #2c3e50;
+        }}
+        .amount {{
+            font-size: 36px;
+            font-weight: bold;
+            color: #27ae60;
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            background: #ecfdf5;
+            border-radius: 10px;
+        }}
+        .footer {{
+            margin-top: 50px;
+            text-align: center;
+            font-size: 14px;
+            color: #7f8c8d;
+            border-top: 2px solid #ecf0f1;
+            padding-top: 20px;
+        }}
+        @media print {{
+            body {{ background: white; margin: 0; }}
+            .receipt {{ box-shadow: none; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="receipt">
+        <div class="header">
+            <h1>REÇU DE PAIEMENT</h1>
+            <p>Auto-École</p>
+        </div>
         
-        # Créer le document
-        document = QTextDocument()
-        document.setHtml(html_content)
+        <div class="info-section">
+            <div class="info-row">
+                <span class="label">Numéro de reçu:</span>
+                <span class="value">{payment.receipt_number}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Date:</span>
+                <span class="value">{payment.payment_date.strftime('%d/%m/%Y %H:%M') if payment.payment_date else 'N/A'}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Élève:</span>
+                <span class="value">{student.full_name}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">CIN:</span>
+                <span class="value">{student.cin or 'N/A'}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Méthode de paiement:</span>
+                <span class="value">{payment.payment_method.value.replace('_', ' ').title()}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Catégorie:</span>
+                <span class="value">{(payment.category or 'autre').replace('_', ' ').title()}</span>
+            </div>"""
         
-        # Créer le printer
-        printer = QPrinter(QPrinter.HighResolution)
+        if payment.reference_number:
+            html_content += f"""
+            <div class="info-row">
+                <span class="label">Référence:</span>
+                <span class="value">{payment.reference_number}</span>
+            </div>"""
         
-        # Ouvrir la boîte de dialogue d'impression
-        dialog = QPrintDialog(printer, self)
-        if dialog.exec() == QPrintDialog.Accepted:
-            document.print(printer)
-            QMessageBox.information(self, "Succès", "Impression lancée")
+        if payment.description:
+            html_content += f"""
+            <div class="info-row">
+                <span class="label">Description:</span>
+                <span class="value">{payment.description}</span>
+            </div>"""
+        
+        html_content += f"""
+        </div>
+        
+        <div class="amount">
+            MONTANT: {float(payment.amount):,.2f} DH
+        </div>
+        
+        <div class="footer">
+            <p><strong>Ce reçu est valide et certifie le paiement effectué.</strong></p>
+            <p>Généré le {date.today().strftime('%d/%m/%Y')}</p>
+        </div>
+    </div>
+</body>
+</html>"""
+        
+        # Sauvegarder le fichier
+        try:
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            
+            # Ouvrir automatiquement dans le navigateur
+            webbrowser.open('file://' + os.path.abspath(filepath))
+            
+            QMessageBox.information(self, "Succès", f"Reçu sauvegardé et ouvert:\n{filepath}")
+        except Exception as e:
+            QMessageBox.critical(self, "Erreur", f"Erreur lors de la sauvegarde:\n{str(e)}")
     
     def export_payments(self):
         """Exporter les paiements en CSV"""
