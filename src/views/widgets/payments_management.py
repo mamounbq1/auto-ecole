@@ -570,8 +570,8 @@ class PaymentsManagement(QWidget):
             actions_layout.setSpacing(4)
             
             view_btn = QPushButton("👁️")
-            view_btn.setToolTip("Voir détails")
-            view_btn.clicked.connect(lambda checked, p=payment: self.view_payment(p))
+            view_btn.setToolTip("Voir reçu")
+            view_btn.clicked.connect(lambda checked, p=payment: self.view_receipt(p))
             view_btn.setCursor(Qt.PointingHandCursor)
             
             edit_btn = QPushButton("✏️")
@@ -583,11 +583,6 @@ class PaymentsManagement(QWidget):
             pdf_btn.setToolTip("Générer PDF")
             pdf_btn.clicked.connect(lambda checked, p=payment: self.generate_pdf(p))
             pdf_btn.setCursor(Qt.PointingHandCursor)
-            
-            print_btn = QPushButton("🖨️")
-            print_btn.setToolTip("Imprimer Reçu")
-            print_btn.clicked.connect(lambda checked, p=payment: self.print_receipt(p))
-            print_btn.setCursor(Qt.PointingHandCursor)
             
             delete_btn = QPushButton("🗑️")
             delete_btn.setToolTip("Annuler/Supprimer")
@@ -608,7 +603,6 @@ class PaymentsManagement(QWidget):
             actions_layout.addWidget(view_btn)
             actions_layout.addWidget(edit_btn)
             actions_layout.addWidget(pdf_btn)
-            actions_layout.addWidget(print_btn)
             actions_layout.addWidget(delete_btn)
             
             self.table.setCellWidget(row, 8, actions_widget)
@@ -898,35 +892,193 @@ class PaymentsManagement(QWidget):
             except Exception as e:
                 QMessageBox.critical(self, "Erreur", f"Erreur lors de l'export :\n{str(e)}")
     
-    def view_payment(self, payment):
-        """Voir détails d'un paiement"""
-        student = StudentController.get_student_by_id(payment.student_id)
+    def view_receipt(self, payment):
+        """Afficher le reçu dans une fenêtre avec bouton imprimer"""
+        from PySide6.QtWidgets import QTextBrowser
+        from PySide6.QtPrintSupport import QPrinter, QPrintDialog
         
-        details = f"""
-DÉTAILS DU PAIEMENT
-{'='*50}
-
-Numéro de reçu: {payment.receipt_number or 'N/A'}
-Date: {payment.payment_date.strftime('%d/%m/%Y %H:%M') if payment.payment_date else 'N/A'}
-
-Élève: {student.full_name if student else 'N/A'}
-CIN: {student.cin or 'N/A'}
-
-Montant: {float(payment.amount):,.2f} DH
-Méthode: {payment.payment_method.value.replace('_', ' ').title()}
-Catégorie: {(payment.category or 'autre').replace('_', ' ').title()}
-
-Statut: {payment.status}
-Validé par: {payment.validated_by or 'Non validé'}
-{f'Date validation: {payment.validated_at.strftime("%d/%m/%Y %H:%M")}' if payment.validated_at else ''}
-
-{f'Référence: {payment.reference_number}' if payment.reference_number else ''}
-{f'Description: {payment.description}' if payment.description else ''}
-
-{f'❌ ANNULÉ - Raison: {payment.cancellation_reason}' if payment.is_cancelled else ''}
+        if not payment.receipt_number:
+            QMessageBox.warning(self, "Erreur", "Ce paiement n'a pas de numéro de reçu")
+            return
+        
+        student = StudentController.get_student_by_id(payment.student_id)
+        if not student:
+            QMessageBox.warning(self, "Erreur", "Élève introuvable")
+            return
+        
+        # Créer dialogue
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Reçu - {payment.receipt_number}")
+        dialog.setMinimumSize(700, 600)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Créer contenu HTML
+        html_content = f"""
+        <html>
+        <head>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                }}
+                .receipt {{
+                    max-width: 600px;
+                    margin: 0 auto;
+                }}
+                .header {{
+                    text-align: center;
+                    margin-bottom: 30px;
+                    border-bottom: 3px solid #2c3e50;
+                    padding-bottom: 20px;
+                }}
+                .header h1 {{
+                    color: #2c3e50;
+                    margin: 5px 0;
+                }}
+                .header p {{
+                    color: #7f8c8d;
+                    margin: 5px 0;
+                }}
+                .info-section {{
+                    margin: 20px 0;
+                }}
+                .info-row {{
+                    margin: 12px 0;
+                    padding: 8px;
+                    border-bottom: 1px solid #ecf0f1;
+                }}
+                .label {{
+                    font-weight: bold;
+                    color: #34495e;
+                }}
+                .value {{
+                    color: #2c3e50;
+                    float: right;
+                }}
+                .amount {{
+                    font-size: 28px;
+                    font-weight: bold;
+                    color: #27ae60;
+                    text-align: center;
+                    margin: 30px 0;
+                    padding: 20px;
+                    background: #ecfdf5;
+                    border-radius: 8px;
+                }}
+                .footer {{
+                    margin-top: 40px;
+                    text-align: center;
+                    font-size: 12px;
+                    color: #7f8c8d;
+                    border-top: 1px solid #ecf0f1;
+                    padding-top: 15px;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="receipt">
+                <div class="header">
+                    <h1>REÇU DE PAIEMENT</h1>
+                    <p>Auto-École</p>
+                </div>
+                
+                <div class="info-section">
+                    <div class="info-row">
+                        <span class="label">Numéro de reçu:</span>
+                        <span class="value">{payment.receipt_number}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Date:</span>
+                        <span class="value">{payment.payment_date.strftime('%d/%m/%Y %H:%M') if payment.payment_date else 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Élève:</span>
+                        <span class="value">{student.full_name}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">CIN:</span>
+                        <span class="value">{student.cin or 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Méthode:</span>
+                        <span class="value">{payment.payment_method.value.replace('_', ' ').title()}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Catégorie:</span>
+                        <span class="value">{(payment.category or 'autre').replace('_', ' ').title()}</span>
+                    </div>
+                    {f'<div class="info-row"><span class="label">Référence:</span><span class="value">{payment.reference_number}</span></div>' if payment.reference_number else ''}
+                    {f'<div class="info-row"><span class="label">Description:</span><span class="value">{payment.description}</span></div>' if payment.description else ''}
+                </div>
+                
+                <div class="amount">
+                    MONTANT: {float(payment.amount):,.2f} DH
+                </div>
+                
+                <div class="footer">
+                    <p><strong>Ce reçu est valide et certifie le paiement effectué.</strong></p>
+                    <p>Validé par: {payment.validated_by or 'Non validé'}</p>
+                    <p>Généré le {date.today().strftime('%d/%m/%Y')}</p>
+                </div>
+            </div>
+        </body>
+        </html>
         """
         
-        QMessageBox.information(self, "Détails du Paiement", details)
+        # Afficher dans QTextBrowser
+        text_browser = QTextBrowser()
+        text_browser.setHtml(html_content)
+        layout.addWidget(text_browser)
+        
+        # Boutons
+        btn_layout = QHBoxLayout()
+        
+        print_btn = QPushButton("🖨️ Imprimer")
+        print_btn.setMinimumHeight(35)
+        print_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-weight: bold;
+                padding: 8px 20px;
+            }
+            QPushButton:hover {
+                background-color: #2980b9;
+            }
+        """)
+        
+        def print_document():
+            printer = QPrinter(QPrinter.HighResolution)
+            print_dialog = QPrintDialog(printer, dialog)
+            if print_dialog.exec() == QPrintDialog.Accepted:
+                text_browser.print_(printer)
+        
+        print_btn.clicked.connect(print_document)
+        
+        close_btn = QPushButton("Fermer")
+        close_btn.setMinimumHeight(35)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #95a5a6;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 8px 20px;
+            }
+            QPushButton:hover {
+                background-color: #7f8c8d;
+            }
+        """)
+        close_btn.clicked.connect(dialog.close)
+        
+        btn_layout.addWidget(print_btn)
+        btn_layout.addWidget(close_btn)
+        layout.addLayout(btn_layout)
+        
+        dialog.exec()
     
     def edit_payment(self, payment):
         """Modifier un paiement"""
