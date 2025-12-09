@@ -372,10 +372,11 @@ class NotificationController:
         if not exam.student:
             return notifications
         
+        default_location = "centre d'examen"
         message = (
             f"Convocation à l'examen {exam.exam_type.value} le "
             f"{exam.scheduled_date.strftime('%d/%m/%Y à %H:%M')} "
-            f"au {exam.location or 'centre d'examen'}."
+            f"au {exam.location or default_location}."
         )
         
         for notif_type in notification_types:
