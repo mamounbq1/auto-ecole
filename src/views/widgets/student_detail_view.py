@@ -923,7 +923,8 @@ class StudentDetailViewDialog(QDialog):
                 total_paid += payment.amount
                 
                 # Method
-                self.payments_table.setItem(row, 2, QTableWidgetItem(payment.payment_method or "N/A"))
+                method_text = payment.payment_method.value if payment.payment_method else "N/A"
+                self.payments_table.setItem(row, 2, QTableWidgetItem(method_text))
                 
                 # Reference
                 self.payments_table.setItem(row, 3, QTableWidgetItem(payment.reference or ""))
@@ -1158,11 +1159,12 @@ class StudentDetailViewDialog(QDialog):
                 try:
                     payments = PaymentController.get_payments_by_student(self.student.id)
                     for payment in payments:
+                        method_text = payment.payment_method.value if payment.payment_method else 'N/A'
                         all_activities.append({
                             'date': payment.payment_date,
                             'type': '💰 Paiement',
                             'description': f"Paiement de {payment.amount:,.2f} DH",
-                            'details': f"Méthode: {payment.payment_method or 'N/A'}"
+                            'details': f"Méthode: {method_text}"
                         })
                 except Exception as e:
                     print(f"Error loading payment history: {e}")
@@ -1210,8 +1212,21 @@ class StudentDetailViewDialog(QDialog):
                 except Exception as e:
                     print(f"Error loading document history: {e}")
             
-            # Sort by date (most recent first)
-            all_activities.sort(key=lambda x: x['date'] if x['date'] else datetime.min, reverse=True)
+            # Sort by date (most recent first) - convert all to datetime for comparison
+            def get_sortable_date(activity):
+                date_val = activity['date']
+                if date_val is None:
+                    return datetime.min
+                # Convert date to datetime if needed
+                if hasattr(date_val, 'hour'):  # It's already datetime
+                    return date_val
+                else:  # It's a date, convert to datetime
+                    from datetime import date as date_type
+                    if isinstance(date_val, date_type):
+                        return datetime.combine(date_val, datetime.min.time())
+                return datetime.min
+            
+            all_activities.sort(key=get_sortable_date, reverse=True)
             
             # Populate table
             for row, activity in enumerate(all_activities):
