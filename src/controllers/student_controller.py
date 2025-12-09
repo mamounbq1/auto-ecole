@@ -157,10 +157,21 @@ class StudentController:
             if not student:
                 return False, "Élève introuvable", None
             
+            # Sauvegarder les anciennes valeurs financières
+            old_total_due = student.total_due
+            old_total_paid = student.total_paid
+            
             # Mettre à jour les attributs
             for key, value in student_data.items():
                 if hasattr(student, key) and key != 'id':
                     setattr(student, key, value)
+            
+            # CRITIQUE : Recalculer le balance si total_due ou total_paid ont changé
+            if 'total_due' in student_data or old_total_due != student.total_due:
+                # Balance = total_due - total_paid
+                # Positive = Dette, Negative = Crédit, Zero = À jour
+                student.balance = student.total_due - student.total_paid
+                logger.info(f"Balance recalculé pour {student.full_name}: {student.balance} DH (Dû: {student.total_due}, Payé: {student.total_paid})")
             
             session.commit()
             session.refresh(student)

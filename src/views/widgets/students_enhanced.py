@@ -113,6 +113,8 @@ class StudentDetailDialog(QDialog):
         self.total_due.setMaximum(999999)
         self.total_due.setValue(0)
         self.total_due.setSuffix(" DH")
+        # Connect signal to recalculate balance when total_due changes
+        self.total_due.valueChanged.connect(self.update_balance_display)
         
         self.total_paid = QDoubleSpinBox()
         self.total_paid.setMinimum(0)
@@ -190,6 +192,21 @@ class StudentDetailDialog(QDialog):
         self.total_due.setValue(self.student.total_due or 0)
         self.total_paid.setValue(self.student.total_paid or 0)
         self.balance.setValue(self.student.balance or 0)
+    
+    def update_balance_display(self):
+        """Update balance display when total_due changes"""
+        try:
+            # Calculate new balance: Total Due - Total Paid
+            # Positive = Dette, Negative = Crédit, Zero = À jour
+            total_paid = self.total_paid.value()
+            total_due = self.total_due.value()
+            new_balance = total_due - total_paid
+            
+            # Update balance field
+            self.balance.setValue(new_balance)
+            
+        except Exception as e:
+            print(f"Error updating balance display: {e}")
     
     def save_student(self):
         """Enregistrer l'élève"""

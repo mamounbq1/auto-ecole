@@ -1383,12 +1383,25 @@ class StudentDetailViewDialog(QDialog):
         try:
             if self.student:
                 # Update
-                StudentController.update_student(self.student.id, data)
-                QMessageBox.information(self, "Succès", f"Élève {data['full_name']} mis à jour avec succès")
+                success, message, updated_student = StudentController.update_student(self.student.id, data)
+                if success and updated_student:
+                    # CRITIQUE : Recharger les données de l'étudiant mis à jour
+                    self.student = updated_student
+                    # Rafraîchir l'affichage du balance dans toutes les sections
+                    self.refresh_balance()
+                    QMessageBox.information(self, "Succès", f"Élève {data['full_name']} mis à jour avec succès")
+                else:
+                    QMessageBox.critical(self, "Erreur", message)
+                    return
             else:
                 # Create
-                StudentController.create_student(data)
-                QMessageBox.information(self, "Succès", f"Élève {data['full_name']} créé avec succès")
+                success, message, new_student = StudentController.create_student(data)
+                if success and new_student:
+                    self.student = new_student
+                    QMessageBox.information(self, "Succès", f"Élève {data['full_name']} créé avec succès")
+                else:
+                    QMessageBox.critical(self, "Erreur", message)
+                    return
             
             self.accept()
         except Exception as e:
