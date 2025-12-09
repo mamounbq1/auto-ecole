@@ -16,7 +16,10 @@ import os
 from src.controllers.student_controller import StudentController
 from src.controllers.payment_controller import PaymentController
 from src.controllers.session_controller import SessionController
+from src.controllers.document_controller import DocumentController
+from src.controllers.exam_controller import ExamController
 from src.models import StudentStatus
+from src.utils.validators import StudentValidator
 
 # Types de permis disponibles
 LICENSE_TYPES = ['A', 'B', 'C', 'D', 'E']
@@ -90,6 +93,7 @@ class StudentDetailViewDialog(QDialog):
         self.create_info_tab()
         self.create_payments_tab()
         self.create_sessions_tab()
+        self.create_progress_tab()
         self.create_documents_tab()
         self.create_history_tab()
         self.create_notes_tab()
@@ -479,50 +483,243 @@ class StudentDetailViewDialog(QDialog):
         
         self.tabs.addTab(tab, "🎓 Séances")
     
+    def create_progress_tab(self):
+        """Tab 4: Progress & Statistics - Visual Progress Tracking"""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+        
+        # Progress Overview
+        overview_group = QGroupBox("📊 Vue d'Ensemble de la Progression")
+        overview_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                font-size: 14px;
+                border: 2px solid #3498db;
+                border-radius: 10px;
+                margin-top: 10px;
+                padding-top: 15px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }
+        """)
+        overview_layout = QVBoxLayout()
+        
+        # Hours Progress Bar
+        hours_label = QLabel("🕐 Progression des Heures de Conduite")
+        hours_label.setStyleSheet("font-weight: bold; font-size: 13px;")
+        self.hours_progress = QProgressBar()
+        self.hours_progress.setStyleSheet("""
+            QProgressBar {
+                border: 2px solid #3498db;
+                border-radius: 5px;
+                text-align: center;
+                height: 30px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+            QProgressBar::chunk {
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #3498db, stop:1 #2980b9);
+                border-radius: 3px;
+            }
+        """)
+        
+        overview_layout.addWidget(hours_label)
+        overview_layout.addWidget(self.hours_progress)
+        
+        # Financial Progress Bar
+        financial_label = QLabel("💰 Progression des Paiements")
+        financial_label.setStyleSheet("font-weight: bold; font-size: 13px; margin-top: 10px;")
+        self.financial_progress = QProgressBar()
+        self.financial_progress.setStyleSheet("""
+            QProgressBar {
+                border: 2px solid #27ae60;
+                border-radius: 5px;
+                text-align: center;
+                height: 30px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+            QProgressBar::chunk {
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #27ae60, stop:1 #229954);
+                border-radius: 3px;
+            }
+        """)
+        
+        overview_layout.addWidget(financial_label)
+        overview_layout.addWidget(self.financial_progress)
+        
+        overview_group.setLayout(overview_layout)
+        layout.addWidget(overview_group)
+        
+        # Statistics Grid
+        stats_grid = QHBoxLayout()
+        
+        # Training Stats
+        training_group = QGroupBox("🎓 Statistiques de Formation")
+        training_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #9b59b6;
+                border-radius: 10px;
+                margin-top: 10px;
+                padding-top: 15px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }
+        """)
+        training_layout = QVBoxLayout()
+        
+        self.training_stats_labels = []
+        for i in range(5):
+            label = QLabel("")
+            label.setStyleSheet("""
+                QLabel {
+                    background-color: white;
+                    padding: 8px;
+                    border-radius: 5px;
+                    border: 1px solid #ddd;
+                    font-size: 12px;
+                }
+            """)
+            self.training_stats_labels.append(label)
+            training_layout.addWidget(label)
+        
+        training_group.setLayout(training_layout)
+        stats_grid.addWidget(training_group)
+        
+        # Exam Stats
+        exam_group = QGroupBox("📝 Statistiques d'Examens")
+        exam_group.setStyleSheet(training_group.styleSheet())
+        exam_layout = QVBoxLayout()
+        
+        self.exam_stats_labels = []
+        for i in range(5):
+            label = QLabel("")
+            label.setStyleSheet("""
+                QLabel {
+                    background-color: white;
+                    padding: 8px;
+                    border-radius: 5px;
+                    border: 1px solid #ddd;
+                    font-size: 12px;
+                }
+            """)
+            self.exam_stats_labels.append(label)
+            exam_layout.addWidget(label)
+        
+        exam_group.setLayout(exam_layout)
+        stats_grid.addWidget(exam_group)
+        
+        layout.addLayout(stats_grid)
+        
+        # Milestones
+        milestones_group = QGroupBox("🏆 Jalons & Objectifs")
+        milestones_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #f39c12;
+                border-radius: 10px;
+                margin-top: 10px;
+                padding-top: 15px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }
+        """)
+        milestones_layout = QVBoxLayout()
+        
+        self.milestones_list = QListWidget()
+        self.milestones_list.setStyleSheet("""
+            QListWidget {
+                background-color: white;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 5px;
+                font-size: 12px;
+            }
+            QListWidget::item {
+                padding: 5px;
+                border-bottom: 1px solid #ecf0f1;
+            }
+        """)
+        
+        milestones_layout.addWidget(self.milestones_list)
+        milestones_group.setLayout(milestones_layout)
+        layout.addWidget(milestones_group)
+        
+        self.tabs.addTab(tab, "📈 Progression")
+    
     def create_documents_tab(self):
-        """Tab 4: Documents Management"""
+        """Tab 4: Documents Management - Real Documents Integration"""
         tab = QWidget()
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(20, 20, 20, 20)
         
-        # Documents list
-        self.documents_list = QListWidget()
-        self.documents_list.setStyleSheet("""
-            QListWidget {
+        # Summary section
+        summary_widget = QWidget()
+        summary_widget.setStyleSheet("""
+            QWidget {
+                background-color: #ecf0f1;
+                border-radius: 10px;
+                padding: 15px;
+            }
+        """)
+        summary_layout = QHBoxLayout(summary_widget)
+        
+        self.documents_count_label = QLabel("Nombre de Documents: 0")
+        self.documents_count_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #3498db;")
+        
+        self.documents_size_label = QLabel("Taille Totale: 0 MB")
+        self.documents_size_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #27ae60;")
+        
+        summary_layout.addWidget(self.documents_count_label)
+        summary_layout.addStretch()
+        summary_layout.addWidget(self.documents_size_label)
+        
+        layout.addWidget(summary_widget)
+        
+        # Documents table
+        self.documents_table = QTableWidget()
+        self.documents_table.setColumnCount(5)
+        self.documents_table.setHorizontalHeaderLabels([
+            "Titre", "Type", "Date d'Ajout", "Taille", "Statut"
+        ])
+        self.documents_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.documents_table.setAlternatingRowColors(True)
+        self.documents_table.setStyleSheet("""
+            QTableWidget {
                 background-color: white;
                 border: 2px solid #ddd;
                 border-radius: 5px;
-                padding: 10px;
-                font-size: 14px;
             }
-            QListWidget::item {
-                padding: 10px;
-                border-bottom: 1px solid #ecf0f1;
-            }
-            QListWidget::item:selected {
-                background-color: #3498db;
+            QHeaderView::section {
+                background-color: #34495e;
                 color: white;
+                padding: 10px;
+                font-weight: bold;
+                border: none;
             }
         """)
         
-        # Add example documents
-        documents = [
-            "📄 Contrat de Formation.pdf",
-            "🆔 Copie CIN.pdf",
-            "🏥 Certificat Médical.pdf",
-            "📸 Photo d'Identité.jpg",
-            "📋 Relevé de Paiements.pdf"
-        ]
-        
-        for doc in documents:
-            self.documents_list.addItem(doc)
-        
-        layout.addWidget(self.documents_list)
+        layout.addWidget(self.documents_table)
         
         # Buttons
         btn_layout = QHBoxLayout()
         
         add_doc_btn = QPushButton("➕ Ajouter Document")
+        add_doc_btn.clicked.connect(self.add_document)
         add_doc_btn.setStyleSheet("""
             QPushButton {
                 background-color: #3498db;
@@ -537,6 +734,7 @@ class StudentDetailViewDialog(QDialog):
         """)
         
         view_doc_btn = QPushButton("👁️ Voir Document")
+        view_doc_btn.clicked.connect(self.view_document)
         view_doc_btn.setStyleSheet("""
             QPushButton {
                 background-color: #27ae60;
@@ -551,6 +749,7 @@ class StudentDetailViewDialog(QDialog):
         """)
         
         delete_doc_btn = QPushButton("🗑️ Supprimer")
+        delete_doc_btn.clicked.connect(self.delete_document)
         delete_doc_btn.setStyleSheet("""
             QPushButton {
                 background-color: #e74c3c;
@@ -564,9 +763,25 @@ class StudentDetailViewDialog(QDialog):
             }
         """)
         
+        refresh_doc_btn = QPushButton("🔄 Actualiser")
+        refresh_doc_btn.clicked.connect(self.load_documents)
+        refresh_doc_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #9b59b6;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #8e44ad;
+            }
+        """)
+        
         btn_layout.addWidget(add_doc_btn)
         btn_layout.addWidget(view_doc_btn)
         btn_layout.addWidget(delete_doc_btn)
+        btn_layout.addWidget(refresh_doc_btn)
         btn_layout.addStretch()
         
         layout.addLayout(btn_layout)
@@ -574,40 +789,63 @@ class StudentDetailViewDialog(QDialog):
         self.tabs.addTab(tab, "📁 Documents")
     
     def create_history_tab(self):
-        """Tab 5: Complete Activity History"""
+        """Tab 5: Complete Activity History - Real Activity Tracking"""
         tab = QWidget()
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(20, 20, 20, 20)
         
-        # History list
-        self.history_list = QListWidget()
-        self.history_list.setStyleSheet("""
-            QListWidget {
+        # Filter section
+        filter_widget = QWidget()
+        filter_widget.setStyleSheet("""
+            QWidget {
+                background-color: #ecf0f1;
+                border-radius: 10px;
+                padding: 10px;
+            }
+        """)
+        filter_layout = QHBoxLayout(filter_widget)
+        
+        filter_label = QLabel("Filtrer par type:")
+        filter_label.setStyleSheet("font-weight: bold;")
+        
+        self.history_filter = QComboBox()
+        self.history_filter.addItem("🔍 Tous", "all")
+        self.history_filter.addItem("💰 Paiements", "payments")
+        self.history_filter.addItem("🎓 Séances", "sessions")
+        self.history_filter.addItem("📝 Examens", "exams")
+        self.history_filter.addItem("📄 Documents", "documents")
+        self.history_filter.currentIndexChanged.connect(self.load_history)
+        
+        filter_layout.addWidget(filter_label)
+        filter_layout.addWidget(self.history_filter)
+        filter_layout.addStretch()
+        
+        layout.addWidget(filter_widget)
+        
+        # History table
+        self.history_table = QTableWidget()
+        self.history_table.setColumnCount(4)
+        self.history_table.setHorizontalHeaderLabels([
+            "Date", "Type", "Description", "Détails"
+        ])
+        self.history_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.history_table.setAlternatingRowColors(True)
+        self.history_table.setStyleSheet("""
+            QTableWidget {
                 background-color: white;
                 border: 2px solid #ddd;
                 border-radius: 5px;
-                padding: 10px;
-                font-size: 13px;
             }
-            QListWidget::item {
-                padding: 8px;
-                border-bottom: 1px solid #ecf0f1;
+            QHeaderView::section {
+                background-color: #34495e;
+                color: white;
+                padding: 10px;
+                font-weight: bold;
+                border: none;
             }
         """)
         
-        # Add example history entries
-        history_entries = [
-            f"📅 {datetime.now().strftime('%d/%m/%Y %H:%M')} - Élève créé",
-            f"💰 {datetime.now().strftime('%d/%m/%Y %H:%M')} - Paiement reçu: 1000.00 DH",
-            f"🎓 {datetime.now().strftime('%d/%m/%Y %H:%M')} - Séance de conduite complétée",
-            f"✏️ {datetime.now().strftime('%d/%m/%Y %H:%M')} - Informations mises à jour",
-            f"📝 {datetime.now().strftime('%d/%m/%Y %H:%M')} - Examen théorique passé"
-        ]
-        
-        for entry in history_entries:
-            self.history_list.addItem(entry)
-        
-        layout.addWidget(self.history_list)
+        layout.addWidget(self.history_table)
         
         self.tabs.addTab(tab, "📜 Historique")
     
@@ -756,6 +994,15 @@ class StudentDetailViewDialog(QDialog):
         # Tab 3: Load Sessions
         self.load_sessions()
         
+        # Tab 4: Load Progress Statistics
+        self.load_progress_stats()
+        
+        # Tab 5: Load Documents
+        self.load_documents()
+        
+        # Tab 5: Load History
+        self.load_history()
+        
         # Tab 6: Load Notes
         if hasattr(self.student, 'notes'):
             self.notes_edit.setPlainText(self.student.notes or "")
@@ -848,6 +1095,100 @@ class StudentDetailViewDialog(QDialog):
         except Exception as e:
             print(f"Error loading sessions: {e}")
     
+    def load_progress_stats(self):
+        """Load progress statistics for the student"""
+        if not self.student:
+            return
+        
+        try:
+            # Hours Progress
+            hours_completed = self.student.hours_completed or 0
+            hours_planned = self.student.hours_planned or 20
+            hours_percent = int((hours_completed / hours_planned * 100)) if hours_planned > 0 else 0
+            self.hours_progress.setValue(hours_percent)
+            self.hours_progress.setFormat(f"{hours_completed}/{hours_planned} heures ({hours_percent}%)")
+            
+            # Financial Progress
+            total_paid = self.student.total_paid or 0
+            total_due = self.student.total_due or 1
+            financial_percent = int((total_paid / total_due * 100)) if total_due > 0 else 0
+            self.financial_progress.setValue(financial_percent)
+            self.financial_progress.setFormat(f"{total_paid:,.0f}/{total_due:,.0f} DH ({financial_percent}%)")
+            
+            # Training Statistics
+            sessions = SessionController.get_student_sessions(self.student.id)
+            total_sessions = len(sessions)
+            completed_sessions = len([s for s in sessions if getattr(s, 'status', None) and s.status.value == 'completed'])
+            
+            avg_hours_per_week = (hours_completed / 4) if hours_completed > 0 else 0
+            
+            self.training_stats_labels[0].setText(f"✅ Séances Totales: {total_sessions}")
+            self.training_stats_labels[1].setText(f"🎯 Séances Complétées: {completed_sessions}")
+            self.training_stats_labels[2].setText(f"⏱️ Heures Effectuées: {hours_completed}")
+            self.training_stats_labels[3].setText(f"📅 Moy. Heures/Semaine: {avg_hours_per_week:.1f}")
+            self.training_stats_labels[4].setText(f"🚗 Permis: {self.student.license_type or 'N/A'}")
+            
+            # Exam Statistics
+            try:
+                exams = ExamController.get_exams_by_student(self.student.id)
+                total_exams = len(exams)
+                passed_exams = len([e for e in exams if getattr(e, 'result', None) and e.result.value == 'passed'])
+                
+                theory_attempts = self.student.theoretical_exam_attempts or 0
+                practical_attempts = self.student.practical_exam_attempts or 0
+                
+                self.exam_stats_labels[0].setText(f"📝 Examens Passés: {total_exams}")
+                self.exam_stats_labels[1].setText(f"✅ Examens Réussis: {passed_exams}")
+                self.exam_stats_labels[2].setText(f"📚 Tentatives Théorie: {theory_attempts}")
+                self.exam_stats_labels[3].setText(f"🚗 Tentatives Pratique: {practical_attempts}")
+                self.exam_stats_labels[4].setText(f"📊 Taux Réussite: {(passed_exams/total_exams*100):.0f}%" if total_exams > 0 else "📊 Taux Réussite: 0%")
+            except:
+                self.exam_stats_labels[0].setText(f"📝 Examens Passés: 0")
+                self.exam_stats_labels[1].setText(f"✅ Examens Réussis: 0")
+                self.exam_stats_labels[2].setText(f"📚 Tentatives Théorie: {self.student.theoretical_exam_attempts or 0}")
+                self.exam_stats_labels[3].setText(f"🚗 Tentatives Pratique: {self.student.practical_exam_attempts or 0}")
+                self.exam_stats_labels[4].setText(f"📊 Taux Réussite: 0%")
+            
+            # Milestones
+            self.milestones_list.clear()
+            milestones = []
+            
+            if self.student.status == StudentStatus.ACTIVE:
+                milestones.append("✅ Inscription complétée")
+            
+            if hours_completed >= 5:
+                milestones.append(f"✅ {hours_completed} heures de conduite effectuées")
+            else:
+                milestones.append(f"🔄 En cours: {hours_completed}/{5} heures initiales")
+            
+            if theory_attempts > 0:
+                milestones.append(f"✅ Examen théorique tenté ({theory_attempts} fois)")
+            else:
+                milestones.append("🎯 Objectif: Passer l'examen théorique")
+            
+            if hours_completed >= hours_planned * 0.5:
+                milestones.append(f"✅ Plus de 50% des heures complétées")
+            else:
+                milestones.append(f"🔄 Progression: {hours_percent}% des heures")
+            
+            if financial_percent >= 100:
+                milestones.append("✅ Paiements complets")
+            elif financial_percent >= 50:
+                milestones.append(f"🔄 Paiements: {financial_percent}% complétés")
+            else:
+                milestones.append(f"⚠️ Paiements: {financial_percent}% (Paiement nécessaire)")
+            
+            if self.student.status == StudentStatus.GRADUATED:
+                milestones.append("🎓 DIPLÔMÉ - Formation complétée!")
+            elif hours_completed >= hours_planned and practical_attempts > 0:
+                milestones.append("🎯 Prêt pour l'obtention du permis!")
+            
+            for milestone in milestones:
+                self.milestones_list.addItem(milestone)
+            
+        except Exception as e:
+            print(f"Error loading progress stats: {e}")
+    
     def upload_photo(self):
         """Upload a profile photo"""
         filename, _ = QFileDialog.getOpenFileName(
@@ -891,28 +1232,207 @@ class StudentDetailViewDialog(QDialog):
             self.photo_path = None
             QMessageBox.information(self, "Succès", "Photo supprimée")
     
+    def load_documents(self):
+        """Load documents for the student"""
+        if not self.student:
+            return
+        
+        try:
+            # Get all documents for this student
+            documents = DocumentController.get_entity_documents('student', self.student.id)
+            self.documents_table.setRowCount(0)
+            
+            total_size = 0
+            for row, doc in enumerate(documents):
+                self.documents_table.insertRow(row)
+                
+                # Title
+                self.documents_table.setItem(row, 0, QTableWidgetItem(doc.title or "Sans titre"))
+                
+                # Type
+                doc_type = doc.document_type.value if doc.document_type else "N/A"
+                self.documents_table.setItem(row, 1, QTableWidgetItem(doc_type))
+                
+                # Date
+                date_str = doc.created_at.strftime('%d/%m/%Y') if doc.created_at else "N/A"
+                self.documents_table.setItem(row, 2, QTableWidgetItem(date_str))
+                
+                # Size
+                size_mb = (doc.file_size / (1024 * 1024)) if doc.file_size else 0
+                total_size += size_mb
+                self.documents_table.setItem(row, 3, QTableWidgetItem(f"{size_mb:.2f} MB"))
+                
+                # Status
+                status_item = QTableWidgetItem(doc.status.value if doc.status else "N/A")
+                if doc.status and doc.status.value == 'verified':
+                    status_item.setForeground(QColor("#27ae60"))
+                elif doc.status and doc.status.value == 'expired':
+                    status_item.setForeground(QColor("#e74c3c"))
+                self.documents_table.setItem(row, 4, status_item)
+            
+            # Update summary
+            self.documents_count_label.setText(f"Nombre de Documents: {len(documents)}")
+            self.documents_size_label.setText(f"Taille Totale: {total_size:.2f} MB")
+            
+        except Exception as e:
+            print(f"Error loading documents: {e}")
+    
+    def add_document(self):
+        """Add a new document"""
+        if not self.student:
+            QMessageBox.warning(self, "Erreur", "Sauvegardez l'élève d'abord")
+            return
+        
+        try:
+            from src.views.widgets.document_upload_dialog import DocumentUploadDialog
+            dialog = DocumentUploadDialog(
+                entity_type='student',
+                entity_id=self.student.id,
+                parent=self
+            )
+            if dialog.exec():
+                self.load_documents()
+                QMessageBox.information(self, "Succès", "Document ajouté avec succès")
+        except Exception as e:
+            QMessageBox.critical(self, "Erreur", f"Erreur: {str(e)}")
+    
+    def view_document(self):
+        """View selected document"""
+        selected_row = self.documents_table.currentRow()
+        if selected_row < 0:
+            QMessageBox.warning(self, "Attention", "Sélectionnez un document")
+            return
+        
+        try:
+            documents = DocumentController.get_entity_documents('student', self.student.id)
+            if selected_row < len(documents):
+                doc = documents[selected_row]
+                from src.views.widgets.document_viewer_dialog import DocumentViewerDialog
+                dialog = DocumentViewerDialog(doc, parent=self)
+                dialog.exec()
+        except Exception as e:
+            QMessageBox.critical(self, "Erreur", f"Erreur: {str(e)}")
+    
+    def delete_document(self):
+        """Delete selected document"""
+        selected_row = self.documents_table.currentRow()
+        if selected_row < 0:
+            QMessageBox.warning(self, "Attention", "Sélectionnez un document")
+            return
+        
+        try:
+            documents = DocumentController.get_entity_documents('student', self.student.id)
+            if selected_row < len(documents):
+                doc = documents[selected_row]
+                
+                reply = QMessageBox.question(
+                    self,
+                    "Confirmation",
+                    f"Supprimer le document '{doc.title}'?",
+                    QMessageBox.Yes | QMessageBox.No
+                )
+                
+                if reply == QMessageBox.Yes:
+                    DocumentController.delete_document(doc.id)
+                    self.load_documents()
+                    QMessageBox.information(self, "Succès", "Document supprimé")
+        except Exception as e:
+            QMessageBox.critical(self, "Erreur", f"Erreur: {str(e)}")
+    
+    def load_history(self):
+        """Load complete activity history for the student"""
+        if not self.student:
+            return
+        
+        try:
+            self.history_table.setRowCount(0)
+            filter_type = self.history_filter.currentData() if hasattr(self, 'history_filter') else 'all'
+            
+            all_activities = []
+            
+            # Load payments
+            if filter_type in ['all', 'payments']:
+                try:
+                    payments = PaymentController.get_student_payments(self.student.id)
+                    for payment in payments:
+                        all_activities.append({
+                            'date': payment.payment_date,
+                            'type': '💰 Paiement',
+                            'description': f"Paiement de {payment.amount:,.2f} DH",
+                            'details': f"Méthode: {payment.payment_method or 'N/A'}"
+                        })
+                except:
+                    pass
+            
+            # Load sessions
+            if filter_type in ['all', 'sessions']:
+                try:
+                    sessions = SessionController.get_student_sessions(self.student.id)
+                    for session in sessions:
+                        all_activities.append({
+                            'date': session.start_datetime,
+                            'type': '🎓 Séance',
+                            'description': f"Séance de conduite",
+                            'details': f"Instructeur: {getattr(session, 'instructor_name', 'N/A')}"
+                        })
+                except:
+                    pass
+            
+            # Load exams
+            if filter_type in ['all', 'exams']:
+                try:
+                    exams = ExamController.get_exams_by_student(self.student.id)
+                    for exam in exams:
+                        result_text = "Réussi" if getattr(exam, 'passed', False) else "Échoué"
+                        all_activities.append({
+                            'date': getattr(exam, 'exam_date', datetime.now()),
+                            'type': '📝 Examen',
+                            'description': f"Examen {getattr(exam, 'exam_type', 'N/A')}",
+                            'details': f"Résultat: {result_text}"
+                        })
+                except:
+                    pass
+            
+            # Load documents
+            if filter_type in ['all', 'documents']:
+                try:
+                    documents = DocumentController.get_entity_documents('student', self.student.id)
+                    for doc in documents:
+                        all_activities.append({
+                            'date': doc.created_at,
+                            'type': '📄 Document',
+                            'description': f"Document ajouté: {doc.title}",
+                            'details': f"Type: {doc.document_type.value if doc.document_type else 'N/A'}"
+                        })
+                except:
+                    pass
+            
+            # Sort by date (most recent first)
+            all_activities.sort(key=lambda x: x['date'] if x['date'] else datetime.min, reverse=True)
+            
+            # Populate table
+            for row, activity in enumerate(all_activities):
+                self.history_table.insertRow(row)
+                
+                # Date
+                date_str = activity['date'].strftime('%d/%m/%Y %H:%M') if activity['date'] else "N/A"
+                self.history_table.setItem(row, 0, QTableWidgetItem(date_str))
+                
+                # Type
+                self.history_table.setItem(row, 1, QTableWidgetItem(activity['type']))
+                
+                # Description
+                self.history_table.setItem(row, 2, QTableWidgetItem(activity['description']))
+                
+                # Details
+                self.history_table.setItem(row, 3, QTableWidgetItem(activity['details']))
+            
+        except Exception as e:
+            print(f"Error loading history: {e}")
+    
     def save_student(self):
-        """Save student data"""
-        # Validation
-        if not self.full_name.text().strip():
-            QMessageBox.warning(self, "Erreur", "Le nom complet est requis")
-            self.tabs.setCurrentIndex(0)  # Switch to info tab
-            self.full_name.setFocus()
-            return
-        
-        if not self.cin.text().strip():
-            QMessageBox.warning(self, "Erreur", "Le CIN est requis")
-            self.tabs.setCurrentIndex(0)
-            self.cin.setFocus()
-            return
-        
-        if not self.phone.text().strip():
-            QMessageBox.warning(self, "Erreur", "Le téléphone est requis")
-            self.tabs.setCurrentIndex(0)
-            self.phone.setFocus()
-            return
-        
-        # Collect data
+        """Save student data with comprehensive validation"""
+        # Collect data first
         data = {
             'full_name': self.full_name.text().strip(),
             'cin': self.cin.text().strip(),
@@ -933,6 +1453,19 @@ class StudentDetailViewDialog(QDialog):
         # Add photo path if uploaded
         if self.photo_path:
             data['photo_path'] = self.photo_path
+        
+        # Comprehensive validation using StudentValidator
+        is_valid, errors = StudentValidator.validate(data)
+        
+        if not is_valid:
+            # Build error message
+            error_msg = "Erreurs de validation:\n\n"
+            for field, error in errors.items():
+                error_msg += f"• {field}: {error}\n"
+            
+            QMessageBox.warning(self, "Erreur de Validation", error_msg)
+            self.tabs.setCurrentIndex(0)  # Switch to info tab
+            return
         
         try:
             if self.student:
