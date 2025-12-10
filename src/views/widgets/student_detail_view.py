@@ -1180,13 +1180,11 @@ class StudentDetailViewDialog(QDialog):
         try:
             from src.views.widgets.document_upload_dialog import DocumentUploadDialog
             dialog = DocumentUploadDialog(
-                entity_type='student',
-                entity_id=self.student.id,
+                student_id=self.student.id,
                 parent=self
             )
-            if dialog.exec():
-                self.load_documents()
-                QMessageBox.information(self, "Succès", "Document ajouté avec succès")
+            dialog.document_saved.connect(self.load_documents)
+            dialog.exec()
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Erreur: {str(e)}")
     
