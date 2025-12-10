@@ -370,7 +370,9 @@ class DashboardProfessionalWidget(QWidget):
         return widget
         
     def create_alerts_widget(self):
-        """Créer le widget des alertes"""
+        """Créer le widget des alertes avec défilement"""
+        from PySide6.QtWidgets import QScrollArea
+        
         widget = QFrame()
         widget.setStyleSheet("""
             QFrame {
@@ -389,21 +391,44 @@ class DashboardProfessionalWidget(QWidget):
         title.setStyleSheet("color: #2c3e50; font-size: 16px; font-weight: bold;")
         layout.addWidget(title)
         
-        # Conteneur des alertes avec espacement
-        self.alerts_layout = QVBoxLayout()
-        self.alerts_layout.setSpacing(12)
-        self.alerts_layout.setContentsMargins(0, 10, 0, 0)
-        layout.addLayout(self.alerts_layout)
+        # Zone de défilement pour les alertes
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+            QScrollBar:vertical {
+                border: none;
+                background: #f0f0f0;
+                width: 8px;
+                border-radius: 4px;
+            }
+            QScrollBar::handle:vertical {
+                background: #bdc3c7;
+                border-radius: 4px;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #95a5a6;
+            }
+        """)
         
-        layout.addStretch()
+        # Conteneur des alertes
+        alerts_container = QWidget()
+        self.alerts_layout = QVBoxLayout(alerts_container)
+        self.alerts_layout.setSpacing(12)
+        self.alerts_layout.setContentsMargins(0, 10, 10, 0)
+        self.alerts_layout.addStretch()
+        
+        scroll_area.setWidget(alerts_container)
+        layout.addWidget(scroll_area)
         
         return widget
         
     def add_alert(self, icon, message, color="#e74c3c"):
-        """Ajouter une alerte (limitée à max_alerts)"""
-        if hasattr(self, 'alert_count') and self.alert_count >= self.max_alerts:
-            return
-        
+        """Ajouter une alerte"""
         alert = QLabel(f"{icon} {message}")
         alert.setStyleSheet(f"""
             QLabel {{
@@ -414,15 +439,12 @@ class DashboardProfessionalWidget(QWidget):
                 border-left: 4px solid {color};
                 font-size: 13px;
                 min-height: 45px;
-                max-height: 80px;
             }}
         """)
         alert.setWordWrap(True)
         alert.setSizePolicy(alert.sizePolicy().Expanding, alert.sizePolicy().Minimum)
-        self.alerts_layout.addWidget(alert)
-        
-        if hasattr(self, 'alert_count'):
-            self.alert_count += 1
+        # Insérer avant le stretch
+        self.alerts_layout.insertWidget(self.alerts_layout.count() - 1, alert)
         
     def load_data(self):
         """Charger toutes les données du dashboard"""
