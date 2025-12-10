@@ -127,7 +127,7 @@ class InstructorsDashboard(QWidget):
     def create_main_stats(self) -> QWidget:
         """Créer les cartes statistiques principales"""
         container = QWidget()
-        layout = QGridLayout(container)
+        layout = QHBoxLayout(container)
         layout.setSpacing(15)
         layout.setContentsMargins(0, 0, 0, 0)
         
@@ -137,54 +137,39 @@ class InstructorsDashboard(QWidget):
         self.card_avg_rate = self.create_stat_card("📊 TAUX MOYEN RÉUSSITE", "0%", "#9b59b6")
         self.card_sessions = self.create_stat_card("📅 SESSIONS TOTALES", "0", "#e74c3c")
         
-        layout.addWidget(self.card_total, 0, 0)
-        layout.addWidget(self.card_hours, 0, 1)
-        layout.addWidget(self.card_avg_rate, 1, 0)
-        layout.addWidget(self.card_sessions, 1, 1)
+        layout.addWidget(self.card_total)
+        layout.addWidget(self.card_hours)
+        layout.addWidget(self.card_avg_rate)
+        layout.addWidget(self.card_sessions)
         
         return container
     
     def create_stat_card(self, title: str, value: str, color: str) -> QFrame:
         """Créer une carte statistique"""
         card = QFrame()
-        card.setFixedHeight(100)
         card.setStyleSheet(f"""
             QFrame {{
                 background-color: white;
-                border: 2px solid #ecf0f1;
-                border-left: 6px solid {color};
+                border-left: 4px solid {color};
                 border-radius: 8px;
-            }}
-            QFrame:hover {{
-                border: 2px solid {color};
-                border-left: 6px solid {color};
+                padding: 15px;
             }}
         """)
         
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(15, 10, 15, 10)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
-        
-        # Titre
-        title_label = QLabel(title)
-        title_font = QFont()
-        title_font.setPointSize(9)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        title_label.setStyleSheet("color: #7f8c8d;")
-        layout.addWidget(title_label)
         
         # Valeur
         value_label = QLabel(value)
         value_label.setObjectName("value_label")
-        value_font = QFont()
-        value_font.setPointSize(24)
-        value_font.setBold(True)
-        value_label.setFont(value_font)
-        value_label.setStyleSheet(f"color: {color};")
+        value_label.setStyleSheet(f"color: {color}; font-size: 24px; font-weight: bold;")
         layout.addWidget(value_label)
         
-        layout.addStretch()
+        # Titre
+        title_label = QLabel(title)
+        title_label.setStyleSheet("color: #7f8c8d; font-size: 12px;")
+        layout.addWidget(title_label)
         
         return card
     
