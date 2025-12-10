@@ -128,9 +128,7 @@ class StudentDetailViewDialog(QDialog):
             }
         """)
         
-        # Create all tabs (RÉSUMÉ uniquement si élève existant)
-        if self.student:  # RÉSUMÉ uniquement en mode édition/vue
-            self.create_summary_tab()
+        # Create all tabs
         self.create_info_tab()
         self.create_payments_tab()
         self.create_sessions_tab()
