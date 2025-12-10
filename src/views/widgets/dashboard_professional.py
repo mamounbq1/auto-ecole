@@ -397,47 +397,48 @@ class DashboardProfessionalWidget(QWidget):
         """)
         layout.addWidget(title)
         
-        # Zone de défilement LARGE et optimisée
+        # Zone de défilement FIXE et optimisée
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setMinimumHeight(520)  # Grande hauteur pour plus d'alertes visibles
+        scroll_area.setFixedHeight(280)  # Hauteur FIXE pour forcer le scroll
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         scroll_area.setStyleSheet("""
             QScrollArea {
-                border: none;
-                background-color: transparent;
+                border: 1px solid #e0e0e0;
+                background-color: #fafafa;
                 padding: 0px;
                 margin: 0px;
+                border-radius: 5px;
             }
             QScrollBar:vertical {
                 border: none;
-                background: #e0e0e0;
-                width: 5px;
-                border-radius: 2px;
-                margin: 0px;
+                background: #e8e8e8;
+                width: 6px;
+                border-radius: 3px;
+                margin: 2px;
             }
             QScrollBar::handle:vertical {
-                background: #a0a0a0;
-                border-radius: 2px;
-                min-height: 20px;
+                background: #b0b0b0;
+                border-radius: 3px;
+                min-height: 30px;
             }
             QScrollBar::handle:vertical:hover {
-                background: #808080;
+                background: #909090;
             }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0px;
-            }
-            /* Force scrollbar à toujours apparaître */
-            QScrollArea > QWidget > QWidget { 
-                background-color: transparent; 
             }
         """)
         
         # Conteneur des alertes ultra-compact
         alerts_container = QWidget()
+        alerts_container.setStyleSheet("background-color: transparent;")
         self.alerts_layout = QVBoxLayout(alerts_container)
-        self.alerts_layout.setSpacing(1)  # Espacement 1px entre cartes
-        self.alerts_layout.setContentsMargins(0, 0, 4, 0)  # Marges minimales
-        self.alerts_layout.addStretch()
+        self.alerts_layout.setSpacing(2)  # Espacement 2px entre cartes
+        self.alerts_layout.setContentsMargins(5, 5, 2, 5)  # Marges pour breathing room
+        self.alerts_layout.setAlignment(Qt.AlignmentFlag.AlignTop)  # IMPORTANT: aligner en haut
+        # PAS DE addStretch() pour éviter l'étirement
         
         scroll_area.setWidget(alerts_container)
         layout.addWidget(scroll_area)
