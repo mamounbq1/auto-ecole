@@ -383,24 +383,24 @@ class DashboardProfessionalWidget(QWidget):
         """)
         
         layout = QVBoxLayout(widget)
-        layout.setSpacing(8)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(4)
+        layout.setContentsMargins(10, 10, 10, 10)
         
         # Titre compact
         title = QLabel("⚠️ Alertes & Notifications")
         title.setStyleSheet("""
             color: #2c3e50; 
-            font-size: 15px; 
+            font-size: 14px; 
             font-weight: bold;
             padding: 0px;
-            margin: 0px;
+            margin-bottom: 5px;
         """)
         layout.addWidget(title)
         
-        # Zone de défilement optimisée
+        # Zone de défilement LARGE et optimisée
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setMinimumHeight(400)
+        scroll_area.setMinimumHeight(520)  # Grande hauteur pour plus d'alertes visibles
         scroll_area.setStyleSheet("""
             QScrollArea {
                 border: none;
@@ -410,29 +410,29 @@ class DashboardProfessionalWidget(QWidget):
             }
             QScrollBar:vertical {
                 border: none;
-                background: #ecf0f1;
-                width: 6px;
-                border-radius: 3px;
-                margin: 2px;
+                background: #f0f0f0;
+                width: 4px;
+                border-radius: 2px;
+                margin: 0px;
             }
             QScrollBar::handle:vertical {
-                background: #95a5a6;
-                border-radius: 3px;
-                min-height: 30px;
+                background: #b0b0b0;
+                border-radius: 2px;
+                min-height: 20px;
             }
             QScrollBar::handle:vertical:hover {
-                background: #7f8c8d;
+                background: #909090;
             }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0px;
             }
         """)
         
-        # Conteneur des alertes compact
+        # Conteneur des alertes ultra-compact
         alerts_container = QWidget()
         self.alerts_layout = QVBoxLayout(alerts_container)
-        self.alerts_layout.setSpacing(6)
-        self.alerts_layout.setContentsMargins(0, 8, 6, 0)
+        self.alerts_layout.setSpacing(4)  # Espacement minimal
+        self.alerts_layout.setContentsMargins(0, 0, 4, 0)  # Marges minimales
         self.alerts_layout.addStretch()
         
         scroll_area.setWidget(alerts_container)
@@ -441,24 +441,25 @@ class DashboardProfessionalWidget(QWidget):
         return widget
         
     def add_alert(self, icon, message, color="#e74c3c"):
-        """Ajouter une alerte compacte et professionnelle"""
+        """Ajouter une alerte ultra-compacte et professionnelle"""
         from PySide6.QtWidgets import QSizePolicy
         
         alert = QLabel(f"{icon} {message}")
         alert.setStyleSheet(f"""
             QLabel {{
                 color: {color};
-                background-color: {color}20;
-                padding: 10px 12px;
-                border-radius: 5px;
-                border-left: 3px solid {color};
-                font-size: 12px;
-                line-height: 1.4;
+                background-color: {color}18;
+                padding: 6px 10px;
+                border-radius: 4px;
+                border-left: 2px solid {color};
+                font-size: 11px;
+                line-height: 1.3;
             }}
         """)
         alert.setWordWrap(True)
         alert.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-        alert.setMaximumHeight(70)
+        alert.setMinimumHeight(30)  # Hauteur minimale
+        alert.setMaximumHeight(50)  # Hauteur maximale réduite
         # Insérer avant le stretch
         self.alerts_layout.insertWidget(self.alerts_layout.count() - 1, alert)
         
