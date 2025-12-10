@@ -132,7 +132,6 @@ class StudentDetailViewDialog(QDialog):
         self.create_info_tab()
         self.create_payments_tab()
         self.create_sessions_tab()
-        self.create_progress_tab()
         self.create_documents_tab()
         self.create_history_tab()
         self.create_notes_tab()
@@ -553,51 +552,7 @@ class StudentDetailViewDialog(QDialog):
         
         self.tabs.addTab(tab, "🎓 Séances")
     
-    def create_progress_tab(self):
-        """Tab 4: Progress & Statistics - Placeholder (to be improved later)"""
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
-        layout.setContentsMargins(40, 40, 40, 40)
-        
-        # Simple placeholder message
-        placeholder_widget = QWidget()
-        placeholder_widget.setStyleSheet("""
-            QWidget {
-                background-color: #f8f9fa;
-                border: 2px dashed #dee2e6;
-                border-radius: 15px;
-                padding: 40px;
-            }
-        """)
-        placeholder_layout = QVBoxLayout(placeholder_widget)
-        
-        icon_label = QLabel("📈")
-        icon_label.setAlignment(Qt.AlignCenter)
-        icon_label.setStyleSheet("font-size: 64px;")
-        
-        title_label = QLabel("Onglet Progression")
-        title_label.setAlignment(Qt.AlignCenter)
-        title_label.setStyleSheet("font-size: 24px; font-weight: bold; color: #495057; margin-top: 20px;")
-        
-        message_label = QLabel("Cet onglet sera amélioré prochainement avec :\n\n"
-                               "• Progression des heures de conduite\n"
-                               "• Suivi des paiements\n"
-                               "• Statistiques de formation\n"
-                               "• Statistiques d'examens\n"
-                               "• Jalons et objectifs")
-        message_label.setAlignment(Qt.AlignCenter)
-        message_label.setStyleSheet("font-size: 14px; color: #6c757d; margin-top: 20px; line-height: 1.6;")
-        
-        placeholder_layout.addWidget(icon_label)
-        placeholder_layout.addWidget(title_label)
-        placeholder_layout.addWidget(message_label)
-        placeholder_layout.addStretch()
-        
-        layout.addWidget(placeholder_widget)
-        layout.addStretch()
-        
-        self.tabs.addTab(tab, "📈 Progression")
-    
+
     def create_documents_tab(self):
         """Tab 4: Documents Management - Real Documents Integration"""
         tab = QWidget()
