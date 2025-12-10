@@ -381,14 +381,16 @@ class DashboardProfessionalWidget(QWidget):
         """)
         
         layout = QVBoxLayout(widget)
+        layout.setSpacing(10)
         
         # Titre
         title = QLabel("⚠️ Alertes & Notifications")
-        title.setStyleSheet("color: #2c3e50; font-size: 16px; font-weight: bold; margin-bottom: 10px;")
+        title.setStyleSheet("color: #2c3e50; font-size: 16px; font-weight: bold; margin-bottom: 15px;")
         layout.addWidget(title)
         
-        # Conteneur des alertes
+        # Conteneur des alertes avec espacement
         self.alerts_layout = QVBoxLayout()
+        self.alerts_layout.setSpacing(8)
         layout.addLayout(self.alerts_layout)
         
         layout.addStretch()
@@ -402,13 +404,15 @@ class DashboardProfessionalWidget(QWidget):
             QLabel {{
                 color: {color};
                 background-color: {color}20;
-                padding: 10px;
+                padding: 12px;
                 border-radius: 5px;
-                border-left: 3px solid {color};
-                margin-bottom: 5px;
+                border-left: 4px solid {color};
+                font-size: 13px;
+                min-height: 20px;
             }}
         """)
         alert.setWordWrap(True)
+        alert.setMaximumHeight(100)
         self.alerts_layout.addWidget(alert)
         
     def load_data(self):
