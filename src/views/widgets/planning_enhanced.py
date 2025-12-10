@@ -5,7 +5,8 @@ Widget de planning avec calendrier interactif
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QCalendarWidget,
     QPushButton, QListWidget, QListWidgetItem, QMessageBox, QDialog,
-    QFormLayout, QDateEdit, QTimeEdit, QComboBox, QTextEdit, QFrame
+    QFormLayout, QDateEdit, QTimeEdit, QComboBox, QTextEdit, QFrame,
+    QGroupBox, QCheckBox, QScrollArea
 )
 from PySide6.QtCore import Qt, QDate, QTime
 from PySide6.QtGui import QFont, QColor, QTextCharFormat
@@ -61,14 +62,69 @@ class SessionDialog(QDialog):
         for stype in SessionType:
             self.session_type.addItem(stype.value, stype)
         
-        # Élève
-        self.student_combo = QComboBox()
-        students = StudentController.get_active_students()
-        for student in students:
-            self.student_combo.addItem(
-                f"{student.full_name} ({student.hours_completed}/{student.hours_planned}h)",
-                student.id
-            )
+        # Élèves (sélection multiple avec checkboxes)
+        students_group = QGroupBox("Élèves* (sélectionnez un ou plusieurs)")
+        students_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #3498db;
+                border-radius: 8px;
+                margin-top: 12px;
+                padding-top: 15px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 15px;
+                padding: 0 8px;
+                color: #3498db;
+            }
+        """)
+        students_layout = QVBoxLayout(students_group)
+        
+        # Scroll area pour la liste d'élèves
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setMaximumHeight(200)
+        scroll_area.setStyleSheet("QScrollArea { border: none; background: white; }")
+        
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout(scroll_widget)
+        scroll_layout.setSpacing(8)
+        
+        # Récupérer uniquement les élèves ACTIFS et en formation
+        from src.models import StudentStatus
+        all_students = StudentController.get_all_students()
+        active_students = [s for s in all_students 
+                          if s.status == StudentStatus.ACTIVE 
+                          and s.hours_completed < s.hours_planned]
+        
+        self.student_checkboxes = []
+        for student in active_students:
+            checkbox = QCheckBox(f"{student.full_name} ({student.hours_completed}/{student.hours_planned}h)")
+            checkbox.setProperty('student_id', student.id)
+            checkbox.setStyleSheet("""
+                QCheckBox {
+                    padding: 5px;
+                    font-size: 13px;
+                }
+                QCheckBox::indicator {
+                    width: 18px;
+                    height: 18px;
+                }
+            """)
+            self.student_checkboxes.append(checkbox)
+            scroll_layout.addWidget(checkbox)
+        
+        if not active_students:
+            no_students_label = QLabel("⚠️ Aucun élève actif en formation disponible")
+            no_students_label.setStyleSheet("color: #e74c3c; padding: 10px; font-style: italic;")
+            scroll_layout.addWidget(no_students_label)
+        
+        scroll_layout.addStretch()
+        scroll_area.setWidget(scroll_widget)
+        students_layout.addWidget(scroll_area)
+        
+        self.students_group = students_group
         
         # Moniteur
         self.instructor_combo = QComboBox()
@@ -94,10 +150,11 @@ class SessionDialog(QDialog):
         form_layout.addRow("Heure de début*:", self.start_time)
         form_layout.addRow("Durée*:", self.duration)
         form_layout.addRow("Type:", self.session_type)
-        form_layout.addRow("Élève*:", self.student_combo)
         form_layout.addRow("Moniteur*:", self.instructor_combo)
         form_layout.addRow("Véhicule:", self.vehicle_combo)
         form_layout.addRow("Notes:", self.notes)
+        
+        layout.addWidget(self.students_group)
         
         layout.addLayout(form_layout)
         
@@ -137,8 +194,15 @@ class SessionDialog(QDialog):
         layout.addLayout(btn_layout)
     
     def save_session(self):
-        """Enregistrer la session"""
+        """Enregistrer la session pour un ou plusieurs élèves"""
         try:
+            # Vérifier qu'au moins un élève est sélectionné
+            selected_students = [cb.property('student_id') for cb in self.student_checkboxes if cb.isChecked()]
+            
+            if not selected_students:
+                QMessageBox.warning(self, "Attention", "Veuillez sélectionner au moins un élève.")
+                return
+            
             # Construire datetime
             date = self.date_edit.date().toPython()
             time = self.start_time.time().toPython()
@@ -147,20 +211,26 @@ class SessionDialog(QDialog):
             duration_mins = self.duration.currentData()
             end_dt = start_dt + timedelta(minutes=duration_mins)
             
-            session_data = {
-                'student_id': self.student_combo.currentData(),
-                'instructor_id': self.instructor_combo.currentData(),
-                'vehicle_id': self.vehicle_combo.currentData() if self.vehicle_combo.currentData() else None,
-                'session_type': self.session_type.currentData(),
-                'start_datetime': start_dt,
-                'end_datetime': end_dt,
-                'status': SessionStatus.SCHEDULED,
-                'notes': self.notes.toPlainText().strip() or None
-            }
+            # Créer une session pour chaque élève sélectionné
+            created_count = 0
+            for student_id in selected_students:
+                session_data = {
+                    'student_id': student_id,
+                    'instructor_id': self.instructor_combo.currentData(),
+                    'vehicle_id': self.vehicle_combo.currentData() if self.vehicle_combo.currentData() else None,
+                    'session_type': self.session_type.currentData(),
+                    'start_datetime': start_dt,
+                    'end_datetime': end_dt,
+                    'status': SessionStatus.SCHEDULED,
+                    'notes': self.notes.toPlainText().strip() or None
+                }
+                
+                SessionController.create_session(session_data)
+                created_count += 1
             
-            SessionController.create_session(session_data)
-            
-            QMessageBox.information(self, "Succès", "Session créée avec succès!")
+            student_text = "élève" if created_count == 1 else "élèves"
+            QMessageBox.information(self, "Succès", 
+                f"{created_count} session(s) créée(s) avec succès pour {created_count} {student_text}!")
             self.accept()
             
         except Exception as e:
