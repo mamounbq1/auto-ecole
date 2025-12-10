@@ -17,6 +17,7 @@ import os
 from src.controllers.student_controller import StudentController
 from src.controllers.payment_controller import PaymentController
 from src.controllers.session_controller import SessionController
+from src.controllers.document_controller import DocumentController
 from src.controllers.exam_controller import ExamController
 from src.models import StudentStatus
 from src.utils.validators import StudentValidator
@@ -1197,7 +1198,7 @@ class StudentDetailViewDialog(QDialog):
             return
         
         try:
-            documents = []  # Module Documents supprimé
+            documents = DocumentController.get_documents_by_student(self.student.id)
             if selected_row < len(documents):
                 doc = documents[selected_row]
                 from src.views.widgets.document_viewer_dialog import DocumentViewerDialog
@@ -1214,7 +1215,7 @@ class StudentDetailViewDialog(QDialog):
             return
         
         try:
-            documents = []  # Module Documents supprimé
+            documents = DocumentController.get_documents_by_student(self.student.id)
             if selected_row < len(documents):
                 doc = documents[selected_row]
                 
@@ -1226,7 +1227,7 @@ class StudentDetailViewDialog(QDialog):
                 )
                 
                 if reply == QMessageBox.Yes:
-                    pass  # Module Documents supprimé
+                    DocumentController.delete_document(doc.id)
                     self.load_documents()
                     QMessageBox.information(self, "Succès", "Document supprimé")
         except Exception as e:
@@ -1290,7 +1291,7 @@ class StudentDetailViewDialog(QDialog):
             # Load documents
             if filter_type in ['all', 'documents']:
                 try:
-                    documents = []  # Module Documents supprimé
+                    documents = DocumentController.get_documents_by_student(self.student.id)
                     for doc in documents:
                         all_activities.append({
                             'date': doc.created_at,

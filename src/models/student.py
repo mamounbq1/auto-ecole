@@ -69,6 +69,7 @@ class Student(Base, BaseModel):
     sessions = relationship("Session", back_populates="student", cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="student", cascade="all, delete-orphan")
     exams = relationship("Exam", back_populates="student", cascade="all, delete-orphan")
+    documents = relationship("Document", back_populates="student", cascade="all, delete-orphan")
     
     def __init__(self, full_name: str, cin: str, date_of_birth: date, 
                  phone: str, **kwargs):
