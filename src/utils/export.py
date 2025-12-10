@@ -206,7 +206,7 @@ class ExportManager:
     
     def generate_receipt_html(self, receipt_data: Dict[str, Any]) -> str:
         """
-        Générer le HTML d'un reçu de paiement
+        Générer le HTML d'un reçu de paiement professionnel
         
         Args:
             receipt_data: Données du reçu
@@ -214,53 +214,301 @@ class ExportManager:
         Returns:
             Contenu HTML du reçu
         """
+        # Récupérer les informations du centre
+        center_info = self.config.get_center_info()
+        center_name = center_info.get('name', 'Auto-École')
+        center_address = center_info.get('address', '')
+        center_phone = center_info.get('phone', '')
+        center_email = center_info.get('email', '')
+        
+        # Formater le montant
+        amount = receipt_data.get('amount', 0)
+        amount_formatted = f"{float(amount):,.2f}".replace(',', ' ')
+        
         html = f"""
-        <div style="max-width: 800px; margin: 0 auto; border: 2px solid #333; padding: 20px;">
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #2c3e50;">AUTO-ÉCOLE</h2>
-                <h3 style="color: #3498db;">REÇU DE PAIEMENT</h3>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {{
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    margin: 0;
+                    padding: 20px;
+                    background-color: #f5f5f5;
+                }}
+                .receipt-container {{
+                    max-width: 800px;
+                    margin: 0 auto;
+                    background: white;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                    overflow: hidden;
+                }}
+                .header {{
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 30px;
+                    text-align: center;
+                }}
+                .header h1 {{
+                    margin: 0;
+                    font-size: 32px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                }}
+                .header p {{
+                    margin: 5px 0 0 0;
+                    font-size: 14px;
+                    opacity: 0.9;
+                }}
+                .receipt-title {{
+                    background: #f8f9fa;
+                    padding: 20px;
+                    text-align: center;
+                    border-bottom: 3px solid #667eea;
+                }}
+                .receipt-title h2 {{
+                    margin: 0;
+                    color: #2c3e50;
+                    font-size: 24px;
+                    font-weight: 600;
+                }}
+                .receipt-meta {{
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 20px 30px;
+                    background: #fff;
+                    border-bottom: 1px solid #e0e0e0;
+                }}
+                .receipt-meta div {{
+                    text-align: center;
+                }}
+                .receipt-meta .label {{
+                    font-size: 12px;
+                    color: #7f8c8d;
+                    text-transform: uppercase;
+                    margin-bottom: 5px;
+                }}
+                .receipt-meta .value {{
+                    font-size: 16px;
+                    color: #2c3e50;
+                    font-weight: 600;
+                }}
+                .content {{
+                    padding: 30px;
+                }}
+                .section {{
+                    margin-bottom: 25px;
+                }}
+                .section-title {{
+                    color: #667eea;
+                    font-size: 14px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    margin-bottom: 15px;
+                    border-bottom: 2px solid #667eea;
+                    padding-bottom: 5px;
+                }}
+                .info-grid {{
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 8px;
+                }}
+                .info-item {{
+                    display: flex;
+                    flex-direction: column;
+                }}
+                .info-label {{
+                    font-size: 12px;
+                    color: #7f8c8d;
+                    margin-bottom: 5px;
+                }}
+                .info-value {{
+                    font-size: 14px;
+                    color: #2c3e50;
+                    font-weight: 500;
+                }}
+                .amount-box {{
+                    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+                    color: white;
+                    padding: 25px;
+                    border-radius: 10px;
+                    text-align: center;
+                    margin: 20px 0;
+                    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+                }}
+                .amount-label {{
+                    font-size: 14px;
+                    opacity: 0.9;
+                    margin-bottom: 10px;
+                }}
+                .amount-value {{
+                    font-size: 42px;
+                    font-weight: 700;
+                    margin: 0;
+                }}
+                .payment-details {{
+                    background: #fff;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 8px;
+                    overflow: hidden;
+                }}
+                .payment-row {{
+                    display: flex;
+                    padding: 15px 20px;
+                    border-bottom: 1px solid #e0e0e0;
+                }}
+                .payment-row:last-child {{
+                    border-bottom: none;
+                }}
+                .payment-row .label {{
+                    flex: 1;
+                    color: #7f8c8d;
+                    font-size: 14px;
+                }}
+                .payment-row .value {{
+                    flex: 1;
+                    color: #2c3e50;
+                    font-weight: 500;
+                    text-align: right;
+                }}
+                .signature-section {{
+                    margin-top: 40px;
+                    padding-top: 30px;
+                    border-top: 2px dashed #e0e0e0;
+                    display: flex;
+                    justify-content: space-between;
+                }}
+                .signature-box {{
+                    text-align: center;
+                    width: 45%;
+                }}
+                .signature-line {{
+                    border-top: 2px solid #2c3e50;
+                    margin-top: 60px;
+                    padding-top: 10px;
+                    font-size: 12px;
+                    color: #7f8c8d;
+                }}
+                .footer {{
+                    background: #2c3e50;
+                    color: white;
+                    text-align: center;
+                    padding: 20px;
+                    font-size: 12px;
+                }}
+                .footer p {{
+                    margin: 5px 0;
+                    opacity: 0.8;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="receipt-container">
+                <!-- En-tête -->
+                <div class="header">
+                    <h1>🚗 {center_name}</h1>
+                    {f'<p>{center_address}</p>' if center_address else ''}
+                    <p>
+                        {f'📞 {center_phone}' if center_phone else ''}
+                        {f' | 📧 {center_email}' if center_email else ''}
+                    </p>
+                </div>
+                
+                <!-- Titre du reçu -->
+                <div class="receipt-title">
+                    <h2>📄 REÇU DE PAIEMENT</h2>
+                </div>
+                
+                <!-- Métadonnées -->
+                <div class="receipt-meta">
+                    <div>
+                        <div class="label">N° Reçu</div>
+                        <div class="value">{receipt_data.get('receipt_number', 'N/A')}</div>
+                    </div>
+                    <div>
+                        <div class="label">Date</div>
+                        <div class="value">{receipt_data.get('date', 'N/A')}</div>
+                    </div>
+                </div>
+                
+                <!-- Contenu -->
+                <div class="content">
+                    <!-- Informations Élève -->
+                    <div class="section">
+                        <div class="section-title">👤 Informations Élève</div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Nom Complet</div>
+                                <div class="info-value">{receipt_data.get('student_name', 'N/A')}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">CIN</div>
+                                <div class="info-value">{receipt_data.get('student_cin', 'N/A')}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Téléphone</div>
+                                <div class="info-value">{receipt_data.get('student_phone', 'N/A')}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Montant -->
+                    <div class="amount-box">
+                        <div class="amount-label">MONTANT PAYÉ</div>
+                        <p class="amount-value">{amount_formatted} DH</p>
+                    </div>
+                    
+                    <!-- Détails du Paiement -->
+                    <div class="section">
+                        <div class="section-title">💳 Détails du Paiement</div>
+                        <div class="payment-details">
+                            <div class="payment-row">
+                                <div class="label">Mode de paiement</div>
+                                <div class="value">{receipt_data.get('payment_method', 'N/A').replace('_', ' ').title()}</div>
+                            </div>
+                            <div class="payment-row">
+                                <div class="label">Description</div>
+                                <div class="value">{receipt_data.get('description', 'Paiement formation')}</div>
+                            </div>
+                            <div class="payment-row">
+                                <div class="label">Validé par</div>
+                                <div class="value">{receipt_data.get('validated_by', 'Administration')}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Signatures -->
+                    <div class="signature-section">
+                        <div class="signature-box">
+                            <p style="font-weight: 600; color: #2c3e50;">Signature de l'élève</p>
+                            <div class="signature-line">
+                                Lu et approuvé
+                            </div>
+                        </div>
+                        <div class="signature-box">
+                            <p style="font-weight: 600; color: #2c3e50;">Cachet de l'auto-école</p>
+                            <div class="signature-line">
+                                Signature et cachet
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pied de page -->
+                <div class="footer">
+                    <p><strong>Merci pour votre confiance !</strong></p>
+                    <p>Ce reçu est valable sans signature ni cachet</p>
+                    <p style="margin-top: 10px; font-size: 10px;">Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</p>
+                </div>
             </div>
-            
-            <div style="margin: 20px 0;">
-                <p><strong>N° Reçu :</strong> {receipt_data.get('receipt_number', 'N/A')}</p>
-                <p><strong>Date :</strong> {receipt_data.get('date', 'N/A')}</p>
-            </div>
-            
-            <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #3498db;">
-                <h4>Informations Élève</h4>
-                <p><strong>Nom :</strong> {receipt_data.get('student_name', 'N/A')}</p>
-                <p><strong>CIN :</strong> {receipt_data.get('student_cin', 'N/A')}</p>
-                <p><strong>Téléphone :</strong> {receipt_data.get('student_phone', 'N/A')}</p>
-            </div>
-            
-            <div style="margin: 20px 0;">
-                <h4>Détails du Paiement</h4>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>Montant :</strong></td>
-                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">
-                            <strong style="font-size: 1.2em; color: #27ae60;">
-                                {receipt_data.get('amount', 0)} DH
-                            </strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>Mode de paiement :</strong></td>
-                        <td style="padding: 10px; border: 1px solid #ddd;">{receipt_data.get('payment_method', 'N/A')}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>Description :</strong></td>
-                        <td style="padding: 10px; border: 1px solid #ddd;">{receipt_data.get('description', 'N/A')}</td>
-                    </tr>
-                </table>
-            </div>
-            
-            <div style="margin: 30px 0; text-align: right;">
-                <p><strong>Validé par :</strong> {receipt_data.get('validated_by', 'N/A')}</p>
-                <p style="margin-top: 50px;">_____________________</p>
-                <p>Signature et cachet</p>
-            </div>
-        </div>
+        </body>
+        </html>
         """
         return html
 
