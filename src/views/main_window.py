@@ -432,10 +432,10 @@ class MainWindow(QMainWindow):
     def quick_add_student(self):
         """Action rapide : Ajouter un élève"""
         try:
-            from src.views.widgets.students_enhanced import StudentDialog
+            from src.views.widgets.students_enhanced import StudentDetailDialog
             from src.controllers import StudentController
             
-            dialog = StudentDialog(self)
+            dialog = StudentDetailDialog(parent=self)
             if dialog.exec():
                 self.statusBar().showMessage("✅ Élève ajouté avec succès", 3000)
                 # Actualiser si on est sur le module étudiants
@@ -493,9 +493,9 @@ class MainWindow(QMainWindow):
     def quick_add_instructor(self):
         """Action rapide : Ajouter un moniteur"""
         try:
-            from src.views.widgets.instructors_management import InstructorDialog
+            from src.views.widgets.instructors_management import AddInstructorDialog
             
-            dialog = InstructorDialog(self)
+            dialog = AddInstructorDialog(parent=self)
             if dialog.exec():
                 self.statusBar().showMessage("✅ Moniteur ajouté avec succès", 3000)
                 # Actualiser si on est sur le module moniteurs
