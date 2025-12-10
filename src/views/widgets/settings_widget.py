@@ -6,9 +6,10 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                               QLineEdit, QPushButton, QTabWidget, QGroupBox,
                               QScrollArea, QFileDialog, QMessageBox, QComboBox,
                               QCheckBox, QSpinBox, QTextEdit, QTableWidget,
-                              QTableWidgetItem, QHeaderView, QDialog, QFormLayout)
+                              QTableWidgetItem, QHeaderView, QDialog, QFormLayout,
+                              QGridLayout, QFrame, QApplication)
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QFont
 import json
 import shutil
 from pathlib import Path
@@ -631,130 +632,211 @@ class SettingsWidget(QWidget):
         return container
     
     def create_backup_tab(self):
-        """Onglet: Sauvegarde et Données"""
+        """Onglet: Sauvegarde et Données - Organisation en grille"""
         widget = QWidget()
+        widget.setStyleSheet("background: #f5f5f5;")
+        
         layout = QVBoxLayout(widget)
-        layout.setContentsMargins(30, 30, 30, 30)
-        layout.setSpacing(20)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
         
-        # Info card
-        info_card = QLabel("""
-        <div style='background: #e3f2fd; padding: 12px; border-radius: 6px; border-left: 3px solid #2196F3;'>
-            <b>💡 Conseils</b><br/>
-            <span style='font-size: 11px;'>
-            • Sauvegardez régulièrement<br/>
-            • Conservez 3+ sauvegardes<br/>
-            • Testez les restaurations
-            </span>
-        </div>
-        """)
-        info_card.setWordWrap(True)
-        layout.addWidget(info_card)
+        # Grille de cards
+        grid = QGridLayout()
+        grid.setSpacing(15)
         
-        # Groupe: Actions de sauvegarde
-        group_backup = QGroupBox("💾 Sauvegardes")
-        group_backup.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                font-size: 13px;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                margin-top: 10px;
-                padding-top: 10px;
+        # Style pour les cards
+        card_style = """
+            QFrame {
                 background: white;
+                border-radius: 8px;
+                border: 1px solid #e0e0e0;
             }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px;
-                color: #2196F3;
-            }
-        """)
-        
-        backup_layout = QVBoxLayout(group_backup)
-        backup_layout.setContentsMargins(15, 20, 15, 15)
-        backup_layout.setSpacing(10)
-        
-        btn_style = """
-            QPushButton {
-                padding: 10px 15px;
-                border: none;
-                border-radius: 5px;
-                font-weight: 500;
-                font-size: 12px;
-                text-align: left;
-            }
-            QPushButton:hover {
-                opacity: 0.85;
+            QFrame:hover {
+                border: 1px solid #2196F3;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             }
         """
         
-        # Bouton: Créer une sauvegarde
-        btn_backup_now = QPushButton("💾 Créer sauvegarde")
-        btn_backup_now.setStyleSheet(btn_style + "background: #4CAF50; color: white;")
-        btn_backup_now.clicked.connect(self.create_backup)
-        backup_layout.addWidget(btn_backup_now)
+        # Card 1: Créer sauvegarde
+        card1 = self._create_action_card(
+            "💾",
+            "Créer Sauvegarde",
+            "Créer une copie de sécurité de toutes vos données",
+            "#4CAF50",
+            self.create_backup
+        )
+        grid.addWidget(card1, 0, 0)
         
-        # Bouton: Restaurer une sauvegarde
-        btn_restore = QPushButton("📥 Restaurer")
-        btn_restore.setStyleSheet(btn_style + "background: #FF9800; color: white;")
-        btn_restore.clicked.connect(self.restore_backup)
-        backup_layout.addWidget(btn_restore)
+        # Card 2: Restaurer
+        card2 = self._create_action_card(
+            "📥",
+            "Restaurer",
+            "Restaurer depuis une sauvegarde existante",
+            "#FF9800",
+            self.restore_backup
+        )
+        grid.addWidget(card2, 0, 1)
         
-        # Bouton: Ouvrir dossier de sauvegardes
-        btn_open_folder = QPushButton("📁 Dossier sauvegardes")
-        btn_open_folder.setStyleSheet(btn_style + "background: #2196F3; color: white;")
-        btn_open_folder.clicked.connect(self.open_backup_folder)
-        backup_layout.addWidget(btn_open_folder)
+        # Card 3: Dossier sauvegardes
+        card3 = self._create_action_card(
+            "📁",
+            "Dossier",
+            "Ouvrir le dossier contenant les sauvegardes",
+            "#2196F3",
+            self.open_backup_folder
+        )
+        grid.addWidget(card3, 0, 2)
         
-        layout.addWidget(group_backup)
+        # Card 4: Exporter CSV
+        card4 = self._create_action_card(
+            "📤",
+            "Exporter CSV",
+            "Exporter toutes les données en format CSV",
+            "#9C27B0",
+            self.export_all_data
+        )
+        grid.addWidget(card4, 1, 0)
         
-        # Groupe: Données
-        group_data = QGroupBox("🗄️ Données")
-        group_data.setStyleSheet(group_backup.styleSheet())
+        # Card 5: Optimiser BD
+        card5 = self._create_action_card(
+            "⚡",
+            "Optimiser",
+            "Optimiser et nettoyer la base de données",
+            "#00BCD4",
+            self.optimize_database
+        )
+        grid.addWidget(card5, 1, 1)
         
-        data_layout = QVBoxLayout(group_data)
-        data_layout.setContentsMargins(15, 20, 15, 15)
-        data_layout.setSpacing(10)
+        # Card 6: Synchroniser
+        card6 = self._create_action_card(
+            "🔄",
+            "Synchroniser",
+            "Synchroniser tous les statuts automatiquement",
+            "#FF9800",
+            self.sync_all_statuses
+        )
+        grid.addWidget(card6, 1, 2)
         
-        # Bouton: Export des données
-        btn_export = QPushButton("📤 Exporter CSV")
-        btn_export.setStyleSheet(btn_style + "background: #9C27B0; color: white;")
-        btn_export.clicked.connect(self.export_all_data)
-        data_layout.addWidget(btn_export)
+        layout.addLayout(grid)
         
-        # Bouton: Optimiser la base
-        btn_optimize = QPushButton("⚡ Optimiser BD")
-        btn_optimize.setStyleSheet(btn_style + "background: #00BCD4; color: white;")
-        btn_optimize.clicked.connect(self.optimize_database)
-        data_layout.addWidget(btn_optimize)
-        
-        # Bouton: Synchroniser les statuts
-        btn_sync = QPushButton("🔄 Synchroniser statuts")
-        btn_sync.setStyleSheet(btn_style + "background: #FF9800; color: white;")
-        btn_sync.clicked.connect(self.sync_all_statuses)
-        data_layout.addWidget(btn_sync)
-        
-        # Avertissement pour actions dangereuses
-        warning_card = QLabel("""
-        <div style='background: #ffebee; padding: 10px; border-radius: 6px; border-left: 3px solid #f44336;'>
-            <b>⚠️ Danger</b><br/>
-            <span style='font-size: 11px;'>Actions irréversibles</span>
-        </div>
+        # Section danger
+        danger_section = QFrame()
+        danger_section.setStyleSheet("""
+            QFrame {
+                background: #ffebee;
+                border-radius: 8px;
+                border: 1px solid #f44336;
+                padding: 15px;
+            }
         """)
-        warning_card.setWordWrap(True)
-        data_layout.addWidget(warning_card)
+        danger_layout = QVBoxLayout(danger_section)
+        danger_layout.setSpacing(10)
         
-        # Bouton: Réinitialiser config
-        btn_reset_config = QPushButton("🔄 Réinitialiser config")
-        btn_reset_config.setStyleSheet(btn_style + "background: #FF5722; color: white;")
-        btn_reset_config.clicked.connect(self.reset_config)
-        data_layout.addWidget(btn_reset_config)
+        danger_title = QLabel("⚠️ Zone Dangereuse")
+        danger_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #f44336;")
+        danger_layout.addWidget(danger_title)
         
-        layout.addWidget(group_data)
+        danger_desc = QLabel("Les actions ci-dessous sont irréversibles. Assurez-vous d'avoir une sauvegarde avant de continuer.")
+        danger_desc.setWordWrap(True)
+        danger_desc.setStyleSheet("font-size: 11px; color: #666;")
+        danger_layout.addWidget(danger_desc)
+        
+        btn_reset = QPushButton("🔄 Réinitialiser la Configuration")
+        btn_reset.setStyleSheet("""
+            QPushButton {
+                background: #f44336;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background: #d32f2f;
+            }
+        """)
+        btn_reset.clicked.connect(self.reset_config)
+        danger_layout.addWidget(btn_reset)
+        
+        layout.addWidget(danger_section)
+        
+        # Info footer
+        info = QLabel("💡 Conseil: Sauvegardez régulièrement vos données et testez vos restaurations.")
+        info.setStyleSheet("""
+            QLabel {
+                background: #e3f2fd;
+                padding: 10px;
+                border-radius: 6px;
+                color: #1976D2;
+                font-size: 11px;
+            }
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
         layout.addStretch()
         
         return widget
+    
+    def _create_action_card(self, icon, title, description, color, callback):
+        """Crée une card d'action cliquable"""
+        card = QFrame()
+        card.setStyleSheet(f"""
+            QFrame {{
+                background: white;
+                border-radius: 8px;
+                border: 1px solid #e0e0e0;
+            }}
+            QFrame:hover {{
+                border: 2px solid {color};
+            }}
+        """)
+        card.setCursor(Qt.PointingHandCursor)
+        
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(20, 20, 20, 20)
+        card_layout.setSpacing(10)
+        
+        # Icône
+        icon_label = QLabel(icon)
+        icon_label.setStyleSheet(f"font-size: 36px; color: {color};")
+        icon_label.setAlignment(Qt.AlignCenter)
+        card_layout.addWidget(icon_label)
+        
+        # Titre
+        title_label = QLabel(title)
+        title_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #333;")
+        title_label.setAlignment(Qt.AlignCenter)
+        card_layout.addWidget(title_label)
+        
+        # Description
+        desc_label = QLabel(description)
+        desc_label.setStyleSheet("font-size: 11px; color: #666;")
+        desc_label.setAlignment(Qt.AlignCenter)
+        desc_label.setWordWrap(True)
+        card_layout.addWidget(desc_label)
+        
+        # Bouton
+        btn = QPushButton("Exécuter")
+        btn.setStyleSheet(f"""
+            QPushButton {{
+                background: {color};
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+                font-size: 11px;
+            }}
+            QPushButton:hover {{
+                opacity: 0.9;
+            }}
+        """)
+        btn.clicked.connect(callback)
+        card_layout.addWidget(btn)
+        
+        return card
     
     def choose_logo(self):
         """Permet de choisir un fichier logo"""
