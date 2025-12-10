@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem,
     QPushButton, QLineEdit, QComboBox, QHeaderView, QMessageBox, QDialog,
     QFormLayout, QDateEdit, QTimeEdit, QTextEdit, QSpinBox, QGroupBox,
-    QTabWidget, QListWidget, QFrame, QScrollArea
+    QTabWidget, QListWidget, QFrame, QScrollArea, QCheckBox
 )
 from PySide6.QtCore import Qt, QDate, QTime, QDateTime
 from PySide6.QtGui import QFont, QColor
@@ -232,29 +232,150 @@ class SessionDetailViewDialog(QDialog):
         main_layout = QVBoxLayout(tab)
         main_layout.setSpacing(15)
         
-        # Élève Section
-        student_group = QGroupBox("👤 Élève (Obligatoire)")
-        student_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 14px; }")
-        student_layout = QVBoxLayout(student_group)
-        
-        self.student_combo = QComboBox()
-        self.student_combo.setEnabled(not self.read_only)
-        students = StudentController.get_all_students()
-        self.student_combo.addItem("-- Sélectionner élève --", None)
-        for student in students:
-            status_emoji = "✅" if student.status.value == "actif" else "⏸️"
-            self.student_combo.addItem(
-                f"{status_emoji} {student.full_name} ({student.license_type})",
-                student.id
-            )
-        
-        self.student_info_label = QLabel()
-        self.student_info_label.setStyleSheet("color: #7f8c8d; font-size: 12px; padding: 5px;")
-        self.student_combo.currentIndexChanged.connect(self.update_student_info)
-        
-        student_layout.addWidget(self.student_combo)
-        student_layout.addWidget(self.student_info_label)
-        main_layout.addWidget(student_group)
+        # Élèves Section - Mode création vs édition
+        if not self.session:  # MODE CRÉATION: sélection multiple
+            student_group = QGroupBox("👤 Élèves (sélectionnez un ou plusieurs)")
+            student_group.setStyleSheet("""
+                QGroupBox {
+                    font-weight: bold;
+                    font-size: 14px;
+                    border: 2px solid #3498db;
+                    border-radius: 8px;
+                    margin-top: 12px;
+                    padding-top: 15px;
+                }
+                QGroupBox::title {
+                    subcontrol-origin: margin;
+                    left: 15px;
+                    padding: 0 8px;
+                    color: #3498db;
+                }
+            """)
+            student_layout = QVBoxLayout(student_group)
+            
+            # Barre de recherche
+            search_layout = QHBoxLayout()
+            self.student_search = QLineEdit()
+            self.student_search.setPlaceholderText("🔍 Rechercher...")
+            self.student_search.textChanged.connect(self.filter_students)
+            self.student_search.setStyleSheet("""
+                QLineEdit {
+                    padding: 6px;
+                    border: 1px solid #bdc3c7;
+                    border-radius: 4px;
+                    font-size: 12px;
+                }
+            """)
+            
+            select_all_btn = QPushButton("☑️ Tout")
+            select_all_btn.setMaximumWidth(55)
+            select_all_btn.clicked.connect(lambda: self.toggle_all_students(True))
+            select_all_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #27ae60;
+                    color: white;
+                    border: none;
+                    padding: 4px;
+                    border-radius: 3px;
+                    font-size: 10px;
+                }
+                QPushButton:hover { background-color: #229954; }
+            """)
+            
+            deselect_all_btn = QPushButton("☐ Aucun")
+            deselect_all_btn.setMaximumWidth(60)
+            deselect_all_btn.clicked.connect(lambda: self.toggle_all_students(False))
+            deselect_all_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #e74c3c;
+                    color: white;
+                    border: none;
+                    padding: 4px;
+                    border-radius: 3px;
+                    font-size: 10px;
+                }
+                QPushButton:hover { background-color: #c0392b; }
+            """)
+            
+            search_layout.addWidget(self.student_search, stretch=1)
+            search_layout.addWidget(select_all_btn)
+            search_layout.addWidget(deselect_all_btn)
+            student_layout.addLayout(search_layout)
+            
+            # Scroll area
+            scroll_area = QScrollArea()
+            scroll_area.setWidgetResizable(True)
+            scroll_area.setMaximumHeight(200)
+            scroll_area.setStyleSheet("QScrollArea { border: none; background: white; }")
+            
+            scroll_widget = QWidget()
+            scroll_layout = QVBoxLayout(scroll_widget)
+            scroll_layout.setSpacing(6)
+            
+            # Récupérer ACTIFS en formation
+            from src.models import StudentStatus
+            all_students = StudentController.get_all_students()
+            active_students = [s for s in all_students 
+                              if s.status == StudentStatus.ACTIVE 
+                              and s.hours_completed < s.hours_planned]
+            
+            self.student_checkboxes = []
+            for student in active_students:
+                checkbox = QCheckBox(f"{student.full_name} ({student.hours_completed}/{student.hours_planned}h)")
+                checkbox.setProperty('student_id', student.id)
+                checkbox.setStyleSheet("""
+                    QCheckBox {
+                        padding: 4px;
+                        font-size: 12px;
+                    }
+                    QCheckBox::indicator {
+                        width: 16px;
+                        height: 16px;
+                    }
+                """)
+                checkbox.stateChanged.connect(self.update_selected_count)
+                self.student_checkboxes.append(checkbox)
+                scroll_layout.addWidget(checkbox)
+            
+            if not active_students:
+                no_students_label = QLabel("⚠️ Aucun élève actif en formation")
+                no_students_label.setStyleSheet("color: #e74c3c; padding: 10px; font-style: italic;")
+                scroll_layout.addWidget(no_students_label)
+            
+            scroll_layout.addStretch()
+            scroll_area.setWidget(scroll_widget)
+            student_layout.addWidget(scroll_area)
+            
+            # Compteur
+            self.selected_count_label = QLabel("👥 0 élève(s)")
+            self.selected_count_label.setStyleSheet("color: #3498db; font-weight: bold; padding: 3px;")
+            student_layout.addWidget(self.selected_count_label)
+            
+            main_layout.addWidget(student_group)
+            
+        else:  # MODE ÉDITION: élève unique
+            student_group = QGroupBox("👤 Élève (Obligatoire)")
+            student_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 14px; }")
+            student_layout = QVBoxLayout(student_group)
+            
+            self.student_combo = QComboBox()
+            self.student_combo.setEnabled(not self.read_only)
+            students = StudentController.get_all_students()
+            self.student_combo.addItem("-- Sélectionner élève --", None)
+            for student in students:
+                status_emoji = "✅" if student.status.value == "actif" else "⏸️"
+                self.student_combo.addItem(
+                    f"{status_emoji} {student.full_name} ({student.license_type})",
+                    student.id
+                )
+            
+            self.student_info_label = QLabel()
+            self.student_info_label.setStyleSheet("color: #7f8c8d; font-size: 12px; padding: 5px;")
+            self.student_combo.currentIndexChanged.connect(self.update_student_info)
+            
+            student_layout.addWidget(self.student_combo)
+            student_layout.addWidget(self.student_info_label)
+            main_layout.addWidget(student_group)
         
         # Moniteur Section
         instructor_group = QGroupBox("👨‍🏫 Moniteur (Obligatoire)")
@@ -487,8 +608,34 @@ class SessionDetailViewDialog(QDialog):
         
         self.end_time.setTime(end_dt.time())
     
+    def filter_students(self):
+        """Filtrer les élèves par recherche"""
+        if not hasattr(self, 'student_checkboxes'):
+            return
+        search_text = self.student_search.text().lower()
+        for checkbox in self.student_checkboxes:
+            student_name = checkbox.text().lower()
+            checkbox.setVisible(search_text in student_name)
+    
+    def toggle_all_students(self, checked):
+        """Sélectionner/Désélectionner tous les élèves visibles"""
+        if not hasattr(self, 'student_checkboxes'):
+            return
+        for checkbox in self.student_checkboxes:
+            if checkbox.isVisible():
+                checkbox.setChecked(checked)
+    
+    def update_selected_count(self):
+        """Mettre à jour le compteur d'élèves sélectionnés"""
+        if not hasattr(self, 'student_checkboxes'):
+            return
+        count = sum(1 for cb in self.student_checkboxes if cb.isChecked())
+        self.selected_count_label.setText(f"👥 {count} élève(s)")
+    
     def update_student_info(self):
         """Update student information display"""
+        if not hasattr(self, 'student_combo'):
+            return
         student_id = self.student_combo.currentData()
         if not student_id:
             self.student_info_label.setText("")
@@ -639,11 +786,23 @@ class SessionDetailViewDialog(QDialog):
     
     def save_session(self):
         """Save session data"""
-        # Validation
-        if not self.student_combo.currentData():
-            QMessageBox.warning(self, "Erreur", "L'élève est obligatoire")
-            self.tabs.setCurrentIndex(1)
-            return
+        # Validation - MODE CRÉATION (sélection multiple)
+        if not self.session:
+            if not hasattr(self, 'student_checkboxes'):
+                QMessageBox.warning(self, "Erreur", "Erreur de configuration du formulaire")
+                return
+            
+            selected_students = [cb.property('student_id') for cb in self.student_checkboxes if cb.isChecked()]
+            if not selected_students:
+                QMessageBox.warning(self, "Attention", "Veuillez sélectionner au moins un élève")
+                self.tabs.setCurrentIndex(1)
+                return
+        # Validation - MODE ÉDITION (élève unique)
+        else:
+            if not self.student_combo.currentData():
+                QMessageBox.warning(self, "Erreur", "L'élève est obligatoire")
+                self.tabs.setCurrentIndex(1)
+                return
         
         if not self.instructor_combo.currentData():
             QMessageBox.warning(self, "Erreur", "Le moniteur est obligatoire")
