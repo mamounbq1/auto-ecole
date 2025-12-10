@@ -152,23 +152,22 @@ class InstructorsDashboard(QWidget):
                 background-color: white;
                 border-left: 4px solid {color};
                 border-radius: 8px;
-                padding: 15px;
             }}
         """)
         
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(5)
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(8)
         
         # Valeur
         value_label = QLabel(value)
         value_label.setObjectName("value_label")
-        value_label.setStyleSheet(f"color: {color}; font-size: 24px; font-weight: bold;")
+        value_label.setStyleSheet(f"color: {color}; font-size: 28px; font-weight: bold;")
         layout.addWidget(value_label)
         
         # Titre
-        title_label = QLabel(title)
-        title_label.setStyleSheet("color: #7f8c8d; font-size: 12px;")
+        title_label = QLabel(title.replace("👨‍🏫 ", "").replace("⏰ ", "").replace("📊 ", "").replace("📅 ", ""))
+        title_label.setStyleSheet("color: #7f8c8d; font-size: 13px;")
         layout.addWidget(title_label)
         
         return card

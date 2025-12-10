@@ -50,15 +50,24 @@ class InstructorsMainWidget(QWidget):
             }
         """)
         
-        # Onglet Dashboard
-        self.dashboard = InstructorsDashboard()
-        self.tabs.addTab(self.dashboard, "📊 Dashboard Moniteurs")
-        
-        # Onglet Gestion
+        # Onglet Gestion (en premier)
         self.management = InstructorsManagement()
         self.tabs.addTab(self.management, "👨‍🏫 Gestion des Moniteurs")
         
+        # Onglet Dashboard (en deuxième)
+        self.dashboard = InstructorsDashboard()
+        self.tabs.addTab(self.dashboard, "📊 Dashboard Moniteurs")
+        
         layout.addWidget(self.tabs)
+    
+    def on_tab_changed(self, index):
+        """Rafraîchir les données lors du changement d'onglet"""
+        if index == 0:
+            # Management (en premier)
+            self.management.load_instructors()
+        elif index == 1:
+            # Dashboard (en deuxième)
+            self.dashboard.load_all_stats()
     
     def refresh_all(self):
         """Rafraîchir tous les onglets"""
