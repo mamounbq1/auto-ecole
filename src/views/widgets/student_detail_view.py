@@ -128,8 +128,9 @@ class StudentDetailViewDialog(QDialog):
             }
         """)
         
-        # Create all tabs (RÉSUMÉ en premier)
-        self.create_summary_tab()  # NOUVEAU: Onglet résumé en premier
+        # Create all tabs (RÉSUMÉ uniquement si élève existant)
+        if self.student:  # RÉSUMÉ uniquement en mode édition/vue
+            self.create_summary_tab()
         self.create_info_tab()
         self.create_payments_tab()
         self.create_sessions_tab()
@@ -150,8 +151,8 @@ class StudentDetailViewDialog(QDialog):
             QWidget {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #3498db, stop:1 #2980b9);
-                border-radius: 10px;
-                padding: 15px;
+                border-radius: 8px;
+                padding: 10px;
             }
         """)
         header_layout = QHBoxLayout(header_widget)
@@ -160,15 +161,15 @@ class StudentDetailViewDialog(QDialog):
         info_layout = QVBoxLayout()
         
         name_label = QLabel(self.student.full_name)
-        name_label.setStyleSheet("color: white; font-size: 24px; font-weight: bold;")
+        name_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
         
         status_text = self.student.status.value.capitalize() if self.student.status else "N/A"
         status_label = QLabel(f"Statut: {status_text} | Permis: {self.student.license_type or 'N/A'}")
-        status_label.setStyleSheet("color: white; font-size: 14px;")
+        status_label.setStyleSheet("color: white; font-size: 12px;")
         
         progress_text = f"Progression: {self.student.hours_completed}/{self.student.hours_planned} heures"
         progress_label = QLabel(progress_text)
-        progress_label.setStyleSheet("color: white; font-size: 14px;")
+        progress_label.setStyleSheet("color: white; font-size: 12px;")
         
         info_layout.addWidget(name_label)
         info_layout.addWidget(status_label)
@@ -190,21 +191,21 @@ class StudentDetailViewDialog(QDialog):
         else:
             balance_text = f"{balance_val:+,.2f} DH"
         self.balance_label = QLabel(balance_text)
-        self.balance_label.setStyleSheet(f"color: {balance_color}; font-size: 18px; font-weight: bold; background-color: white; padding: 8px 15px; border-radius: 5px;")
+        self.balance_label.setStyleSheet(f"color: {balance_color}; font-size: 14px; font-weight: bold; background-color: white; padding: 5px 10px; border-radius: 4px;")
         
         completion = (self.student.hours_completed / self.student.hours_planned * 100) if self.student.hours_planned > 0 else 0
         completion_label = QLabel(f"Taux de complétion: {completion:.1f}%")
-        completion_label.setStyleSheet("color: white; font-size: 14px;")
+        completion_label.setStyleSheet("color: white; font-size: 12px;")
         
         # Refresh button next to balance
         refresh_btn = QPushButton("🔄")
         refresh_btn.setToolTip("Rafraîchir le solde")
-        refresh_btn.setFixedSize(40, 40)
+        refresh_btn.setFixedSize(30, 30)
         refresh_btn.setStyleSheet("""
             QPushButton {
                 background-color: white;
-                border-radius: 20px;
-                font-size: 18px;
+                border-radius: 15px;
+                font-size: 14px;
             }
             QPushButton:hover {
                 background-color: #ecf0f1;

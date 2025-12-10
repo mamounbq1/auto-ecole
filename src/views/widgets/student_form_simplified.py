@@ -204,32 +204,20 @@ class StudentFormSimplified(QDialog):
         self.apply_style()
     
     def create_header(self, layout):
-        """En-tête avec informations"""
-        header_frame = QFrame()
-        header_frame.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #3498db, stop:1 #2980b9);
-                border-radius: 12px;
-                padding: 20px;
-            }
-        """)
-        header_layout = QVBoxLayout(header_frame)
+        """En-tête SANS zone bleue - simple et épuré"""
+        header_layout = QVBoxLayout()
+        header_layout.setSpacing(8)
         
-        title = QLabel("➕ Inscription Rapide")
-        title.setStyleSheet("color: white; font-size: 22px; font-weight: bold;")
+        title = QLabel("➕ Nouvel Élève")
+        title.setStyleSheet("color: #2c3e50; font-size: 20px; font-weight: bold; padding: 10px 0;")
         
-        subtitle = QLabel("Remplissez les informations essentielles pour créer un nouvel élève")
-        subtitle.setStyleSheet("color: white; font-size: 13px; margin-top: 5px;")
-        
-        tips = QLabel("💡 Astuce : Seuls les champs marqués * sont obligatoires")
-        tips.setStyleSheet("color: white; font-size: 12px; margin-top: 10px; font-style: italic;")
+        subtitle = QLabel("💡 Remplissez les 4 champs obligatoires marqués *")
+        subtitle.setStyleSheet("color: #7f8c8d; font-size: 13px;")
         
         header_layout.addWidget(title)
         header_layout.addWidget(subtitle)
-        header_layout.addWidget(tips)
         
-        layout.addWidget(header_frame)
+        layout.addLayout(header_layout)
     
     def create_required_section(self, layout):
         """Section informations obligatoires"""

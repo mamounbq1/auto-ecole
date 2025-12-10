@@ -430,17 +430,18 @@ class MainWindow(QMainWindow):
         
     # Actions rapides
     def quick_add_student(self):
-        """Action rapide : Ajouter un élève"""
+        """Action rapide : Ajouter un élève avec le formulaire simplifié"""
         try:
-            from src.views.widgets.students_enhanced import StudentDetailDialog
+            from src.views.widgets.student_form_simplified import StudentFormSimplified
             from src.controllers import StudentController
             
-            dialog = StudentDetailDialog(parent=self)
-            if dialog.exec():
-                self.statusBar().showMessage("✅ Élève ajouté avec succès", 3000)
-                # Actualiser si on est sur le module étudiants
-                if hasattr(self.current_module, 'load_students'):
-                    self.current_module.load_students()
+            dialog = StudentFormSimplified(student=None, parent=self)
+            # Connecter le signal de sauvegarde pour actualiser
+            dialog.student_saved.connect(lambda student: (
+                self.statusBar().showMessage("✅ Élève ajouté avec succès", 3000),
+                self.current_module.load_students() if hasattr(self.current_module, 'load_students') else None
+            ))
+            dialog.exec()
         except Exception as e:
             logger.error(f"Erreur quick_add_student: {e}")
             QMessageBox.critical(self, "Erreur", f"Impossible d'ouvrir le formulaire:\n{str(e)}")
