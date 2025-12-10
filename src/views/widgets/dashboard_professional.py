@@ -808,19 +808,35 @@ class DashboardProfessionalWidget(QWidget):
             today = date.today()
             thirty_days_later = today + timedelta(days=30)
             
-            expiring_vehicles = []
+            # Assurances expirantes
+            insurance_expiring = []
             for v in vehicles:
                 if v.insurance_expiry and today <= v.insurance_expiry <= thirty_days_later:
-                    expiring_vehicles.append(f"{v.make} {v.model} (assurance)")
-                if v.inspection_expiry and today <= v.inspection_expiry <= thirty_days_later:
-                    expiring_vehicles.append(f"{v.make} {v.model} (visite technique)")
+                    days_left = (v.insurance_expiry - today).days
+                    insurance_expiring.append((v, days_left))
             
-            if expiring_vehicles:
-                self.add_alert(
-                    "🚗",
-                    f"{len(expiring_vehicles)} document(s) véhicule expire(nt) < 30j",
-                    "#e67e22"
-                )
+            if insurance_expiring:
+                for vehicle, days in insurance_expiring[:2]:  # Max 2 alertes
+                    self.add_alert(
+                        "🚗",
+                        f"Assurance {vehicle.plate_number} expire dans {days}j",
+                        "#e67e22" if days > 7 else "#e74c3c"
+                    )
+            
+            # Visites techniques expirantes
+            inspection_expiring = []
+            for v in vehicles:
+                if v.inspection_expiry and today <= v.inspection_expiry <= thirty_days_later:
+                    days_left = (v.inspection_expiry - today).days
+                    inspection_expiring.append((v, days_left))
+            
+            if inspection_expiring:
+                for vehicle, days in inspection_expiring[:2]:  # Max 2 alertes
+                    self.add_alert(
+                        "🔧",
+                        f"Visite technique {vehicle.plate_number} expire dans {days}j",
+                        "#e67e22" if days > 7 else "#e74c3c"
+                    )
         except:
             pass
         
