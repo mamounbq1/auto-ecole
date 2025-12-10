@@ -907,4 +907,3 @@ class SessionDetailViewDialog(QDialog):
             self.accept()
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Erreur lors de l'enregistrement:\n{str(e)}")
-")
