@@ -381,16 +381,18 @@ class DashboardProfessionalWidget(QWidget):
         """)
         
         layout = QVBoxLayout(widget)
-        layout.setSpacing(10)
+        layout.setSpacing(15)
+        layout.setContentsMargins(20, 20, 20, 20)
         
         # Titre
         title = QLabel("⚠️ Alertes & Notifications")
-        title.setStyleSheet("color: #2c3e50; font-size: 16px; font-weight: bold; margin-bottom: 15px;")
+        title.setStyleSheet("color: #2c3e50; font-size: 16px; font-weight: bold;")
         layout.addWidget(title)
         
         # Conteneur des alertes avec espacement
         self.alerts_layout = QVBoxLayout()
-        self.alerts_layout.setSpacing(8)
+        self.alerts_layout.setSpacing(12)
+        self.alerts_layout.setContentsMargins(0, 10, 0, 0)
         layout.addLayout(self.alerts_layout)
         
         layout.addStretch()
@@ -398,22 +400,29 @@ class DashboardProfessionalWidget(QWidget):
         return widget
         
     def add_alert(self, icon, message, color="#e74c3c"):
-        """Ajouter une alerte"""
+        """Ajouter une alerte (limitée à max_alerts)"""
+        if hasattr(self, 'alert_count') and self.alert_count >= self.max_alerts:
+            return
+        
         alert = QLabel(f"{icon} {message}")
         alert.setStyleSheet(f"""
             QLabel {{
                 color: {color};
                 background-color: {color}20;
-                padding: 12px;
-                border-radius: 5px;
+                padding: 15px;
+                border-radius: 6px;
                 border-left: 4px solid {color};
                 font-size: 13px;
-                min-height: 20px;
+                min-height: 45px;
+                max-height: 80px;
             }}
         """)
         alert.setWordWrap(True)
-        alert.setMaximumHeight(100)
+        alert.setSizePolicy(alert.sizePolicy().Expanding, alert.sizePolicy().Minimum)
         self.alerts_layout.addWidget(alert)
+        
+        if hasattr(self, 'alert_count'):
+            self.alert_count += 1
         
     def load_data(self):
         """Charger toutes les données du dashboard"""
