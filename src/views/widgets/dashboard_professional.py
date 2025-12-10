@@ -429,6 +429,8 @@ class DashboardProfessionalWidget(QWidget):
         
     def add_alert(self, icon, message, color="#e74c3c"):
         """Ajouter une alerte"""
+        from PySide6.QtWidgets import QSizePolicy
+        
         alert = QLabel(f"{icon} {message}")
         alert.setStyleSheet(f"""
             QLabel {{
@@ -442,7 +444,7 @@ class DashboardProfessionalWidget(QWidget):
             }}
         """)
         alert.setWordWrap(True)
-        alert.setSizePolicy(alert.sizePolicy().Expanding, alert.sizePolicy().Minimum)
+        alert.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         # Insérer avant le stretch
         self.alerts_layout.insertWidget(self.alerts_layout.count() - 1, alert)
         
