@@ -54,23 +54,20 @@ class VehiclesMainWidget(QWidget):
             }
         """)
         
-        # Ajouter les onglets
+        # Ajouter les onglets (Gestion en premier)
         self.dashboard = VehiclesDashboard()
         self.management = VehiclesManagement()
         
-        self.tabs.addTab(self.dashboard, "📊 Tableau de Bord")
         self.tabs.addTab(self.management, "🚗 Gestion des Véhicules")
-        
-        # Connecter le changement d'onglet au rafraîchissement
-        self.tabs.currentChanged.connect(self.on_tab_changed)
+        self.tabs.addTab(self.dashboard, "📊 Tableau de Bord")
         
         layout.addWidget(self.tabs)
     
     def on_tab_changed(self, index):
         """Rafraîchir les données lors du changement d'onglet"""
         if index == 0:
-            # Dashboard
-            self.dashboard.load_stats()
-        elif index == 1:
-            # Management
+            # Management (en premier)
             self.management.load_vehicles()
+        elif index == 1:
+            # Dashboard (en deuxième)
+            self.dashboard.load_stats()

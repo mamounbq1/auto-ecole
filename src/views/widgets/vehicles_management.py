@@ -572,36 +572,34 @@ class VehiclesManagement(QWidget):
             "Statut", "Disponible", "Kilométrage", "Heures", "Actions"
         ])
         
-        # Style du tableau
+        # Style du tableau (comme Moniteurs)
         self.table.setStyleSheet("""
             QTableWidget {
                 background: white;
-                border: 1px solid #e0e0e0;
+                border: 1px solid #dfe6e9;
                 border-radius: 8px;
-                gridline-color: #f0f0f0;
+                gridline-color: #ecf0f1;
             }
-            QTableWidget::item {
-                padding: 8px;
-                border-bottom: 1px solid #f0f0f0;
-            }
+            QTableWidget::item { padding: 5px; }
             QTableWidget::item:selected {
-                background: #E3F2FD;
-                color: #1976D2;
+                background-color: #e3f2fd;
+                color: #2c3e50;
             }
             QHeaderView::section {
-                background: #f5f7fa;
+                background-color: #3498db;
+                color: white;
                 padding: 12px;
                 border: none;
-                border-bottom: 2px solid #e0e0e0;
                 font-weight: bold;
-                color: #333;
+                font-size: 13px;
             }
         """)
         
-        self.table.horizontalHeader().setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setAlternatingRowColors(True)
+        self.table.verticalHeader().setDefaultSectionSize(45)
+        self.table.verticalHeader().setVisible(False)
         
         # Colonnes redimensionnables
         header = self.table.horizontalHeader()
@@ -615,7 +613,7 @@ class VehiclesManagement(QWidget):
         header.setSectionResizeMode(7, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(8, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(9, QHeaderView.ResizeMode.Fixed)
-        self.table.setColumnWidth(9, 150)
+        header.resizeSection(9, 160)
         
         layout.addWidget(self.table)
         
