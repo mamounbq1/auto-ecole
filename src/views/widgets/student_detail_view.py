@@ -224,12 +224,7 @@ class StudentDetailViewDialog(QDialog):
         
         layout.addWidget(header_widget)
     
-    def create_summary_tab(self):
-        """Tab 0: RÉSUMÉ - Vue d'ensemble (NOUVEAU)"""
-        from src.views.widgets.student_summary_tab import StudentSummaryTab
-        summary_tab = StudentSummaryTab(self.student, parent=self)
-        self.tabs.addTab(summary_tab, "📊 RÉSUMÉ")
-    
+
     def create_info_tab(self):
         """Tab 1: General Information with Profile Photo"""
         tab = QWidget()
