@@ -20,11 +20,14 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QDate, QTime, Signal
 from PySide6.QtGui import QFont, QColor
 from datetime import datetime, date
+import os
+import webbrowser
 
 from src.controllers.exam_controller import ExamController
 from src.controllers.student_controller import StudentController
 from src.models import ExamType, ExamResult, get_session, Exam
 from src.utils import export_to_csv
+from src.utils.config_manager import get_config_manager
 
 
 class ExamDialog(QDialog):
@@ -779,7 +782,26 @@ class ExamsManagement(QWidget):
             actions_layout.setContentsMargins(5, 2, 5, 2)
             actions_layout.setSpacing(5)
             
+            print_btn = QPushButton("🖨️")
+            print_btn.setToolTip("Imprimer Convocation")
+            print_btn.setFixedSize(30, 30)
+            print_btn.setStyleSheet("""
+                QPushButton {
+                    background: #27ae60;
+                    color: white;
+                    border-radius: 5px;
+                    font-size: 12pt;
+                    border: none;
+                }
+                QPushButton:hover {
+                    background: #229954;
+                }
+            """)
+            print_btn.clicked.connect(lambda checked, e=exam: self.print_convocation(e))
+            actions_layout.addWidget(print_btn)
+            
             edit_btn = QPushButton("✏️")
+            edit_btn.setToolTip("Modifier")
             edit_btn.setFixedSize(30, 30)
             edit_btn.setStyleSheet("""
                 QPushButton {
@@ -797,6 +819,7 @@ class ExamsManagement(QWidget):
             actions_layout.addWidget(edit_btn)
             
             delete_btn = QPushButton("🗑️")
+            delete_btn.setToolTip("Supprimer")
             delete_btn.setFixedSize(30, 30)
             delete_btn.setStyleSheet("""
                 QPushButton {
@@ -853,6 +876,489 @@ class ExamsManagement(QWidget):
             except Exception as ex:
                 session.rollback()
                 QMessageBox.critical(self, "Erreur", f"Erreur: {str(ex)}")
+    
+    def print_convocation(self, exam):
+        """Générer et imprimer la convocation PDF"""
+        try:
+            student = exam.student
+            if not student:
+                QMessageBox.warning(self, "Erreur", "Élève introuvable pour cet examen")
+                return
+            
+            if not exam.summons_number:
+                QMessageBox.warning(self, "Erreur", "Aucun numéro de convocation pour cet examen")
+                return
+            
+            # Créer le dossier docs/export s'il n'existe pas
+            docs_dir = os.path.join(os.getcwd(), "docs", "export")
+            os.makedirs(docs_dir, exist_ok=True)
+            
+            # Configuration de l'auto-école
+            config = get_config_manager()
+            center = config.get_center_info()
+            
+            # Nom du fichier
+            filename = f"convocation_{exam.summons_number}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            filepath = os.path.join(docs_dir, filename)
+            
+            # Type d'examen
+            exam_type_text = "THÉORIQUE" if exam.exam_type == ExamType.THEORETICAL else "PRATIQUE"
+            exam_type_ar = "النظري" if exam.exam_type == ExamType.THEORETICAL else "التطبيقي"
+            
+            # Date formatée
+            exam_date_fr = exam.scheduled_date.strftime("%d/%m/%Y")
+            exam_time_fr = exam.scheduled_time if isinstance(exam.scheduled_time, str) else "À confirmer"
+            
+            # HTML de la convocation (conforme au système marocain)
+            html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Convocation - {exam.summons_number}</title>
+    <style>
+        @page {{ margin: 2cm; }}
+        body {{
+            font-family: Arial, sans-serif;
+            direction: ltr;
+            margin: 0;
+            padding: 20px;
+        }}
+        .header {{
+            text-align: center;
+            border-bottom: 3px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }}
+        .header h1 {{
+            color: #C1272D;
+            margin: 5px 0;
+            font-size: 24px;
+        }}
+        .header h2 {{
+            color: #000;
+            margin: 5px 0;
+            font-size: 18px;
+        }}
+        .kingdom {{
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }}
+        .convocation-title {{
+            text-align: center;
+            background-color: #C1272D;
+            color: white;
+            padding: 15px;
+            margin: 30px 0;
+            font-size: 22px;
+            font-weight: bold;
+        }}
+        .info-section {{
+            margin: 20px 0;
+            border: 2px solid #000;
+            padding: 15px;
+        }}
+        .info-row {{
+            display: flex;
+            margin: 10px 0;
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+        }}
+        .info-label {{
+            font-weight: bold;
+            width: 200px;
+            color: #C1272D;
+        }}
+        .info-value {{
+            flex: 1;
+            font-size: 14px;
+        }}
+        .important-box {{
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }}
+        .important-box h3 {{
+            color: #C1272D;
+            margin-top: 0;
+        }}
+        .important-box ul {{
+            margin: 10px 0;
+        }}
+        .footer {{
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            border-top: 2px solid #000;
+            padding-top: 10px;
+        }}
+        .signature-section {{
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }}
+        .signature-box {{
+            width: 45%;
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #000;
+        }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="kingdom">المملكة المغربية<br>ROYAUME DU MAROC</div>
+        <h1>{center.get('name', 'AUTO-ÉCOLE').upper()}</h1>
+        <h2>مدرسة تعليم السياقة</h2>
+        <p style="margin: 5px 0;">{center.get('address', '')}</p>
+        <p style="margin: 5px 0;">Tel: {center.get('phone', '')} | Email: {center.get('email', '')}</p>
+    </div>
+    
+    <div class="convocation-title">
+        CONVOCATION À L'EXAMEN {exam_type_text}<br>
+        استدعاء لامتحان رخصة السياقة {exam_type_ar}
+    </div>
+    
+    <div class="info-section">
+        <h3 style="text-align: center; color: #C1272D;">INFORMATIONS DU CANDIDAT / معلومات المترشح</h3>
+        
+        <div class="info-row">
+            <div class="info-label">N° Convocation / رقم الاستدعاء:</div>
+            <div class="info-value" style="font-weight: bold; font-size: 16px;">{exam.summons_number}</div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">Nom Complet / الاسم الكامل:</div>
+            <div class="info-value">{student.full_name}</div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">CIN / رقم البطاقة الوطنية:</div>
+            <div class="info-value">{student.cin}</div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">Date de Naissance / تاريخ الازدياد:</div>
+            <div class="info-value">{student.date_of_birth.strftime('%d/%m/%Y') if student.date_of_birth else 'N/A'}</div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">Type de Permis / نوع رخصة السياقة:</div>
+            <div class="info-value">{student.license_type}</div>
+        </div>
+    </div>
+    
+    <div class="info-section">
+        <h3 style="text-align: center; color: #C1272D;">DÉTAILS DE L'EXAMEN / تفاصيل الامتحان</h3>
+        
+        <div class="info-row">
+            <div class="info-label">Type d'Examen / نوع الامتحان:</div>
+            <div class="info-value" style="font-weight: bold;">{exam_type_text} / {exam_type_ar}</div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">Date / التاريخ:</div>
+            <div class="info-value" style="font-weight: bold; color: #C1272D;">{exam_date_fr}</div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">Heure / الساعة:</div>
+            <div class="info-value" style="font-weight: bold; color: #C1272D;">{exam_time_fr}</div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">Centre d'Examen / مركز الامتحان:</div>
+            <div class="info-value">{exam.exam_center or 'À confirmer'}</div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">Lieu / المكان:</div>
+            <div class="info-value">{exam.location or 'À confirmer'}</div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">N° de Tentative / رقم المحاولة:</div>
+            <div class="info-value">{exam.attempt_number}</div>
+        </div>
+    </div>
+    
+    <div class="important-box">
+        <h3>⚠️ INSTRUCTIONS IMPORTANTES / تعليمات مهمة</h3>
+        <ul>
+            <li><strong>Se présenter 30 minutes avant l'heure de l'examen</strong> / الحضور قبل 30 دقيقة من موعد الامتحان</li>
+            <li><strong>Apporter obligatoirement:</strong> CIN originale, cette convocation, 2 photos d'identité</li>
+            <li>إحضار: البطاقة الوطنية الأصلية، هذا الاستدعاء، صورتين شمسيتين</li>
+            <li><strong>Tenue correcte exigée</strong> / اللباس المحتشم مطلوب</li>
+            <li><strong>Téléphones portables interdits</strong> / ممنوع استعمال الهاتف</li>
+        </ul>
+    </div>
+    
+    <div class="signature-section">
+        <div class="signature-box">
+            <p><strong>Le Directeur de l'Auto-École</strong></p>
+            <p>مدير مدرسة تعليم السياقة</p>
+            <br><br>
+            <p>Cachet et Signature</p>
+        </div>
+        <div class="signature-box">
+            <p><strong>Signature du Candidat</strong></p>
+            <p>توقيع المترشح</p>
+            <br><br>
+            <p>_____________________</p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Document généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</p>
+        <p style="font-weight: bold;">Bon courage pour votre examen! / بالتوفيق في امتحانك</p>
+    </div>
+</body>
+</html>
+"""
+            
+            # Générer le PDF avec ReportLab
+            self._generate_convocation_pdf(filepath, exam, student, center, 
+                                          exam_type_text, exam_type_ar, 
+                                          exam_date_fr, exam_time_fr)
+            
+            # Ouvrir automatiquement
+            webbrowser.open('file://' + os.path.abspath(filepath))
+            
+            QMessageBox.information(
+                self, 
+                "Succès", 
+                f"Convocation générée avec succès!\n\nFichier: {filename}\nEmplacement: {docs_dir}"
+            )
+            
+        except Exception as e:
+            import traceback
+            QMessageBox.critical(self, "Erreur", f"Erreur lors de la génération: {str(e)}\n{traceback.format_exc()}")
+    
+    def _generate_convocation_pdf(self, filepath, exam, student, center, 
+                                 exam_type_text, exam_type_ar, 
+                                 exam_date_fr, exam_time_fr):
+        """Générer le PDF de convocation avec ReportLab"""
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.units import cm
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        
+        # Créer le document
+        doc = SimpleDocTemplate(filepath, pagesize=A4,
+                               topMargin=2*cm, bottomMargin=2*cm,
+                               leftMargin=2*cm, rightMargin=2*cm)
+        
+        # Styles
+        styles = getSampleStyleSheet()
+        
+        # Style pour le titre principal
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#C1272D'),
+            alignment=TA_CENTER,
+            spaceAfter=20,
+            fontName='Helvetica-Bold'
+        )
+        
+        # Style pour le sous-titre
+        subtitle_style = ParagraphStyle(
+            'Subtitle',
+            parent=styles['Normal'],
+            fontSize=14,
+            alignment=TA_CENTER,
+            spaceAfter=10
+        )
+        
+        # Style pour les titres de section
+        section_style = ParagraphStyle(
+            'Section',
+            parent=styles['Heading2'],
+            fontSize=14,
+            textColor=colors.HexColor('#C1272D'),
+            alignment=TA_CENTER,
+            spaceAfter=15,
+            spaceBefore=15,
+            fontName='Helvetica-Bold'
+        )
+        
+        story = []
+        
+        # En-tête - Royaume du Maroc
+        kingdom = Paragraph(
+            "<b>المملكة المغربية<br/>ROYAUME DU MAROC</b>",
+            subtitle_style
+        )
+        story.append(kingdom)
+        story.append(Spacer(1, 0.3*cm))
+        
+        # Nom de l'auto-école
+        school_name = Paragraph(
+            f"<b>{center.get('name', 'AUTO-ÉCOLE').upper()}</b>",
+            title_style
+        )
+        story.append(school_name)
+        
+        school_ar = Paragraph(
+            "<b>مدرسة تعليم السياقة</b>",
+            subtitle_style
+        )
+        story.append(school_ar)
+        story.append(Spacer(1, 0.2*cm))
+        
+        # Coordonnées
+        contact = Paragraph(
+            f"{center.get('address', '')}<br/>Tél: {center.get('phone', '')} | Email: {center.get('email', '')}",
+            subtitle_style
+        )
+        story.append(contact)
+        story.append(Spacer(1, 0.5*cm))
+        
+        # Ligne de séparation
+        line_data = [['']]
+        line_table = Table(line_data, colWidths=[17*cm])
+        line_table.setStyle(TableStyle([
+            ('LINEABOVE', (0, 0), (-1, -1), 3, colors.black),
+        ]))
+        story.append(line_table)
+        story.append(Spacer(1, 1*cm))
+        
+        # Titre de la convocation
+        convocation_title = Paragraph(
+            f"<b>CONVOCATION À L'EXAMEN {exam_type_text}<br/>استدعاء لامتحان رخصة السياقة {exam_type_ar}</b>",
+            title_style
+        )
+        story.append(convocation_title)
+        story.append(Spacer(1, 0.8*cm))
+        
+        # Section informations du candidat
+        candidate_title = Paragraph(
+            "<b>INFORMATIONS DU CANDIDAT / معلومات المترشح</b>",
+            section_style
+        )
+        story.append(candidate_title)
+        
+        # Tableau des informations candidat
+        candidate_data = [
+            ['N° Convocation / رقم الاستدعاء:', f"<b>{exam.summons_number}</b>"],
+            ['Nom Complet / الاسم الكامل:', student.full_name],
+            ['CIN / رقم البطاقة الوطنية:', student.cin or 'N/A'],
+            ['Date de Naissance / تاريخ الازدياد:', student.date_of_birth.strftime('%d/%m/%Y') if student.date_of_birth else 'N/A'],
+            ['Type de Permis / نوع رخصة السياقة:', student.license_type or 'N/A'],
+        ]
+        
+        candidate_table = Table(candidate_data, colWidths=[8*cm, 9*cm])
+        candidate_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f5f5f5')),
+            ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#C1272D')),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (1, 0), (1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (1, 0), (1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        story.append(candidate_table)
+        story.append(Spacer(1, 0.8*cm))
+        
+        # Section détails de l'examen
+        exam_title = Paragraph(
+            "<b>DÉTAILS DE L'EXAMEN / تفاصيل الامتحان</b>",
+            section_style
+        )
+        story.append(exam_title)
+        
+        exam_data = [
+            ['Type d\'Examen / نوع الامتحان:', f"<b>{exam_type_text} / {exam_type_ar}</b>"],
+            ['Date / التاريخ:', f"<b><font color='#C1272D'>{exam_date_fr}</font></b>"],
+            ['Heure / الساعة:', f"<b><font color='#C1272D'>{exam_time_fr}</font></b>"],
+            ['Centre d\'Examen / مركز الامتحان:', exam.exam_center or 'À confirmer'],
+            ['Lieu / المكان:', exam.location or 'À confirmer'],
+            ['N° de Tentative / رقم المحاولة:', str(exam.attempt_number)],
+        ]
+        
+        exam_table = Table(exam_data, colWidths=[8*cm, 9*cm])
+        exam_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f5f5f5')),
+            ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#C1272D')),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        story.append(exam_table)
+        story.append(Spacer(1, 0.8*cm))
+        
+        # Instructions importantes
+        instructions_title = Paragraph(
+            "<b>⚠ INSTRUCTIONS IMPORTANTES / تعليمات مهمة</b>",
+            section_style
+        )
+        story.append(instructions_title)
+        
+        instructions_data = [[
+            '''• Se présenter 30 minutes avant l'heure de l'examen / الحضور قبل 30 دقيقة من موعد الامتحان<br/>
+            • Apporter obligatoirement: CIN originale, cette convocation, 2 photos d'identité<br/>
+            • إحضار: البطاقة الوطنية الأصلية، هذا الاستدعاء، صورتين شمسيتين<br/>
+            • Tenue correcte exigée / اللباس المحتشم مطلوب<br/>
+            • Téléphones portables interdits / ممنوع استعمال الهاتف'''
+        ]]
+        
+        instructions_table = Table(instructions_data, colWidths=[17*cm])
+        instructions_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#fff3cd')),
+            ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#ffc107')),
+            ('LEFTPADDING', (0, 0), (-1, -1), 15),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+            ('TOPPADDING', (0, 0), (-1, -1), 15),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+        ]))
+        story.append(instructions_table)
+        story.append(Spacer(1, 1*cm))
+        
+        # Section signatures
+        signature_data = [
+            ['<b>Le Directeur de l\'Auto-École</b><br/>مدير مدرسة تعليم السياقة<br/><br/><br/>Cachet et Signature',
+             '<b>Signature du Candidat</b><br/>توقيع المترشح<br/><br/><br/>_____________________']
+        ]
+        
+        signature_table = Table(signature_data, colWidths=[8.5*cm, 8.5*cm])
+        signature_table.setStyle(TableStyle([
+            ('BOX', (0, 0), (0, 0), 1, colors.black),
+            ('BOX', (1, 0), (1, 0), 1, colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ]))
+        story.append(signature_table)
+        story.append(Spacer(1, 1*cm))
+        
+        # Footer
+        footer_text = Paragraph(
+            f"<i>Document généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</i><br/>"
+            "<b>Bon courage pour votre examen! / بالتوفيق في امتحانك</b>",
+            subtitle_style
+        )
+        story.append(footer_text)
+        
+        # Générer le PDF
+        doc.build(story)
     
     def export_exams(self):
         """Exporter les examens en CSV"""
