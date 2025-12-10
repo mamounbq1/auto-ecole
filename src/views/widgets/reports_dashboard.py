@@ -564,13 +564,16 @@ class ReportsDashboard(QWidget):
             total = sum(p.amount for p in payments)
             
             months.append(start.strftime('%m/%Y'))
-            revenues.append(total)
+            revenues.append(float(total))  # Convertir en float pour matplotlib
         
         # Créer graphique
         canvas = MplCanvas(self, width=5, height=3.5)
         
-        canvas.axes.plot(months, revenues, marker='o', color='#FF9800', linewidth=2, markersize=6)
-        canvas.axes.fill_between(range(len(months)), revenues, alpha=0.3, color='#FF9800')
+        # Convertir revenues en list de floats pour éviter l'erreur matplotlib
+        revenues_float = [float(r) for r in revenues]
+        
+        canvas.axes.plot(months, revenues_float, marker='o', color='#FF9800', linewidth=2, markersize=6)
+        canvas.axes.fill_between(range(len(months)), revenues_float, alpha=0.3, color='#FF9800')
         canvas.axes.set_xlabel('Mois', fontsize=9)
         canvas.axes.set_ylabel('Revenus (DH)', fontsize=9)
         canvas.axes.set_title('Évolution mensuelle', fontsize=10, pad=10)
