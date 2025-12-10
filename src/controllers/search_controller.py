@@ -7,7 +7,7 @@ from typing import Dict, List, Any
 from src.controllers import (
     StudentController, InstructorController, VehicleController,
     SessionController, PaymentController, ExamController,
-    DocumentController, MaintenanceController, NotificationController
+    MaintenanceController, NotificationController
 )
 from src.utils import get_logger
 
@@ -64,12 +64,6 @@ class SearchController:
                 results['payments'] = payments
                 logger.info(f"{len(payments)} paiement(s) trouvé(s)")
             
-            # Recherche dans les documents
-            documents = DocumentController.search_documents(query)
-            if documents:
-                results['documents'] = documents
-                logger.info(f"{len(documents)} document(s) trouvé(s)")
-            
             # Recherche dans les maintenances
             maintenances = MaintenanceController.search_maintenances(query)
             if maintenances:
@@ -121,9 +115,6 @@ class SearchController:
         
         if 'payments' in results:
             summary_parts.append(f"{len(results['payments'])} paiement(s)")
-        
-        if 'documents' in results:
-            summary_parts.append(f"{len(results['documents'])} document(s)")
         
         if 'maintenances' in results:
             summary_parts.append(f"{len(results['maintenances'])} maintenance(s)")
