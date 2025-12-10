@@ -16,17 +16,15 @@ parts/
 sdist/
 var/
 wheels/
-pip-wheel-metadata/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
 # Virtual Environment
 venv/
 ENV/
 env/
+.venv
 
 # IDE
 .vscode/
@@ -36,21 +34,53 @@ env/
 *~
 .DS_Store
 
-# Project specific
-data/*.db
-data/*.db-journal
-backups/
-exports/
-uploads/
-logs/
+# Database
+*.db-journal
+*.db-wal
+
+# Logs
+logs/*.log
 *.log
 
-# Temporary files
-*.tmp
-*.bak
-*.backup
-.cache/
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Backups
+backups/*.db
+backups/*.sql
+
+# Exports
+exports/*.pdf
+exports/*.csv
+exports/*.xlsx
+
+# Uploads (keep structure, ignore content)
+uploads/*
+!uploads/.gitkeep
 
 # OS
 Thumbs.db
 .DS_Store
+
+# Temporary
+*.tmp
+*.bak
+*.swp
+~*
+
+# Config (keep example)
+config.json
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+
+# PyInstaller
+*.spec
+
+# Distribution
+*.exe
+*.msi
