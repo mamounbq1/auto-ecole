@@ -110,8 +110,7 @@ class SettingsWidget(QWidget):
         header = QWidget()
         header.setStyleSheet("""
             QWidget {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #667eea, stop:1 #764ba2);
+                background: #2196F3;
                 border-radius: 0px;
             }
             QLabel {
@@ -119,34 +118,29 @@ class SettingsWidget(QWidget):
                 background: transparent;
             }
         """)
-        header.setFixedHeight(80)
+        header.setFixedHeight(70)
         
         layout = QHBoxLayout(header)
-        layout.setContentsMargins(30, 20, 30, 20)
+        layout.setContentsMargins(20, 15, 20, 15)
         
-        # Titre
-        title_layout = QVBoxLayout()
-        title = QLabel("⚙️ Paramètres de l'Application")
-        title.setStyleSheet("font-size: 24px; font-weight: bold;")
-        subtitle = QLabel("Configuration complète du centre et de l'application")
-        subtitle.setStyleSheet("font-size: 14px; opacity: 0.9;")
-        title_layout.addWidget(title)
-        title_layout.addWidget(subtitle)
+        # Icône et titre
+        title = QLabel("⚙️ Paramètres")
+        title.setStyleSheet("font-size: 18px; font-weight: bold;")
         
-        layout.addLayout(title_layout)
+        layout.addWidget(title)
         layout.addStretch()
         
-        # Bouton Sauvegarder Global
-        btn_save = QPushButton("💾 Sauvegarder Tout")
+        # Bouton Sauvegarder
+        btn_save = QPushButton("💾 Sauvegarder")
         btn_save.setStyleSheet("""
             QPushButton {
                 background: white;
-                color: #667eea;
+                color: #2196F3;
                 border: none;
-                padding: 12px 24px;
-                border-radius: 6px;
+                padding: 8px 20px;
+                border-radius: 5px;
                 font-weight: bold;
-                font-size: 14px;
+                font-size: 13px;
             }
             QPushButton:hover {
                 background: #f0f0f0;
@@ -170,26 +164,29 @@ class SettingsWidget(QWidget):
         layout.setSpacing(20)
         
         # Groupe: Informations principales
-        group_main = QGroupBox("📋 Informations Principales du Centre")
+        group_main = QGroupBox("🏢 Centre")
         group_main.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
-                font-size: 14px;
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                margin-top: 12px;
-                padding-top: 12px;
+                font-size: 13px;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+                background: white;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
-                left: 12px;
-                padding: 0 8px;
+                left: 10px;
+                padding: 0 5px;
+                color: #2196F3;
             }
         """)
         
         form_main = QFormLayout(group_main)
-        form_main.setSpacing(15)
-        form_main.setContentsMargins(20, 25, 20, 20)
+        form_main.setSpacing(10)
+        form_main.setContentsMargins(15, 20, 15, 15)
+        form_main.setLabelAlignment(Qt.AlignRight)
         
         # Initialiser la section 'center' si elle n'existe pas
         if 'center' not in self.config:
@@ -222,13 +219,15 @@ class SettingsWidget(QWidget):
         # Style des inputs
         input_style = """
             QLineEdit, QTextEdit {
-                padding: 10px;
-                border: 2px solid #e0e0e0;
-                border-radius: 6px;
-                font-size: 13px;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 12px;
+                background: white;
             }
             QLineEdit:focus, QTextEdit:focus {
                 border-color: #2196F3;
+                background: #f8f9fa;
             }
         """
         for widget_input in [self.input_center_name, self.input_center_address, 
@@ -248,12 +247,13 @@ class SettingsWidget(QWidget):
         layout.addWidget(group_main)
         
         # Groupe: Informations légales
-        group_legal = QGroupBox("📜 Informations Légales et Fiscales")
+        group_legal = QGroupBox("📜 Légal")
         group_legal.setStyleSheet(group_main.styleSheet())
         
         form_legal = QFormLayout(group_legal)
-        form_legal.setSpacing(15)
-        form_legal.setContentsMargins(20, 25, 20, 20)
+        form_legal.setSpacing(10)
+        form_legal.setContentsMargins(15, 20, 15, 15)
+        form_legal.setLabelAlignment(Qt.AlignRight)
         
         self.input_center_siret = QLineEdit(self.config['center'].get('siret', ''))
         self.input_center_siret.setPlaceholderText("Numéro SIRET/ICE")
@@ -279,25 +279,26 @@ class SettingsWidget(QWidget):
         layout.addWidget(group_legal)
         
         # Groupe: Logo du centre
-        group_logo = QGroupBox("🖼️ Logo du Centre")
+        group_logo = QGroupBox("🖼️ Logo")
         group_logo.setStyleSheet(group_main.styleSheet())
         
         logo_layout = QVBoxLayout(group_logo)
-        logo_layout.setContentsMargins(20, 25, 20, 20)
-        logo_layout.setSpacing(15)
+        logo_layout.setContentsMargins(15, 20, 15, 15)
+        logo_layout.setSpacing(10)
         
         # Affichage du logo actuel
         self.logo_label = QLabel("Aucun logo défini")
         self.logo_label.setAlignment(Qt.AlignCenter)
         self.logo_label.setStyleSheet("""
             QLabel {
-                border: 2px dashed #ccc;
-                border-radius: 8px;
-                padding: 20px;
-                background: #f9f9f9;
+                border: 1px dashed #ccc;
+                border-radius: 6px;
+                padding: 15px;
+                background: #fafafa;
             }
         """)
-        self.logo_label.setMinimumHeight(150)
+        self.logo_label.setMinimumHeight(120)
+        self.logo_label.setMaximumHeight(120)
         
         # Charger le logo si existant
         logo_path = self.config.get('pdf', {}).get('company_logo')
@@ -319,14 +320,14 @@ class SettingsWidget(QWidget):
         
         btn_style = """
             QPushButton {
-                padding: 10px 20px;
+                padding: 7px 15px;
                 border: none;
-                border-radius: 6px;
+                border-radius: 4px;
                 font-weight: 500;
-                font-size: 13px;
+                font-size: 12px;
             }
             QPushButton:hover {
-                opacity: 0.9;
+                opacity: 0.85;
             }
         """
         
@@ -373,26 +374,29 @@ class SettingsWidget(QWidget):
         layout.setSpacing(20)
         
         # Groupe: Application
-        group_app = QGroupBox("📱 Paramètres de l'Application")
+        group_app = QGroupBox("📱 Application")
         group_app.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
-                font-size: 14px;
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                margin-top: 12px;
-                padding-top: 12px;
+                font-size: 13px;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+                background: white;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
-                left: 12px;
-                padding: 0 8px;
+                left: 10px;
+                padding: 0 5px;
+                color: #2196F3;
             }
         """)
         
         form_app = QFormLayout(group_app)
-        form_app.setSpacing(15)
-        form_app.setContentsMargins(20, 25, 20, 20)
+        form_app.setSpacing(10)
+        form_app.setContentsMargins(15, 20, 15, 15)
+        form_app.setLabelAlignment(Qt.AlignRight)
         
         self.input_app_name = QLineEdit(self.config.get('app', {}).get('name', ''))
         self.input_app_version = QLineEdit(self.config.get('app', {}).get('version', ''))
@@ -411,13 +415,15 @@ class SettingsWidget(QWidget):
         
         input_style = """
             QLineEdit, QComboBox {
-                padding: 10px;
-                border: 2px solid #e0e0e0;
-                border-radius: 6px;
-                font-size: 13px;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 12px;
+                background: white;
             }
             QLineEdit:focus, QComboBox:focus {
                 border-color: #2196F3;
+                background: #f8f9fa;
             }
         """
         
@@ -433,12 +439,13 @@ class SettingsWidget(QWidget):
         layout.addWidget(group_app)
         
         # Groupe: Horaires
-        group_hours = QGroupBox("🕐 Horaires de Travail")
+        group_hours = QGroupBox("🕐 Horaires")
         group_hours.setStyleSheet(group_app.styleSheet())
         
         form_hours = QFormLayout(group_hours)
-        form_hours.setSpacing(15)
-        form_hours.setContentsMargins(20, 25, 20, 20)
+        form_hours.setSpacing(10)
+        form_hours.setContentsMargins(15, 20, 15, 15)
+        form_hours.setLabelAlignment(Qt.AlignRight)
         
         self.input_start_time = QLineEdit(self.config.get('working_hours', {}).get('start', '08:00'))
         self.input_end_time = QLineEdit(self.config.get('working_hours', {}).get('end', '18:00'))
@@ -461,8 +468,9 @@ class SettingsWidget(QWidget):
         group_db.setStyleSheet(group_app.styleSheet())
         
         form_db = QFormLayout(group_db)
-        form_db.setSpacing(15)
-        form_db.setContentsMargins(20, 25, 20, 20)
+        form_db.setSpacing(10)
+        form_db.setContentsMargins(15, 20, 15, 15)
+        form_db.setLabelAlignment(Qt.AlignRight)
         
         self.input_db_path = QLineEdit(self.config.get('database', {}).get('path', ''))
         self.check_backup_start = QCheckBox("Sauvegarde automatique au démarrage")
@@ -503,26 +511,29 @@ class SettingsWidget(QWidget):
         layout.setSpacing(20)
         
         # Groupe: Formats
-        group_formats = QGroupBox("📋 Formats d'Affichage")
+        group_formats = QGroupBox("📋 Formats")
         group_formats.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
-                font-size: 14px;
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                margin-top: 12px;
-                padding-top: 12px;
+                font-size: 13px;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+                background: white;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
-                left: 12px;
-                padding: 0 8px;
+                left: 10px;
+                padding: 0 5px;
+                color: #2196F3;
             }
         """)
         
         form_formats = QFormLayout(group_formats)
-        form_formats.setSpacing(15)
-        form_formats.setContentsMargins(20, 25, 20, 20)
+        form_formats.setSpacing(10)
+        form_formats.setContentsMargins(15, 20, 15, 15)
+        form_formats.setLabelAlignment(Qt.AlignRight)
         
         self.combo_date_format = QComboBox()
         self.combo_date_format.addItems(['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'])
@@ -542,13 +553,15 @@ class SettingsWidget(QWidget):
         
         input_style = """
             QLineEdit, QComboBox, QSpinBox {
-                padding: 10px;
-                border: 2px solid #e0e0e0;
-                border-radius: 6px;
-                font-size: 13px;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 12px;
+                background: white;
             }
             QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
                 border-color: #2196F3;
+                background: #f8f9fa;
             }
         """
         
@@ -564,12 +577,13 @@ class SettingsWidget(QWidget):
         layout.addWidget(group_formats)
         
         # Groupe: PDF
-        group_pdf = QGroupBox("📄 Paramètres PDF")
+        group_pdf = QGroupBox("📄 PDF")
         group_pdf.setStyleSheet(group_formats.styleSheet())
         
         form_pdf = QFormLayout(group_pdf)
-        form_pdf.setSpacing(15)
-        form_pdf.setContentsMargins(20, 25, 20, 20)
+        form_pdf.setSpacing(10)
+        form_pdf.setContentsMargins(15, 20, 15, 15)
+        form_pdf.setLabelAlignment(Qt.AlignRight)
         
         self.combo_page_size = QComboBox()
         self.combo_page_size.addItems(['A4', 'Letter', 'A5'])
@@ -587,12 +601,13 @@ class SettingsWidget(QWidget):
         layout.addWidget(group_pdf)
         
         # Groupe: Rapports
-        group_reports = QGroupBox("📊 Paramètres des Rapports")
+        group_reports = QGroupBox("📊 Rapports")
         group_reports.setStyleSheet(group_formats.styleSheet())
         
         form_reports = QFormLayout(group_reports)
-        form_reports.setSpacing(15)
-        form_reports.setContentsMargins(20, 25, 20, 20)
+        form_reports.setSpacing(10)
+        form_reports.setContentsMargins(15, 20, 15, 15)
+        form_reports.setLabelAlignment(Qt.AlignRight)
         
         self.input_fiscal_year = QLineEdit(self.config.get('reports', {}).get('fiscal_year_start', '01-01'))
         self.input_fiscal_year.setPlaceholderText("MM-DD")
@@ -624,11 +639,13 @@ class SettingsWidget(QWidget):
         
         # Info card
         info_card = QLabel("""
-        <div style='background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 4px solid #2196F3;'>
-            <b>💡 Informations importantes</b><br/>
-            • Les sauvegardes automatiques sont effectuées selon l'intervalle configuré<br/>
-            • Conservez toujours au moins 3 sauvegardes différentes<br/>
-            • Testez régulièrement vos sauvegardes en les restaurant
+        <div style='background: #e3f2fd; padding: 12px; border-radius: 6px; border-left: 3px solid #2196F3;'>
+            <b>💡 Conseils</b><br/>
+            <span style='font-size: 11px;'>
+            • Sauvegardez régulièrement<br/>
+            • Conservez 3+ sauvegardes<br/>
+            • Testez les restaurations
+            </span>
         </div>
         """)
         info_card.setWordWrap(True)
@@ -639,51 +656,53 @@ class SettingsWidget(QWidget):
         group_backup.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
-                font-size: 14px;
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                margin-top: 12px;
-                padding-top: 12px;
+                font-size: 13px;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+                background: white;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
-                left: 12px;
-                padding: 0 8px;
+                left: 10px;
+                padding: 0 5px;
+                color: #2196F3;
             }
         """)
         
         backup_layout = QVBoxLayout(group_backup)
-        backup_layout.setContentsMargins(20, 25, 20, 20)
-        backup_layout.setSpacing(15)
+        backup_layout.setContentsMargins(15, 20, 15, 15)
+        backup_layout.setSpacing(10)
         
         btn_style = """
             QPushButton {
-                padding: 12px 24px;
+                padding: 10px 15px;
                 border: none;
-                border-radius: 6px;
+                border-radius: 5px;
                 font-weight: 500;
-                font-size: 13px;
+                font-size: 12px;
                 text-align: left;
             }
             QPushButton:hover {
-                opacity: 0.9;
+                opacity: 0.85;
             }
         """
         
         # Bouton: Créer une sauvegarde
-        btn_backup_now = QPushButton("💾 Créer une sauvegarde maintenant")
+        btn_backup_now = QPushButton("💾 Créer sauvegarde")
         btn_backup_now.setStyleSheet(btn_style + "background: #4CAF50; color: white;")
         btn_backup_now.clicked.connect(self.create_backup)
         backup_layout.addWidget(btn_backup_now)
         
         # Bouton: Restaurer une sauvegarde
-        btn_restore = QPushButton("📥 Restaurer depuis une sauvegarde")
+        btn_restore = QPushButton("📥 Restaurer")
         btn_restore.setStyleSheet(btn_style + "background: #FF9800; color: white;")
         btn_restore.clicked.connect(self.restore_backup)
         backup_layout.addWidget(btn_restore)
         
         # Bouton: Ouvrir dossier de sauvegardes
-        btn_open_folder = QPushButton("📁 Ouvrir le dossier de sauvegardes")
+        btn_open_folder = QPushButton("📁 Dossier sauvegardes")
         btn_open_folder.setStyleSheet(btn_style + "background: #2196F3; color: white;")
         btn_open_folder.clicked.connect(self.open_backup_folder)
         backup_layout.addWidget(btn_open_folder)
@@ -691,43 +710,43 @@ class SettingsWidget(QWidget):
         layout.addWidget(group_backup)
         
         # Groupe: Données
-        group_data = QGroupBox("🗄️ Gestion des Données")
+        group_data = QGroupBox("🗄️ Données")
         group_data.setStyleSheet(group_backup.styleSheet())
         
         data_layout = QVBoxLayout(group_data)
-        data_layout.setContentsMargins(20, 25, 20, 20)
-        data_layout.setSpacing(15)
+        data_layout.setContentsMargins(15, 20, 15, 15)
+        data_layout.setSpacing(10)
         
         # Bouton: Export des données
-        btn_export = QPushButton("📤 Exporter toutes les données (CSV)")
+        btn_export = QPushButton("📤 Exporter CSV")
         btn_export.setStyleSheet(btn_style + "background: #9C27B0; color: white;")
         btn_export.clicked.connect(self.export_all_data)
         data_layout.addWidget(btn_export)
         
         # Bouton: Optimiser la base
-        btn_optimize = QPushButton("⚡ Optimiser la base de données")
+        btn_optimize = QPushButton("⚡ Optimiser BD")
         btn_optimize.setStyleSheet(btn_style + "background: #00BCD4; color: white;")
         btn_optimize.clicked.connect(self.optimize_database)
         data_layout.addWidget(btn_optimize)
         
         # Bouton: Synchroniser les statuts
-        btn_sync = QPushButton("🔄 Synchroniser tous les statuts")
+        btn_sync = QPushButton("🔄 Synchroniser statuts")
         btn_sync.setStyleSheet(btn_style + "background: #FF9800; color: white;")
         btn_sync.clicked.connect(self.sync_all_statuses)
         data_layout.addWidget(btn_sync)
         
         # Avertissement pour actions dangereuses
         warning_card = QLabel("""
-        <div style='background: #ffebee; padding: 15px; border-radius: 8px; border-left: 4px solid #f44336;'>
-            <b>⚠️ Attention - Actions dangereuses</b><br/>
-            Les actions ci-dessous sont irréversibles. Assurez-vous d'avoir une sauvegarde avant de continuer.
+        <div style='background: #ffebee; padding: 10px; border-radius: 6px; border-left: 3px solid #f44336;'>
+            <b>⚠️ Danger</b><br/>
+            <span style='font-size: 11px;'>Actions irréversibles</span>
         </div>
         """)
         warning_card.setWordWrap(True)
         data_layout.addWidget(warning_card)
         
         # Bouton: Réinitialiser config
-        btn_reset_config = QPushButton("🔄 Réinitialiser la configuration")
+        btn_reset_config = QPushButton("🔄 Réinitialiser config")
         btn_reset_config.setStyleSheet(btn_style + "background: #FF5722; color: white;")
         btn_reset_config.clicked.connect(self.reset_config)
         data_layout.addWidget(btn_reset_config)
