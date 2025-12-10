@@ -23,7 +23,6 @@ from collections import defaultdict
 from src.controllers.exam_controller import ExamController
 from src.controllers.student_controller import StudentController
 from src.models import ExamType, ExamResult, get_session, Exam
-from src.views.widgets.common_widgets import create_center_header_widget
 
 
 class ExamsDashboard(QWidget):
@@ -70,10 +69,6 @@ class ExamsDashboard(QWidget):
         content_layout = QVBoxLayout(container)
         content_layout.setSpacing(20)
         content_layout.setContentsMargins(20, 20, 20, 20)
-        
-        # En-tête du centre (compact)
-        center_header = create_center_header_widget(compact=True)
-        content_layout.addWidget(center_header)
         
         # En-tête avec titre et sélecteur de période
         header = QHBoxLayout()
@@ -212,44 +207,24 @@ class ExamsDashboard(QWidget):
         card = QFrame()
         card.setStyleSheet(f"""
             QFrame {{
-                background: qlineargradient(
-                    x1:0, y1:0, x2:1, y2:1,
-                    stop:0 {color}, stop:1 {self.darken_color(color)}
-                );
-                border-radius: 12px;
-                border: none;
+                background-color: white;
+                border-left: 4px solid {color};
+                border-radius: 8px;
             }}
         """)
-        card.setMinimumHeight(120)
         
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(20, 15, 20, 15)
+        layout.setContentsMargins(15, 15, 15, 15)
         layout.setSpacing(8)
-        
-        # Icon + Label
-        top_row = QHBoxLayout()
-        
-        icon_label = QLabel(icon)
-        icon_label.setFont(QFont("Segoe UI", 24))
-        icon_label.setStyleSheet("color: white; border: none;")
-        top_row.addWidget(icon_label)
-        
-        top_row.addStretch()
-        layout.addLayout(top_row)
         
         # Value
         value_label = QLabel(str(value))
-        value_label.setFont(QFont("Segoe UI", 32, QFont.Weight.Bold))
-        value_label.setStyleSheet("color: white; border: none;")
-        value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        value_label.setStyleSheet(f"color: {color}; font-size: 28px; font-weight: bold;")
         layout.addWidget(value_label)
         
         # Label
-        text_label = QLabel(label)
-        text_label.setFont(QFont("Segoe UI", 11))
-        text_label.setStyleSheet("color: rgba(255, 255, 255, 0.9); border: none;")
-        text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        text_label.setWordWrap(True)
+        text_label = QLabel(label.replace(icon + " ", ""))
+        text_label.setStyleSheet("color: #7f8c8d; font-size: 13px;")
         layout.addWidget(text_label)
         
         return card
