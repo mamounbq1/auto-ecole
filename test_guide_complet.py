@@ -147,6 +147,7 @@ def test_1_liens_rapides(result):
     # Test: Capacité à créer une session
     print("\n🚗 NOUVELLE SESSION")
     try:
+        from src.models import SessionType
         students = StudentController.get_all_students()
         instructors = InstructorController.get_all_instructors()
         vehicles = VehicleController.get_all_vehicles()
@@ -159,7 +160,7 @@ def test_1_liens_rapides(result):
                 'vehicle_id': vehicles[0].id,
                 'start_datetime': now,
                 'end_datetime': now + timedelta(hours=1),
-                'session_type': 'conduite'
+                'session_type': SessionType.PRACTICAL_DRIVING
             }
             new_session = SessionController.create_session(test_session)
             result.add_test("Création session fonctionnelle", new_session is not None)
