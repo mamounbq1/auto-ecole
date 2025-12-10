@@ -410,28 +410,32 @@ class DashboardProfessionalWidget(QWidget):
             }
             QScrollBar:vertical {
                 border: none;
-                background: #f0f0f0;
-                width: 4px;
+                background: #e0e0e0;
+                width: 5px;
                 border-radius: 2px;
                 margin: 0px;
             }
             QScrollBar::handle:vertical {
-                background: #b0b0b0;
+                background: #a0a0a0;
                 border-radius: 2px;
                 min-height: 20px;
             }
             QScrollBar::handle:vertical:hover {
-                background: #909090;
+                background: #808080;
             }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0px;
+            }
+            /* Force scrollbar à toujours apparaître */
+            QScrollArea > QWidget > QWidget { 
+                background-color: transparent; 
             }
         """)
         
         # Conteneur des alertes ultra-compact
         alerts_container = QWidget()
         self.alerts_layout = QVBoxLayout(alerts_container)
-        self.alerts_layout.setSpacing(4)  # Espacement minimal
+        self.alerts_layout.setSpacing(1)  # Espacement 1px entre cartes
         self.alerts_layout.setContentsMargins(0, 0, 4, 0)  # Marges minimales
         self.alerts_layout.addStretch()
         
@@ -458,8 +462,8 @@ class DashboardProfessionalWidget(QWidget):
         """)
         alert.setWordWrap(True)
         alert.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-        alert.setMinimumHeight(30)  # Hauteur minimale
-        alert.setMaximumHeight(50)  # Hauteur maximale réduite
+        alert.setMinimumHeight(24)  # Hauteur minimale -20%
+        alert.setMaximumHeight(40)  # Hauteur maximale -20%
         # Insérer avant le stretch
         self.alerts_layout.insertWidget(self.alerts_layout.count() - 1, alert)
         
