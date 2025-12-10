@@ -457,10 +457,10 @@ class StudentsEnhancedWidget(QWidget):
     def create_table(self, layout):
         """Créer le tableau"""
         self.table = QTableWidget()
-        self.table.setColumnCount(9)
+        self.table.setColumnCount(10)
         self.table.setHorizontalHeaderLabels([
             "ID", "Nom Complet", "CIN", "Téléphone", "Permis",
-            "Statut", "Heures", "Solde (DH)", "Actions"
+            "Statut", "Heures", "Prochaine Séance", "Solde (DH)", "Actions"
         ])
         
         # Configuration
@@ -568,17 +568,44 @@ class StudentsEnhancedWidget(QWidget):
             license_val = student.license_type if student.license_type else "N/A"
             self.table.setItem(row, 4, QTableWidgetItem(str(license_val)))
             
-            # Statut
-            status_item = QTableWidgetItem(student.status.value.capitalize() if student.status else "N/A")
-            if student.status == StudentStatus.ACTIVE:
-                status_item.setForeground(QColor("#27ae60"))
-            elif student.status == StudentStatus.SUSPENDED:
-                status_item.setForeground(QColor("#e74c3c"))
+            # Statut avec badges colorés
+            status_icons = {
+                StudentStatus.ACTIVE: "🟢",
+                StudentStatus.PENDING: "🟡",
+                StudentStatus.SUSPENDED: "🔴",
+                StudentStatus.GRADUATED: "🎓",
+                StudentStatus.ABANDONED: "⚫"
+            }
+            status_colors = {
+                StudentStatus.ACTIVE: "#27ae60",
+                StudentStatus.PENDING: "#f39c12",
+                StudentStatus.SUSPENDED: "#e74c3c",
+                StudentStatus.GRADUATED: "#3498db",
+                StudentStatus.ABANDONED: "#95a5a6"
+            }
+            status_icon = status_icons.get(student.status, "❓")
+            status_text = f"{status_icon} {student.status.value.capitalize()}" if student.status else "N/A"
+            status_item = QTableWidgetItem(status_text)
+            status_item.setForeground(QColor(status_colors.get(student.status, "#2c3e50")))
+            font = QFont()
+            font.setBold(True)
+            status_item.setFont(font)
             self.table.setItem(row, 5, status_item)
             
             # Heures
             hours_text = f"{student.hours_completed}/{student.hours_planned}"
             self.table.setItem(row, 6, QTableWidgetItem(hours_text))
+            
+            # Prochaine séance (à implémenter - pour l'instant placeholder)
+            try:
+                from datetime import datetime, timedelta
+                # TODO: Récupérer vraiment la prochaine séance depuis la DB
+                next_session_text = "—"  # Placeholder
+                next_session_item = QTableWidgetItem(next_session_text)
+                next_session_item.setForeground(QColor("#7f8c8d"))
+                self.table.setItem(row, 7, next_session_item)
+            except:
+                self.table.setItem(row, 7, QTableWidgetItem("—"))
             
             # Solde (Balance = total_paid - total_due, negative = dette)
             # Simple display: just +/- amount, no text
@@ -588,7 +615,10 @@ class StudentsEnhancedWidget(QWidget):
                 balance_text = f"{student.balance:+,.2f}"
             balance_item = QTableWidgetItem(balance_text)
             balance_item.setForeground(QColor("#e74c3c") if student.balance < 0 else QColor("#27ae60"))
-            self.table.setItem(row, 7, balance_item)
+            font = QFont()
+            font.setBold(True)
+            balance_item.setFont(font)
+            self.table.setItem(row, 8, balance_item)
             
             # Actions
             actions_widget = QWidget()
@@ -631,13 +661,14 @@ class StudentsEnhancedWidget(QWidget):
             actions_layout.addWidget(contract_btn)
             actions_layout.addWidget(delete_btn)
             
-            self.table.setCellWidget(row, 8, actions_widget)
+            self.table.setCellWidget(row, 9, actions_widget)
     
     def add_student(self):
-        """Ajouter un élève avec le formulaire moderne à 6 onglets"""
-        dialog = StudentDetailViewDialog(student=None, parent=self, read_only=False)
-        if dialog.exec():
-            self.load_students()
+        """Ajouter un élève avec le formulaire simplifié"""
+        from src.views.widgets.student_form_simplified import StudentFormSimplified
+        dialog = StudentFormSimplified(student=None, parent=self)
+        dialog.student_saved.connect(lambda student: self.load_students())
+        dialog.exec()
     
     def edit_student(self, student):
         """Modifier un élève avec vue complète"""
