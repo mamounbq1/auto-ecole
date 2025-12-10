@@ -415,6 +415,7 @@ class SessionDetailViewDialog(QDialog):
         
         self.vehicle_conflict_label = QLabel()
         self.vehicle_conflict_label.setWordWrap(True)
+        self.vehicle_conflict_label.setStyleSheet("padding: 5px;")
         self.vehicle_combo.currentIndexChanged.connect(self.check_conflicts)
         
         vehicle_layout.addWidget(self.vehicle_combo)
@@ -667,7 +668,11 @@ class SessionDetailViewDialog(QDialog):
         # Get current selection
         instructor_id = self.instructor_combo.currentData()
         vehicle_id = self.vehicle_combo.currentData()
-        student_id = self.student_combo.currentData()
+        
+        # Get student_id only if in edit mode (has student_combo)
+        student_id = None
+        if hasattr(self, 'student_combo'):
+            student_id = self.student_combo.currentData()
         
         if not instructor_id and not vehicle_id and not student_id:
             return
@@ -902,3 +907,4 @@ class SessionDetailViewDialog(QDialog):
             self.accept()
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Erreur lors de l'enregistrement:\n{str(e)}")
+")
