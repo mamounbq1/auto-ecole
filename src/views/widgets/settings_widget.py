@@ -725,23 +725,30 @@ class SettingsWidget(QWidget):
             QFrame {
                 background: #ffebee;
                 border-radius: 8px;
-                border: 1px solid #f44336;
-                padding: 15px;
+                border: 2px solid #f44336;
             }
         """)
-        danger_layout = QVBoxLayout(danger_section)
-        danger_layout.setSpacing(10)
+        danger_layout = QHBoxLayout(danger_section)
+        danger_layout.setContentsMargins(20, 15, 20, 15)
+        danger_layout.setSpacing(15)
+        
+        # Icône et texte
+        text_layout = QVBoxLayout()
+        text_layout.setSpacing(5)
         
         danger_title = QLabel("⚠️ Zone Dangereuse")
-        danger_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #f44336;")
-        danger_layout.addWidget(danger_title)
+        danger_title.setStyleSheet("font-size: 13px; font-weight: bold; color: #f44336;")
+        text_layout.addWidget(danger_title)
         
-        danger_desc = QLabel("Les actions ci-dessous sont irréversibles. Assurez-vous d'avoir une sauvegarde avant de continuer.")
-        danger_desc.setWordWrap(True)
-        danger_desc.setStyleSheet("font-size: 11px; color: #666;")
-        danger_layout.addWidget(danger_desc)
+        danger_desc = QLabel("Actions irréversibles - Sauvegardez avant de continuer")
+        danger_desc.setStyleSheet("font-size: 10px; color: #666;")
+        text_layout.addWidget(danger_desc)
         
-        btn_reset = QPushButton("🔄 Réinitialiser la Configuration")
+        danger_layout.addLayout(text_layout)
+        danger_layout.addStretch()
+        
+        btn_reset = QPushButton("🔄 Réinitialiser Configuration")
+        btn_reset.setFixedWidth(200)
         btn_reset.setStyleSheet("""
             QPushButton {
                 background: #f44336;
@@ -750,7 +757,7 @@ class SettingsWidget(QWidget):
                 padding: 10px 20px;
                 border-radius: 5px;
                 font-weight: bold;
-                font-size: 12px;
+                font-size: 11px;
             }
             QPushButton:hover {
                 background: #d32f2f;
@@ -782,61 +789,74 @@ class SettingsWidget(QWidget):
     def _create_action_card(self, icon, title, description, color, callback):
         """Crée une card d'action cliquable"""
         card = QFrame()
+        card.setFixedHeight(180)
         card.setStyleSheet(f"""
             QFrame {{
                 background: white;
                 border-radius: 8px;
-                border: 1px solid #e0e0e0;
+                border: 2px solid #e0e0e0;
             }}
             QFrame:hover {{
                 border: 2px solid {color};
+                background: #fafafa;
             }}
         """)
         card.setCursor(Qt.PointingHandCursor)
         
         card_layout = QVBoxLayout(card)
-        card_layout.setContentsMargins(20, 20, 20, 20)
-        card_layout.setSpacing(10)
+        card_layout.setContentsMargins(15, 15, 15, 15)
+        card_layout.setSpacing(8)
         
         # Icône
         icon_label = QLabel(icon)
-        icon_label.setStyleSheet(f"font-size: 36px; color: {color};")
+        icon_label.setStyleSheet(f"font-size: 40px;")
         icon_label.setAlignment(Qt.AlignCenter)
         card_layout.addWidget(icon_label)
         
         # Titre
         title_label = QLabel(title)
-        title_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #333;")
+        title_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {color};")
         title_label.setAlignment(Qt.AlignCenter)
         card_layout.addWidget(title_label)
         
         # Description
         desc_label = QLabel(description)
-        desc_label.setStyleSheet("font-size: 11px; color: #666;")
+        desc_label.setStyleSheet("font-size: 10px; color: #777;")
         desc_label.setAlignment(Qt.AlignCenter)
         desc_label.setWordWrap(True)
+        desc_label.setFixedHeight(30)
         card_layout.addWidget(desc_label)
         
         # Bouton
         btn = QPushButton("Exécuter")
+        btn.setFixedHeight(32)
         btn.setStyleSheet(f"""
             QPushButton {{
                 background: {color};
                 color: white;
                 border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
+                padding: 6px 16px;
+                border-radius: 5px;
                 font-weight: bold;
                 font-size: 11px;
             }}
             QPushButton:hover {{
-                opacity: 0.9;
+                background: {self._darken_color(color)};
             }}
         """)
         btn.clicked.connect(callback)
         card_layout.addWidget(btn)
         
         return card
+    
+    def _darken_color(self, hex_color):
+        """Assombrit une couleur hexadécimale de 10%"""
+        hex_color = hex_color.lstrip('#')
+        r, g, b = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+        r = max(0, int(r * 0.85))
+        g = max(0, int(g * 0.85))
+        b = max(0, int(b * 0.85))
+        return f"#{r:02x}{g:02x}{b:02x}"
     
     def choose_logo(self):
         """Permet de choisir un fichier logo"""
