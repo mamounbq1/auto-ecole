@@ -16,39 +16,17 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Virtual Environment
 venv/
 ENV/
 env/
-
-# Base de données
-*.db
-*.sqlite
-*.sqlite3
-data/*.db
-data/*.sqlite
-
-# Sauvegardes
-backups/*.zip
-backups/*.sql
-backups/*.db
-
-# Exports
-exports/*.csv
-exports/*.pdf
-exports/*.xlsx
-
-# Logs
-logs/*.log
-*.log
-
-# Configuration locale
-config.local.json
-.env
-.env.local
 
 # IDE
 .vscode/
@@ -58,28 +36,21 @@ config.local.json
 *~
 .DS_Store
 
-# Tests
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
+# Project specific
+data/*.db
+data/*.db-journal
+backups/
+exports/
+uploads/
+logs/
+*.log
 
-# Packaging
-build/
-dist/
-*.spec
-
-# Documentation build
-docs/_build/
+# Temporary files
+*.tmp
+*.bak
+*.backup
+.cache/
 
 # OS
 Thumbs.db
 .DS_Store
-desktop.ini
-
-# Fichiers temporaires
-*.tmp
-*.bak
-*.cache
-temp/
-tmp/
