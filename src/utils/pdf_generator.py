@@ -508,6 +508,229 @@ class PDFGenerator:
             error_msg = f"Erreur lors de la génération de la convocation : {str(e)}"
             logger.error(error_msg)
             return False, error_msg
+    
+    def generate_professional_receipt(self, receipt_data: Dict[str, Any]) -> tuple[bool, str]:
+        """
+        Générer un reçu de paiement PDF professionnel style GenSpark
+        
+        Args:
+            receipt_data: Dictionnaire avec les données du reçu
+                - receipt_number: Numéro du reçu
+                - date: Date du paiement
+                - student_name: Nom de l'élève
+                - student_cin: CIN de l'élève
+                - student_phone: Téléphone de l'élève
+                - amount: Montant payé
+                - payment_method: Méthode de paiement
+                - description: Description
+                - validated_by: Validé par
+        
+        Returns:
+            Tuple (success, filepath_or_error)
+        """
+        try:
+            # Nom du fichier
+            receipt_num = receipt_data.get('receipt_number', 'UNKNOWN')
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"recu_{receipt_num}_{timestamp}.pdf"
+            filepath = os.path.join(self.output_dir, filename)
+            
+            # Créer le document PDF
+            doc = SimpleDocTemplate(
+                filepath,
+                pagesize=A4,
+                rightMargin=2*cm,
+                leftMargin=2*cm,
+                topMargin=2*cm,
+                bottomMargin=2*cm
+            )
+            
+            story = []
+            
+            # === EN-TÊTE PROFESSIONNEL ===
+            self._create_center_header(story, "")
+            
+            # Ligne de séparation
+            story.append(Spacer(1, 0.5*cm))
+            line_data = [['_' * 100]]
+            line_table = Table(line_data, colWidths=[16*cm])
+            line_table.setStyle(TableStyle([
+                ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#667eea')),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ]))
+            story.append(line_table)
+            story.append(Spacer(1, 0.5*cm))
+            
+            # Titre du document
+            title = Paragraph(
+                "<b>REÇU DE PAIEMENT</b>",
+                ParagraphStyle(
+                    name='ReceiptTitle',
+                    parent=self.styles['CustomTitle'],
+                    fontSize=22,
+                    textColor=colors.HexColor('#667eea'),
+                    spaceAfter=20
+                )
+            )
+            story.append(title)
+            
+            # === MÉTADONNÉES (N° Reçu et Date) ===
+            meta_data = [
+                ['N° REÇU', receipt_data.get('receipt_number', 'N/A')],
+                ['DATE', receipt_data.get('date', 'N/A')]
+            ]
+            meta_table = Table(meta_data, colWidths=[8*cm, 8*cm])
+            meta_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f8f9fa')),
+                ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#7f8c8d')),
+                ('TEXTCOLOR', (1, 0), (1, -1), colors.HexColor('#2c3e50')),
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('FONTNAME', (1, 0), (1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 11),
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('TOPPADDING', (0, 0), (-1, -1), 10),
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#e0e0e0')),
+            ]))
+            story.append(meta_table)
+            story.append(Spacer(1, 0.8*cm))
+            
+            # === SECTION ÉLÈVE ===
+            section_title = Paragraph(
+                "<b>👤 INFORMATIONS ÉLÈVE</b>",
+                self.styles['SectionHeader']
+            )
+            story.append(section_title)
+            
+            student_data = [
+                ['Nom Complet', receipt_data.get('student_name', 'N/A')],
+                ['CIN', receipt_data.get('student_cin', 'N/A')],
+                ['Téléphone', receipt_data.get('student_phone', 'N/A')]
+            ]
+            student_table = Table(student_data, colWidths=[5*cm, 11*cm])
+            student_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#ecf0f1')),
+                ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#555555')),
+                ('TEXTCOLOR', (1, 0), (1, -1), colors.HexColor('#2c3e50')),
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('LINEBELOW', (0, 0), (-1, -2), 0.5, colors.HexColor('#dee2e6')),
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#bdc3c7')),
+            ]))
+            story.append(student_table)
+            story.append(Spacer(1, 0.8*cm))
+            
+            # === MONTANT (BOÎTE VERTE EN ÉVIDENCE) ===
+            amount = float(receipt_data.get('amount', 0))
+            amount_formatted = f"{amount:,.2f}".replace(',', ' ')
+            
+            amount_data = [[
+                Paragraph(
+                    f"<para align=center><font size=14 color='white'><b>MONTANT PAYÉ</b></font><br/>"
+                    f"<font size=32 color='white'><b>{amount_formatted} DH</b></font></para>",
+                    self.styles['Normal']
+                )
+            ]]
+            amount_table = Table(amount_data, colWidths=[16*cm])
+            amount_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#27ae60')),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('TOPPADDING', (0, 0), (-1, -1), 20),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 20),
+                ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#229954')),
+            ]))
+            story.append(amount_table)
+            story.append(Spacer(1, 0.8*cm))
+            
+            # === DÉTAILS DU PAIEMENT ===
+            details_title = Paragraph(
+                "<b>💳 DÉTAILS DU PAIEMENT</b>",
+                self.styles['SectionHeader']
+            )
+            story.append(details_title)
+            
+            payment_method = receipt_data.get('payment_method', 'N/A').replace('_', ' ').title()
+            description = receipt_data.get('description', 'Paiement formation')
+            validated_by = receipt_data.get('validated_by', 'Administration')
+            
+            details_data = [
+                ['Mode de paiement', payment_method],
+                ['Description', description],
+                ['Validé par', validated_by]
+            ]
+            details_table = Table(details_data, colWidths=[5*cm, 11*cm])
+            details_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#ecf0f1')),
+                ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#555555')),
+                ('TEXTCOLOR', (1, 0), (1, -1), colors.HexColor('#2c3e50')),
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('LINEBELOW', (0, 0), (-1, -2), 0.5, colors.HexColor('#dee2e6')),
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#bdc3c7')),
+            ]))
+            story.append(details_table)
+            story.append(Spacer(1, 1.5*cm))
+            
+            # === SIGNATURES ===
+            signature_data = [
+                ['Signature de l\'élève', 'Cachet de l\'auto-école'],
+                ['', ''],
+                ['', ''],
+                ['Lu et approuvé', 'Signature et cachet']
+            ]
+            signature_table = Table(signature_data, colWidths=[8*cm, 8*cm], rowHeights=[0.5*cm, 2*cm, 0.3*cm, 0.5*cm])
+            signature_table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTNAME', (0, 3), (-1, 3), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                ('FONTSIZE', (0, 3), (-1, 3), 9),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
+                ('TEXTCOLOR', (0, 3), (-1, 3), colors.HexColor('#7f8c8d')),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+                ('VALIGN', (0, 3), (-1, 3), 'TOP'),
+                ('LINEABOVE', (0, 3), (-1, 3), 1, colors.HexColor('#2c3e50')),
+            ]))
+            story.append(signature_table)
+            story.append(Spacer(1, 1*cm))
+            
+            # === PIED DE PAGE ===
+            footer_text = Paragraph(
+                f"<para align=center>"
+                f"<font size=9 color='#7f8c8d'><b>Merci pour votre confiance !</b><br/>"
+                f"Ce reçu est valable sans signature ni cachet<br/>"
+                f"<font size=8>Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</font></font>"
+                f"</para>",
+                self.styles['Normal']
+            )
+            story.append(footer_text)
+            
+            # Générer le PDF
+            doc.build(story)
+            
+            logger.info(f"Reçu PDF professionnel généré : {filepath}")
+            return True, filepath
+            
+        except Exception as e:
+            error_msg = f"Erreur lors de la génération du reçu PDF : {str(e)}"
+            logger.error(error_msg)
+            return False, error_msg
 
 
 # Fonction globale

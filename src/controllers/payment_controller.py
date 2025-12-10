@@ -131,7 +131,7 @@ class PaymentController:
     @staticmethod
     def generate_receipt_pdf(payment_id: int) -> tuple[bool, str]:
         """
-        Générer un reçu PDF pour un paiement
+        Générer un reçu PDF professionnel pour un paiement
         
         Args:
             payment_id: ID du paiement
@@ -157,17 +157,14 @@ class PaymentController:
                 'student_phone': student.phone,
                 'amount': payment.amount,
                 'payment_method': payment.payment_method.value,
-                'description': payment.description or '',
-                'validated_by': payment.validated_by or '',
+                'description': payment.description or 'Paiement formation',
+                'validated_by': payment.validated_by or 'Administration',
             }
             
-            # Générer le HTML du reçu
-            export_manager = get_export_manager()
-            receipt_html = export_manager.generate_receipt_html(receipt_data)
-            
-            # Exporter vers HTML/PDF
-            filename = f"recu_{payment.receipt_number}"
-            return export_manager.export_to_pdf(receipt_html, filename, "Reçu de Paiement")
+            # Générer le PDF professionnel avec ReportLab
+            from src.utils.pdf_generator import get_pdf_generator
+            pdf_gen = get_pdf_generator()
+            return pdf_gen.generate_professional_receipt(receipt_data)
             
         except Exception as e:
             error_msg = f"Erreur lors de la génération du reçu : {str(e)}"
