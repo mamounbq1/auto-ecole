@@ -779,10 +779,52 @@ class DashboardProfessionalWidget(QWidget):
                 "#95a5a6"
             )
         
-        # 3. Documents expirés - Module Documents supprimé
-        # Fonctionnalité désactivée
+        # 3. Examens dans les 3 prochains jours
+        from src.controllers import ExamController
+        try:
+            from datetime import date
+            today = date.today()
+            three_days_later = today + timedelta(days=3)
+            
+            exams = ExamController.get_all_exams()
+            upcoming_exams = [
+                e for e in exams 
+                if e.scheduled_date and today <= e.scheduled_date <= three_days_later
+            ]
+            
+            if upcoming_exams:
+                self.add_alert(
+                    "📝",
+                    f"{len(upcoming_exams)} examen(s) dans les 3 prochains jours",
+                    "#e67e22"
+                )
+        except:
+            pass
         
-        # 4. Maintenance véhicules
+        # 4. Véhicules - Assurance/Visite technique expirante (30 jours)
+        from src.controllers import VehicleController
+        try:
+            vehicles = VehicleController.get_all_vehicles()
+            today = date.today()
+            thirty_days_later = today + timedelta(days=30)
+            
+            expiring_vehicles = []
+            for v in vehicles:
+                if v.insurance_expiry and today <= v.insurance_expiry <= thirty_days_later:
+                    expiring_vehicles.append(f"{v.make} {v.model} (assurance)")
+                if v.inspection_expiry and today <= v.inspection_expiry <= thirty_days_later:
+                    expiring_vehicles.append(f"{v.make} {v.model} (visite technique)")
+            
+            if expiring_vehicles:
+                self.add_alert(
+                    "🚗",
+                    f"{len(expiring_vehicles)} document(s) véhicule expire(nt) < 30j",
+                    "#e67e22"
+                )
+        except:
+            pass
+        
+        # 5. Maintenance véhicules
         from src.controllers import VehicleController
         try:
             vehicles = VehicleController.get_all_vehicles()
@@ -796,7 +838,7 @@ class DashboardProfessionalWidget(QWidget):
         except:
             pass
         
-        # 5. Élèves actifs (message positif)
+        # 6. Élèves actifs (message positif)
         active_students = sum(1 for s in students if s.status == StudentStatus.ACTIVE)
         if active_students > 0:
             self.add_alert(
