@@ -1132,8 +1132,8 @@ class StudentDetailViewDialog(QDialog):
             return
         
         try:
-            # Module Documents supprimé - Fonctionnalité désactivée
-            documents = []
+            # Charger les documents de l'élève
+            documents = DocumentController.get_documents_by_student(self.student.id)
             self.documents_table.setRowCount(0)
             
             total_size = 0
