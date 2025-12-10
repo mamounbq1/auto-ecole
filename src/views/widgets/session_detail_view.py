@@ -861,26 +861,43 @@ class SessionDetailViewDialog(QDialog):
         if self.admin_notes.toPlainText().strip():
             notes_parts.append(f"=== ADMIN ===\n{self.admin_notes.toPlainText().strip()}")
         
-        data = {
-            'student_id': self.student_combo.currentData(),
-            'instructor_id': self.instructor_combo.currentData(),
-            'vehicle_id': self.vehicle_combo.currentData(),
-            'session_type': self.session_type.currentData(),
-            'start_datetime': start_dt,
-            'end_datetime': end_dt,
-            'status': self.status.currentData(),
-            'notes': "\n\n".join(notes_parts) if notes_parts else None
-        }
-        
         try:
             if self.session:
-                # Update
+                # MODE ÉDITION: Update single session
+                data = {
+                    'student_id': self.student_combo.currentData(),
+                    'instructor_id': self.instructor_combo.currentData(),
+                    'vehicle_id': self.vehicle_combo.currentData(),
+                    'session_type': self.session_type.currentData(),
+                    'start_datetime': start_dt,
+                    'end_datetime': end_dt,
+                    'status': self.status.currentData(),
+                    'notes': "\n\n".join(notes_parts) if notes_parts else None
+                }
                 SessionController.update_session(self.session.id, data)
                 QMessageBox.information(self, "Succès", "Session mise à jour avec succès")
             else:
-                # Create
-                SessionController.create_session(data)
-                QMessageBox.information(self, "Succès", "Session créée avec succès")
+                # MODE CRÉATION: Create multiple sessions
+                selected_students = [cb.property('student_id') for cb in self.student_checkboxes if cb.isChecked()]
+                created_count = 0
+                
+                for student_id in selected_students:
+                    data = {
+                        'student_id': student_id,
+                        'instructor_id': self.instructor_combo.currentData(),
+                        'vehicle_id': self.vehicle_combo.currentData(),
+                        'session_type': self.session_type.currentData(),
+                        'start_datetime': start_dt,
+                        'end_datetime': end_dt,
+                        'status': self.status.currentData(),
+                        'notes': "\n\n".join(notes_parts) if notes_parts else None
+                    }
+                    SessionController.create_session(data)
+                    created_count += 1
+                
+                student_text = "élève" if created_count == 1 else "élèves"
+                QMessageBox.information(self, "Succès", 
+                    f"{created_count} session(s) créée(s) pour {created_count} {student_text}!")
             
             self.accept()
         except Exception as e:
