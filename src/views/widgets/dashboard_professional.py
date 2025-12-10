@@ -400,7 +400,7 @@ class DashboardProfessionalWidget(QWidget):
         # Zone de défilement FIXE et optimisée
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setFixedHeight(280)  # Hauteur FIXE pour forcer le scroll
+        scroll_area.setFixedHeight(200)  # Hauteur compacte pour forcer le scroll
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         scroll_area.setStyleSheet("""
