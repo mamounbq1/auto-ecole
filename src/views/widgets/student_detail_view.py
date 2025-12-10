@@ -17,7 +17,6 @@ import os
 from src.controllers.student_controller import StudentController
 from src.controllers.payment_controller import PaymentController
 from src.controllers.session_controller import SessionController
-from src.controllers.document_controller import DocumentController
 from src.controllers.exam_controller import ExamController
 from src.models import StudentStatus
 from src.utils.validators import StudentValidator
@@ -1132,8 +1131,8 @@ class StudentDetailViewDialog(QDialog):
             return
         
         try:
-            # Get all documents for this student
-            documents = DocumentController.get_documents_by_entity('student', self.student.id)
+            # Module Documents supprimé - Fonctionnalité désactivée
+            documents = []
             self.documents_table.setRowCount(0)
             
             total_size = 0
@@ -1198,7 +1197,7 @@ class StudentDetailViewDialog(QDialog):
             return
         
         try:
-            documents = DocumentController.get_documents_by_entity('student', self.student.id)
+            documents = []  # Module Documents supprimé
             if selected_row < len(documents):
                 doc = documents[selected_row]
                 from src.views.widgets.document_viewer_dialog import DocumentViewerDialog
@@ -1215,7 +1214,7 @@ class StudentDetailViewDialog(QDialog):
             return
         
         try:
-            documents = DocumentController.get_documents_by_entity('student', self.student.id)
+            documents = []  # Module Documents supprimé
             if selected_row < len(documents):
                 doc = documents[selected_row]
                 
@@ -1227,7 +1226,7 @@ class StudentDetailViewDialog(QDialog):
                 )
                 
                 if reply == QMessageBox.Yes:
-                    DocumentController.delete_document(doc.id)
+                    pass  # Module Documents supprimé
                     self.load_documents()
                     QMessageBox.information(self, "Succès", "Document supprimé")
         except Exception as e:
@@ -1291,7 +1290,7 @@ class StudentDetailViewDialog(QDialog):
             # Load documents
             if filter_type in ['all', 'documents']:
                 try:
-                    documents = DocumentController.get_documents_by_entity('student', self.student.id)
+                    documents = []  # Module Documents supprimé
                     for doc in documents:
                         all_activities.append({
                             'date': doc.created_at,

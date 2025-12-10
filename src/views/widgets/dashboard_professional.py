@@ -779,18 +779,8 @@ class DashboardProfessionalWidget(QWidget):
                 "#95a5a6"
             )
         
-        # 3. Documents expirés
-        from src.controllers import DocumentController
-        try:
-            expired_docs = DocumentController.get_expired_documents()
-            if expired_docs and len(expired_docs) > 0:
-                self.add_alert(
-                    "📄",
-                    f"{len(expired_docs)} document(s) expiré(s)",
-                    "#e74c3c"
-                )
-        except:
-            pass
+        # 3. Documents expirés - Module Documents supprimé
+        # Fonctionnalité désactivée
         
         # 4. Maintenance véhicules
         from src.controllers import VehicleController
