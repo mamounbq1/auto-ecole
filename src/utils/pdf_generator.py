@@ -721,18 +721,14 @@ class PDFGenerator:
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ]))
-            story.appator() -> PDFGenerator:
-    """Obtenir l'instance du générateur PDF"""
-    global _pdf_generator
-    if _pdf_generator is None:
-        _pdf_generator = PDFGenerator()
-    return _pdf_generator
-global _pdf_generator
-    if _pdf_generator is None:
-        _pdf_generator = PDFGenerator()
-    return _pdf_generator
-e sans signature ni cachet<br/>"
-                f"<font size=8>Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</font></font>"
+            story.append(signature_table)
+            story.append(Spacer(1, 0.8*cm))
+            
+            # === FOOTER COMPACT ===
+            footer_text = Paragraph(
+                f"<para align=center>"
+                f"<font size=7 color='#95a5a6'>Ce reçu est valable sans signature ni cachet - "
+                f"Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</font>"
                 f"</para>",
                 self.styles['Normal']
             )
@@ -756,32 +752,6 @@ _pdf_generator = None
 def get_pdf_generator() -> PDFGenerator:
     """Obtenir l'instance du générateur PDF"""
     global _pdf_generator
-    if _pdf_generator is None:
-        _pdf_generator = PDFGenerator()
-    return _pdf_generator
-global _pdf_generator
-    if _pdf_generator is None:
-        _pdf_generator = PDFGenerator()
-    return _pdf_generator
-çu PDF professionnel généré : {filepath}")
-            return True, filepath
-            
-        except Exception as e:
-            error_msg = f"Erreur lors de la génération du reçu PDF : {str(e)}"
-            logger.error(error_msg)
-            return False, error_msg
-
-
-# Fonction globale
-_pdf_generator = None
-
-def get_pdf_generator() -> PDFGenerator:
-    """Obtenir l'instance du générateur PDF"""
-    global _pdf_generator
-    if _pdf_generator is None:
-        _pdf_generator = PDFGenerator()
-    return _pdf_generator
-global _pdf_generator
     if _pdf_generator is None:
         _pdf_generator = PDFGenerator()
     return _pdf_generator
