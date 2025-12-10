@@ -811,8 +811,8 @@ class DashboardProfessionalWidget(QWidget):
             # Assurances expirantes
             insurance_expiring = []
             for v in vehicles:
-                if v.insurance_expiry and today <= v.insurance_expiry <= thirty_days_later:
-                    days_left = (v.insurance_expiry - today).days
+                if v.insurance_expiry_date and today <= v.insurance_expiry_date <= thirty_days_later:
+                    days_left = (v.insurance_expiry_date - today).days
                     insurance_expiring.append((v, days_left))
             
             if insurance_expiring:
@@ -826,8 +826,8 @@ class DashboardProfessionalWidget(QWidget):
             # Visites techniques expirantes
             inspection_expiring = []
             for v in vehicles:
-                if v.inspection_expiry and today <= v.inspection_expiry <= thirty_days_later:
-                    days_left = (v.inspection_expiry - today).days
+                if v.technical_inspection_date and today <= v.technical_inspection_date <= thirty_days_later:
+                    days_left = (v.technical_inspection_date - today).days
                     inspection_expiring.append((v, days_left))
             
             if inspection_expiring:
@@ -837,7 +837,8 @@ class DashboardProfessionalWidget(QWidget):
                         f"Visite technique {vehicle.plate_number} expire dans {days}j",
                         "#e67e22" if days > 7 else "#e74c3c"
                     )
-        except:
+        except Exception as e:
+            print(f"Erreur alertes véhicules: {e}")
             pass
         
         # 5. Maintenance véhicules
