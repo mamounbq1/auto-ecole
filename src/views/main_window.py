@@ -465,7 +465,7 @@ class MainWindow(QMainWindow):
         try:
             from src.views.widgets.planning_enhanced import SessionDialog
             
-            dialog = SessionDialog(self)
+            dialog = SessionDialog(parent=self)
             if dialog.exec():
                 self.statusBar().showMessage("✅ Session planifiée avec succès", 3000)
                 # Actualiser si on est sur le module planning
@@ -480,7 +480,7 @@ class MainWindow(QMainWindow):
         try:
             from src.views.widgets.exams_management import ExamDialog
             
-            dialog = ExamDialog(self)
+            dialog = ExamDialog(parent=self)
             if dialog.exec():
                 self.statusBar().showMessage("✅ Examen enregistré avec succès", 3000)
                 # Actualiser si on est sur le module examens
