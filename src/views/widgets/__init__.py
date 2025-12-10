@@ -14,7 +14,6 @@ from .instructors_main import InstructorsMainWidget  # Module Moniteurs complet
 from .vehicles_main import VehiclesMainWidget  # Module Véhicules complet
 from .exams_main import ExamsMainWidget  # Module Examens complet
 from .settings_widget import SettingsWidget  # Module Paramètres complet
-from .documents_main import DocumentsMainWidget  # Module Documents complet (Phase 4)
 
 # Les widgets avec matplotlib sont importés dynamiquement dans main_window.py:
 # - DashboardAdvancedWidget (REMOVED - unused)
@@ -31,6 +30,5 @@ __all__ = [
     'VehiclesMainWidget',
     'ExamsMainWidget',
     'SettingsWidget',
-    'DocumentsMainWidget',  # Phase 4: Gestion Documentaire
     # 'ReportsMainWidget',  # Import dynamique (matplotlib)
 ]

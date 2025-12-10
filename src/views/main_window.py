@@ -124,7 +124,6 @@ class MainWindow(QMainWindow):
                 ("👨‍🏫", "Moniteurs", self.show_instructors),
                 ("🚗", "Véhicules", self.show_vehicles),
                 ("📝", "Examens", self.show_exams),
-                ("📄", "Documents", self.show_documents),
                 ("📈", "Rapports", self.show_reports),
                 ("⚙️", "Paramètres", self.show_settings),
             ])
@@ -369,13 +368,7 @@ class MainWindow(QMainWindow):
         self.set_current_module(ExamsMainWidget())
         self.statusBar().showMessage("📝 Module Examens - Dashboard & Gestion Complète")
         
-    def show_documents(self):
-        """Afficher le module Documents"""
-        from .widgets.documents_main import DocumentsMainWidget
-        
-        self.set_current_module(DocumentsMainWidget())
-        self.statusBar().showMessage("📄 Module Documents - Gestion Documentaire Complète")
-        
+
     def show_reports(self):
         """Afficher le module Rapports"""
         try:
