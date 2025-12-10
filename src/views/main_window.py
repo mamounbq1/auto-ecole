@@ -448,9 +448,9 @@ class MainWindow(QMainWindow):
     def quick_add_payment(self):
         """Action rapide : Ajouter un paiement"""
         try:
-            from src.views.widgets.payments_management import PaymentDialog
+            from src.views.widgets.payments_management import AddPaymentDialog
             
-            dialog = PaymentDialog(self)
+            dialog = AddPaymentDialog(parent=self)
             if dialog.exec():
                 self.statusBar().showMessage("✅ Paiement enregistré avec succès", 3000)
                 # Actualiser si on est sur le module paiements
