@@ -12,7 +12,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-    Image, PageBreak, Frame, PageTemplate
+    Image, PageBreak, Frame, PageTemplate, HRFlowable
 )
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 from reportlab.pdfgen import canvas
@@ -547,188 +547,117 @@ class PDFGenerator:
             
             story = []
             
-            # === EN-TÊTE COMPACT ===
+            # === EN-TÊTE SIMPLE ===
             center = self.config.get_center_info()
             
-            # Tableau en-tête avec logo et infos côte à côte
-            header_data = []
+            # Nom du centre simple
+            center_name = Paragraph(
+                f"<para align=center><b><font size=12>{center.get('name', 'Auto-École').upper()}</font></b></para>",
+                self.styles['Normal']
+            )
+            story.append(center_name)
             
-            # Logo si disponible (gauche)
-            logo_cell = ''
-            logo_path = self.config.get_logo_path()
-            if logo_path and os.path.exists(logo_path):
-                try:
-                    logo = Image(logo_path, width=2*cm, height=2*cm, kind='proportional')
-                    logo_cell = logo
-                except:
-                    logo_cell = ''
-            
-            # Infos centre (droite)
-            center_text = f"<b><font size=14>{center.get('name', 'Auto-École').upper()}</font></b><br/>"
-            if center.get('address'):
-                center_text += f"<font size=9>{center['address']}</font><br/>"
-            contact_parts = []
+            # Contact simple
+            contact_line = ""
             if center.get('phone'):
-                contact_parts.append(f"Tél: {center['phone']}")
+                contact_line += f"Tél: {center['phone']}"
             if center.get('email'):
-                contact_parts.append(f"{center['email']}")
-            if contact_parts:
-                center_text += f"<font size=8>{' | '.join(contact_parts)}</font>"
+                if contact_line:
+                    contact_line += " | "
+                contact_line += center['email']
+            if contact_line:
+                contact = Paragraph(
+                    f"<para align=center><font size=8>{contact_line}</font></para>",
+                    self.styles['Normal']
+                )
+                story.append(contact)
             
-            center_para = Paragraph(center_text, self.styles['Normal'])
+            story.append(Spacer(1, 0.5*cm))
             
-            if logo_cell:
-                header_data = [[logo_cell, center_para]]
-                header_table = Table(header_data, colWidths=[3*cm, 14*cm])
-            else:
-                header_data = [[center_para]]
-                header_table = Table(header_data, colWidths=[17*cm])
+            # Ligne séparatrice simple
+            line = HRFlowable(width="100%", thickness=1, color=colors.HexColor('#cccccc'))
+            story.append(line)
+            story.append(Spacer(1, 0.5*cm))
             
-            header_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
-                ('ALIGN', (-1, 0), (-1, 0), 'RIGHT'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
-            story.append(header_table)
-            story.append(Spacer(1, 0.3*cm))
-            
-            # Titre compact
+            # Titre simple
             title = Paragraph(
-                "<b>REÇU DE PAIEMENT</b>",
+                "<para align=center><b>REÇU DE PAIEMENT</b></para>",
                 ParagraphStyle(
-                    name='ReceiptTitle',
-                    parent=self.styles['CustomTitle'],
-                    fontSize=16,
-                    textColor=colors.HexColor('#2c3e50'),
-                    spaceAfter=8,
+                    name='SimpleTitle',
+                    parent=self.styles['Normal'],
+                    fontSize=14,
+                    textColor=colors.black,
+                    spaceAfter=6,
                     spaceBefore=0
                 )
             )
             story.append(title)
             
-            # === MÉTADONNÉES (N° Reçu et Date) ===
-            meta_data = [
-                ['N° REÇU', receipt_data.get('receipt_number', 'N/A')],
-                ['DATE', receipt_data.get('date', 'N/A')]
-            ]
-            meta_table = Table(meta_data, colWidths=[8*cm, 8*cm])
-            meta_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f8f9fa')),
-                ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#7f8c8d')),
-                ('TEXTCOLOR', (1, 0), (1, -1), colors.HexColor('#2c3e50')),
-                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-                ('FONTNAME', (1, 0), (1, -1), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, -1), 11),
-                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-                ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-                ('TOPPADDING', (0, 0), (-1, -1), 10),
-                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#e0e0e0')),
-            ]))
-            story.append(meta_table)
+            # === MÉTADONNÉES SIMPLES ===
+            meta_text = Paragraph(
+                f"<para align=center>"
+                f"<font size=9>N° <b>{receipt_data.get('receipt_number', 'N/A')}</b> - "
+                f"Date: <b>{receipt_data.get('date', 'N/A')}</b></font>"
+                f"</para>",
+                self.styles['Normal']
+            )
+            story.append(meta_text)
+            story.append(Spacer(1, 0.6*cm))
+            
+            # === INFORMATIONS ÉLÈVE SIMPLES ===
+            student_info = Paragraph(
+                f"<font size=9>"
+                f"Reçu de: <b>{receipt_data.get('student_name', 'N/A')}</b><br/>"
+                f"CIN: {receipt_data.get('student_cin', 'N/A')}<br/>"
+                f"Tél: {receipt_data.get('student_phone', 'N/A')}"
+                f"</font>",
+                self.styles['Normal']
+            )
+            story.append(student_info)
             story.append(Spacer(1, 0.8*cm))
             
-            # === INFORMATIONS COMPACTES ===
-            info_data = [
-                [Paragraph('<b>Élève:</b>', self.styles['Normal']), receipt_data.get('student_name', 'N/A')],
-                [Paragraph('<b>CIN:</b>', self.styles['Normal']), receipt_data.get('student_cin', 'N/A')],
-                [Paragraph('<b>Téléphone:</b>', self.styles['Normal']), receipt_data.get('student_phone', 'N/A')]
-            ]
-            info_table = Table(info_data, colWidths=[3*cm, 14*cm])
-            info_table.setStyle(TableStyle([
-                ('FONTSIZE', (0, 0), (-1, -1), 9),
-                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-                ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-                ('TOPPADDING', (0, 0), (-1, -1), 4),
-                ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor('#e0e0e0')),
-            ]))
-            story.append(info_table)
-            story.append(Spacer(1, 0.4*cm))
-            
-            # === MONTANT (BOÎTE VERTE EN ÉVIDENCE) ===
+            # === MONTANT SIMPLE ===
             amount = float(receipt_data.get('amount', 0))
             amount_formatted = f"{amount:,.2f}".replace(',', ' ')
             
-            amount_data = [[
-                Paragraph(
-                    f"<para align=center><font size=14 color='white'><b>MONTANT PAYÉ</b></font><br/>"
-                    f"<font size=32 color='white'><b>{amount_formatted} DH</b></font></para>",
-                    self.styles['Normal']
-                )
-            ]]
-            amount_table = Table(amount_data, colWidths=[16*cm])
-            amount_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#27ae60')),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('TOPPADDING', (0, 0), (-1, -1), 20),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 20),
-                ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#229954')),
-            ]))
-            story.append(amount_table)
+            amount_text = Paragraph(
+                f"<para align=center>"
+                f"<font size=11>Montant payé</font><br/>"
+                f"<b><font size=18>{amount_formatted} DH</font></b>"
+                f"</para>",
+                self.styles['Normal']
+            )
+            story.append(amount_text)
             story.append(Spacer(1, 0.8*cm))
             
-            # === DÉTAILS DU PAIEMENT ===
-            details_title = Paragraph(
-                "<b>💳 DÉTAILS DU PAIEMENT</b>",
-                self.styles['SectionHeader']
-            )
-            story.append(details_title)
-            
+            # === DÉTAILS SIMPLES ===
             payment_method = receipt_data.get('payment_method', 'N/A').replace('_', ' ').title()
             description = receipt_data.get('description', 'Paiement formation')
-            validated_by = receipt_data.get('validated_by', 'Administration')
             
-            details_data = [
-                ['Mode de paiement', payment_method],
-                ['Description', description],
-                ['Validé par', validated_by]
-            ]
-            details_table = Table(details_data, colWidths=[5*cm, 11*cm])
-            details_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#ecf0f1')),
-                ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#555555')),
-                ('TEXTCOLOR', (1, 0), (1, -1), colors.HexColor('#2c3e50')),
-                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-                ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
-                ('FONTSIZE', (0, 0), (-1, -1), 10),
-                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-                ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                ('TOPPADDING', (0, 0), (-1, -1), 8),
-                ('LINEBELOW', (0, 0), (-1, -2), 0.5, colors.HexColor('#dee2e6')),
-                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#bdc3c7')),
-            ]))
-            story.append(details_table)
-            story.append(Spacer(1, 1.5*cm))
+            details_text = Paragraph(
+                f"<font size=9>"
+                f"Mode: {payment_method}<br/>"
+                f"Motif: {description}"
+                f"</font>",
+                self.styles['Normal']
+            )
+            story.append(details_text)
+            story.append(Spacer(1, 1.2*cm))
             
-            # === SIGNATURES COMPACTES ===
-            signature_data = [
-                ['Signature élève', 'Cachet auto-école'],
-                ['', ''],
-                ['__________________', '__________________']
-            ]
-            signature_table = Table(signature_data, colWidths=[8.5*cm, 8.5*cm], rowHeights=[0.4*cm, 1.2*cm, 0.3*cm])
-            signature_table.setStyle(TableStyle([
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 9),
-                ('FONTSIZE', (0, 2), (-1, 2), 7),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#555555')),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
-            story.append(signature_table)
-            story.append(Spacer(1, 0.8*cm))
+            # === SIGNATURE SIMPLE ===
+            signature_text = Paragraph(
+                f"<para align=right>"
+                f"<font size=8>Signature & Cachet</font><br/><br/><br/>"
+                f"</para>",
+                self.styles['Normal']
+            )
+            story.append(signature_text)
+            story.append(Spacer(1, 0.5*cm))
             
-            # === FOOTER COMPACT ===
+            # === FOOTER SIMPLE ===
             footer_text = Paragraph(
                 f"<para align=center>"
-                f"<font size=7 color='#95a5a6'>Ce reçu est valable sans signature ni cachet - "
-                f"Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</font>"
+                f"<font size=7>Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</font>"
                 f"</para>",
                 self.styles['Normal']
             )
