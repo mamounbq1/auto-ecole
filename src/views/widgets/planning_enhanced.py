@@ -674,8 +674,8 @@ class PlanningEnhancedWidget(QWidget):
                 self.sessions_list.addItem(item)
     
     def add_session(self):
-        """Ajouter une session avec dialogue moderne"""
-        dialog = SessionDetailViewDialog(session=None, parent=self, read_only=False)
+        """Ajouter une session avec dialogue simplifié (sélection multiple élèves)"""
+        dialog = SessionDialog(session_date=self.selected_date, parent=self)
         if dialog.exec():
             self.load_sessions()
     
