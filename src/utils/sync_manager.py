@@ -42,9 +42,9 @@ class SyncManager:
                 
                 if len(passed_exams) >= 2:  # Code + Conduite réussis
                     new_status = StudentStatus.LICENSED
-                elif student.completed_hours >= student.planned_hours:
+                elif student.hours_completed >= student.hours_planned:
                     new_status = StudentStatus.READY_FOR_EXAM
-                elif student.completed_hours > 0:
+                elif student.hours_completed > 0:
                     new_status = StudentStatus.IN_TRAINING
                 elif len(student.sessions) == 0:
                     new_status = StudentStatus.REGISTERED
@@ -88,8 +88,8 @@ class SyncManager:
                 ]
                 
                 if ongoing_maintenances:
-                    new_status = VehicleStatus.UNDER_MAINTENANCE
-                elif vehicle.status == VehicleStatus.UNDER_MAINTENANCE:
+                    new_status = VehicleStatus.MAINTENANCE
+                elif vehicle.status == VehicleStatus.MAINTENANCE:
                     # Si plus de maintenance en cours, remettre disponible
                     new_status = VehicleStatus.AVAILABLE
                 
@@ -123,7 +123,7 @@ class SyncManager:
             
             # Marquer les séances passées comme COMPLETED si elles sont toujours PLANNED
             sessions = session.query(Session).filter(
-                Session.status == SessionStatus.PLANNED
+                Session.status == SessionStatus.SCHEDULED
             ).all()
             
             for sess in sessions:
