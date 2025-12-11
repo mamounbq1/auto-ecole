@@ -798,11 +798,14 @@ class SettingsWidget(QWidget):
     def silent_backup(self):
         """Crée un backup silencieux (sans messages)"""
         try:
-            db_path = Path(self.config.get('database', {}).get('path', 'data/autoecole.db'))
+            from src.utils.config_manager import get_config_manager
+            config_mgr = get_config_manager()
+            
+            db_path = Path(config_mgr.get_database_path())
             if not db_path.exists():
                 return
             
-            backup_dir = Path("backups")
+            backup_dir = Path(config_mgr.get_backup_path())
             backup_dir.mkdir(exist_ok=True)
             
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -856,12 +859,15 @@ class SettingsWidget(QWidget):
     def create_backup(self):
         """Crée une sauvegarde de la base de données"""
         try:
-            db_path = Path(self.config.get('database', {}).get('path', 'data/autoecole.db'))
+            from src.utils.config_manager import get_config_manager
+            config_mgr = get_config_manager()
+            
+            db_path = Path(config_mgr.get_database_path())
             if not db_path.exists():
                 QMessageBox.warning(self, "Attention", "❌ Base de données introuvable!")
                 return
             
-            backup_dir = Path("backups")
+            backup_dir = Path(config_mgr.get_backup_path())
             backup_dir.mkdir(exist_ok=True)
             
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -875,10 +881,13 @@ class SettingsWidget(QWidget):
     
     def restore_backup(self):
         """Restaure une sauvegarde"""
+        from src.utils.config_manager import get_config_manager
+        config_mgr = get_config_manager()
+        
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Choisir une sauvegarde à restaurer",
-            "backups",
+            config_mgr.get_backup_path(),
             "Base de données (*.db)"
         )
         
@@ -892,7 +901,7 @@ class SettingsWidget(QWidget):
             
             if reply == QMessageBox.Yes:
                 try:
-                    db_path = Path(self.config.get('database', {}).get('path', 'data/autoecole.db'))
+                    db_path = Path(config_mgr.get_database_path())
                     shutil.copy(file_path, db_path)
                     
                     QMessageBox.information(
@@ -905,7 +914,10 @@ class SettingsWidget(QWidget):
     
     def open_backup_folder(self):
         """Ouvre le dossier des sauvegardes"""
-        backup_dir = Path("backups")
+        from src.utils.config_manager import get_config_manager
+        config_mgr = get_config_manager()
+        
+        backup_dir = Path(config_mgr.get_backup_path())
         backup_dir.mkdir(exist_ok=True)
         
         import subprocess
@@ -930,7 +942,11 @@ class SettingsWidget(QWidget):
             )
             
             if reply == QMessageBox.Yes:
-                export_dir = Path("exports/export_global_" + datetime.now().strftime("%Y%m%d_%H%M%S"))
+                from src.utils.config_manager import get_config_manager
+                config_mgr = get_config_manager()
+                
+                export_base = Path(config_mgr.get_export_path())
+                export_dir = export_base / f"export_global_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                 export_dir.mkdir(parents=True, exist_ok=True)
                 
                 exporter = ExportManager()
@@ -1080,8 +1096,11 @@ class SettingsWidget(QWidget):
             
             if reply2 == QMessageBox.Yes:
                 try:
+                    from src.utils.config_manager import get_config_manager
+                    config_mgr = get_config_manager()
+                    
                     # Créer un backup de la config actuelle
-                    backup_dir = Path("backups")
+                    backup_dir = Path(config_mgr.get_backup_path())
                     backup_dir.mkdir(exist_ok=True)
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     config_backup = backup_dir / f"config_backup_{timestamp}.json"

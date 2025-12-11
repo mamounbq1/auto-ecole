@@ -17,16 +17,16 @@ logger = get_logger()
 class ExportManager:
     """Gestionnaire d'export de données"""
     
-    def __init__(self, export_dir: str = "exports"):
+    def __init__(self, export_dir: str = None):
         """
         Initialiser le gestionnaire d'export
         
         Args:
-            export_dir: Répertoire des exports
+            export_dir: Répertoire des exports (None = utilise config)
         """
-        self.export_dir = export_dir
-        os.makedirs(export_dir, exist_ok=True)
         self.config = get_config_manager()
+        self.export_dir = export_dir or self.config.get_export_path()
+        os.makedirs(self.export_dir, exist_ok=True)
     
     def export_to_csv(self, data: List[Dict[str, Any]], filename: str, 
                       fieldnames: Optional[List[str]] = None) -> tuple[bool, str]:

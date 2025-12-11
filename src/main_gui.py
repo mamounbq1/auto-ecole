@@ -81,6 +81,27 @@ def main():
     
     logger.info(f"Connexion automatique : {user.username} ({user.role.value})")
     
+    # === BACKUP AUTOMATIQUE AU DÉMARRAGE ===
+    try:
+        from src.utils.config_manager import get_config_manager
+        from src.config import DATABASE_PATH
+        import shutil
+        from pathlib import Path
+        from datetime import datetime as dt
+        
+        config_mgr = get_config_manager()
+        if config_mgr.get('database', {}).get('backup_on_start', False):
+            db_path = Path(DATABASE_PATH)
+            if db_path.exists():
+                backup_dir = Path(config_mgr.get_backup_path())
+                backup_dir.mkdir(exist_ok=True)
+                timestamp = dt.now().strftime("%Y%m%d_%H%M%S")
+                backup_path = backup_dir / f"startup_backup_{timestamp}.db"
+                shutil.copy(db_path, backup_path)
+                logger.info(f"✅ Backup automatique créé au démarrage: {backup_path}")
+    except Exception as e:
+        logger.warning(f"⚠️ Erreur backup automatique: {e}")
+    
     # Créer et afficher directement la fenêtre principale
     try:
         main_window = MainWindow(user)

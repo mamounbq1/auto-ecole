@@ -26,11 +26,11 @@ logger = get_logger()
 class PDFGenerator:
     """Générateur de PDF professionnel"""
     
-    def __init__(self, output_dir: str = "exports"):
-        self.output_dir = output_dir
-        os.makedirs(output_dir, exist_ok=True)
-        self.styles = getSampleStyleSheet()
+    def __init__(self, output_dir: str = None):
         self.config = get_config_manager()
+        self.output_dir = output_dir or self.config.get_export_path()
+        os.makedirs(self.output_dir, exist_ok=True)
+        self.styles = getSampleStyleSheet()
         self._setup_custom_styles()
         
     def _setup_custom_styles(self):

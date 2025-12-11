@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Optional, List
 
 from .logger import get_logger
+from .config_manager import get_config_manager
 
 logger = get_logger()
 
@@ -17,19 +18,20 @@ logger = get_logger()
 class BackupManager:
     """Gestionnaire de sauvegarde de la base de données"""
     
-    def __init__(self, db_path: str = "data/autoecole.db", backup_dir: str = "backups"):
+    def __init__(self, db_path: str = None, backup_dir: str = None):
         """
         Initialiser le gestionnaire de sauvegarde
         
         Args:
-            db_path: Chemin vers la base de données
-            backup_dir: Répertoire des sauvegardes
+            db_path: Chemin vers la base de données (None = défaut data/autoecole.db)
+            backup_dir: Répertoire des sauvegardes (None = utilise config)
         """
-        self.db_path = db_path
-        self.backup_dir = backup_dir
+        config = get_config_manager()
+        self.db_path = db_path or "data/autoecole.db"
+        self.backup_dir = backup_dir or config.get_backup_path()
         
         # Créer le répertoire de sauvegarde s'il n'existe pas
-        os.makedirs(backup_dir, exist_ok=True)
+        os.makedirs(self.backup_dir, exist_ok=True)
     
     def create_backup(self, backup_name: Optional[str] = None, compress: bool = True) -> tuple[bool, str]:
         """

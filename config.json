@@ -13,16 +13,12 @@
         "director_name": ""
     },
     "database": {
-        "path": "data/autoecole.db",
         "backup_on_start": false,
         "auto_backup_enabled": false,
         "auto_backup_interval": 60
     },
     "pdf": {
         "company_logo": null
-    },
-    "formats": {
-        "currency": "DH"
     },
     "paths": {
         "exports": "exports",

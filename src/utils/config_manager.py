@@ -117,13 +117,13 @@ class ConfigManager:
             return logo
         return None
     
-    def get_currency_symbol(self) -> str:
-        """Récupère le symbole de la devise"""
-        return self._config.get('formats', {}).get('currency', 'DH')
+    def get_export_path(self) -> str:
+        """Récupère le chemin du dossier exports depuis config"""
+        return self._config.get('paths', {}).get('exports', 'exports')
     
-    def get_date_format(self) -> str:
-        """Récupère le format de date"""
-        return self._config.get('formats', {}).get('date', 'DD/MM/YYYY')
+    def get_backup_path(self) -> str:
+        """Récupère le chemin du dossier backups depuis config"""
+        return self._config.get('paths', {}).get('backups', 'backups')
     
     def get_app_info(self) -> Dict[str, str]:
         """Récupère les informations de l'application"""
