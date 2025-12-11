@@ -11,8 +11,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QDate, QSize
 from PySide6.QtGui import QFont, QColor, QPixmap
-from datetime import datetime
+from datetime import datetime, date
 import os
+import re
 
 from src.controllers.student_controller import StudentController
 from src.controllers.payment_controller import PaymentController
@@ -324,8 +325,17 @@ class StudentDetailViewDialog(QDialog):
         
         self.full_name = QLineEdit()
         self.full_name.setReadOnly(self.read_only)
+        if not self.read_only:
+            self.full_name.setPlaceholderText("Minimum 3 caractères")
+        
         self.cin = QLineEdit()
         self.cin.setReadOnly(self.read_only)
+        self.cin.setMaxLength(10)
+        if not self.read_only:
+            self.cin.setPlaceholderText("Ex: AA123456")
+            import re
+            self.cin.textChanged.connect(lambda: self._validate_cin())
+        
         self.date_of_birth = QDateEdit()
         self.date_of_birth.setCalendarPopup(True)
         self.date_of_birth.setDate(QDate.currentDate().addYears(-18))
@@ -333,8 +343,15 @@ class StudentDetailViewDialog(QDialog):
         
         self.phone = QLineEdit()
         self.phone.setReadOnly(self.read_only)
+        if not self.read_only:
+            self.phone.setPlaceholderText("+212 6XX-XXXXXX")
+            self.phone.textChanged.connect(lambda: self._validate_phone())
+        
         self.email = QLineEdit()
         self.email.setReadOnly(self.read_only)
+        if not self.read_only:
+            self.email.setPlaceholderText("exemple@email.com")
+            self.email.textChanged.connect(lambda: self._validate_email())
         self.address = QTextEdit()
         self.address.setMaximumHeight(80)
         self.address.setReadOnly(self.read_only)
@@ -1352,15 +1369,80 @@ class StudentDetailViewDialog(QDialog):
         except Exception as e:
             print(f"Error refreshing balance: {e}")
     
+    def _validate_cin(self):
+        """Validate CIN field in real-time"""
+        value = self.cin.text().strip()
+        if re.match(r'^[A-Z]{1,2}\d{5,8}$', value, re.IGNORECASE):
+            self.cin.setStyleSheet("border: 2px solid #27ae60;")
+        elif len(value) > 0:
+            self.cin.setStyleSheet("border: 2px solid #e74c3c;")
+        else:
+            self.cin.setStyleSheet("")
+    
+    def _validate_phone(self):
+        """Validate phone field in real-time"""
+        value = self.phone.text().strip()
+        if re.match(r'^\+?212[\s-]?[5-7]\d{2}[\s-]?\d{6}$', value) or \
+           re.match(r'^0[5-7]\d{2}[\s-]?\d{6}$', value):
+            self.phone.setStyleSheet("border: 2px solid #27ae60;")
+        elif len(value) > 0:
+            self.phone.setStyleSheet("border: 2px solid #e74c3c;")
+        else:
+            self.phone.setStyleSheet("")
+    
+    def _validate_email(self):
+        """Validate email field in real-time"""
+        value = self.email.text().strip()
+        if not value:
+            self.email.setStyleSheet("")
+        elif re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', value):
+            self.email.setStyleSheet("border: 2px solid #27ae60;")
+        else:
+            self.email.setStyleSheet("border: 2px solid #e74c3c;")
+    
     def save_student(self):
-        """Save student data with comprehensive validation"""
-        # Collect data first
+        """Save student data with validation (same as add form)"""
+        # Validation des champs obligatoires (same as add form)
+        errors = []
+        
+        full_name = self.full_name.text().strip()
+        if len(full_name) < 3:
+            errors.append("• Nom complet : Minimum 3 caractères")
+        
+        cin = self.cin.text().strip()
+        if not re.match(r'^[A-Z]{1,2}\d{5,8}$', cin, re.IGNORECASE):
+            errors.append("• CIN : Format invalide (Ex: AA123456)")
+        
+        phone = self.phone.text().strip()
+        if not (re.match(r'^\+?212[\s-]?[5-7]\d{2}[\s-]?\d{6}$', phone) or \
+                re.match(r'^0[5-7]\d{2}[\s-]?\d{6}$', phone)):
+            errors.append("• Téléphone : Format invalide")
+        
+        # Vérifier l'âge
+        birth_date = self.date_of_birth.date().toPython()
+        today = date.today()
+        age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+        if age < 18:
+            errors.append("• Âge : Minimum 18 ans requis")
+        
+        # Valider l'email si fourni
+        email = self.email.text().strip()
+        if email and not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            errors.append("• Email : Format invalide")
+        
+        if errors:
+            error_msg = "❌ Erreurs de validation:\n\n" + "\n".join(errors)
+            QMessageBox.warning(self, "Validation", error_msg)
+            self.tabs.setCurrentIndex(0)  # Switch to info tab
+            return
+        
+        # Collect data
         data = {
-            'full_name': self.full_name.text().strip(),
-            'cin': self.cin.text().strip(),
-            'date_of_birth': self.date_of_birth.date().toPython(),
-            'phone': self.phone.text().strip(),
-            'email': self.email.text().strip() or None,
+            'full_name': full_name,
+            'cin': cin,
+            'date_of_birth': birth_date,
+            'phone': phone,
+            'email': email or None,
             'address': self.address.toPlainText().strip() or None,
             'license_type': self.license_type.currentData(),
             'status': self.status.currentData(),
@@ -1375,19 +1457,6 @@ class StudentDetailViewDialog(QDialog):
         # Add photo path if uploaded
         if self.photo_path:
             data['photo_path'] = self.photo_path
-        
-        # Comprehensive validation using StudentValidator
-        is_valid, errors = StudentValidator.validate(data)
-        
-        if not is_valid:
-            # Build error message
-            error_msg = "Erreurs de validation:\n\n"
-            for field, error in errors.items():
-                error_msg += f"• {field}: {error}\n"
-            
-            QMessageBox.warning(self, "Erreur de Validation", error_msg)
-            self.tabs.setCurrentIndex(0)  # Switch to info tab
-            return
         
         try:
             if self.student:

@@ -108,7 +108,9 @@ class ExportManager:
             
             data = []
             with open(filepath, 'r', encoding='utf-8-sig') as csvfile:
-                reader = csv.DictReader(csvfile)
+                # Skip comment lines (starting with #)
+                lines = [line for line in csvfile if not line.strip().startswith('#')]
+                reader = csv.DictReader(lines)
                 
                 # Vérifier les champs requis
                 if required_fields:
