@@ -904,7 +904,7 @@ class SettingsWidget(QWidget):
             if reply == QMessageBox.Yes:
                 try:
                     from src.config import DATABASE_PATH
-            db_path = Path(DATABASE_PATH)
+                    db_path = Path(DATABASE_PATH)
                     shutil.copy(file_path, db_path)
                     
                     QMessageBox.information(
