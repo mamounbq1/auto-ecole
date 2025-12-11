@@ -710,6 +710,7 @@ class StudentsEnhancedWidget(QWidget):
     def export_csv(self):
         """Exporter en CSV"""
         try:
+            from pathlib import Path
             filename, _ = QFileDialog.getSaveFileName(
                 self, "Exporter les élèves", 
                 f"exports/eleves_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
@@ -717,7 +718,9 @@ class StudentsEnhancedWidget(QWidget):
             )
             
             if filename:
-                success, result = export_to_csv(self.filtered_students, filename, 'students')
+                # Extract just the filename without extension
+                basename = Path(filename).stem
+                success, result = export_to_csv(self.filtered_students, basename, 'students')
                 
                 if success:
                     QMessageBox.information(self, "Succès", f"Export réussi: {result}")
