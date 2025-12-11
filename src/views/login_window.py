@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QLabel, QLineEdit, QPushButton, QMessageBox,
     QFrame, QCheckBox
 )
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QPixmap, QFont, QIcon
 
 from src.utils import login, get_logger, bypass_login
@@ -31,6 +31,7 @@ class LoginWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("🚗 Auto-École Manager - Connexion")
         self.setFixedSize(450, 550)
+        self._auto_bypass_scheduled = False
         self.setup_ui()
         
     def setup_ui(self):
@@ -65,6 +66,24 @@ class LoginWindow(QMainWindow):
         
         # Appliquer le style
         self.apply_style()
+        
+    def showEvent(self, event):
+        """Planifier le bypass automatique lors de l'affichage."""
+        super().showEvent(event)
+        if TEMPORARY_LOGIN_BYPASS_ENABLED and not self._auto_bypass_scheduled:
+            self._auto_bypass_scheduled = True
+            QTimer.singleShot(200, self._auto_trigger_bypass_login)
+        
+    def _auto_trigger_bypass_login(self):
+        """Déclencher automatiquement la connexion bypass si possible."""
+        if not TEMPORARY_LOGIN_BYPASS_ENABLED:
+            return
+        if self.username_input.text().strip() or self.password_input.text():
+            return
+        # éviter les messages répétitifs si la fenêtre est déjà fermée
+        if not self.isVisible():
+            return
+        self.handle_login()
         
     def _create_header(self, layout):
         """Créer l'en-tête avec logo et titre"""
