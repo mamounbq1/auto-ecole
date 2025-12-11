@@ -45,12 +45,22 @@ class ExportManager:
             if not data:
                 return False, "Aucune donnée à exporter"
             
+            logger.info(f"Export CSV: filename={filename}, data type={type(data)}, data length={len(data)}")
+            logger.info(f"Export CSV: First item type={type(data[0])}, has to_dict={hasattr(data[0], 'to_dict')}")
+            
             # Convertir les objets SQLAlchemy en dictionnaires
             if hasattr(data[0], 'to_dict'):
                 data = [item.to_dict() for item in data]
+                logger.info(f"Export CSV: Converted using to_dict(), first item keys={list(data[0].keys())[:5]}")
             elif hasattr(data[0], '__dict__') and not isinstance(data[0], dict):
                 # Si c'est un objet SQLAlchemy sans to_dict, utiliser __dict__
                 data = [{k: v for k, v in item.__dict__.items() if not k.startswith('_')} for item in data]
+                logger.info(f"Export CSV: Converted using __dict__, first item keys={list(data[0].keys())[:5]}")
+            elif isinstance(data[0], dict):
+                logger.info(f"Export CSV: Already dict, first item keys={list(data[0].keys())[:5]}")
+            else:
+                logger.error(f"Export CSV: Cannot convert data! Type={type(data[0])}, Value={data[0]}")
+                return False, f"Type de données non supporté: {type(data[0])}"
             
             # Générer le nom de fichier
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -59,6 +69,9 @@ class ExportManager:
             
             # Déterminer les champs
             if fieldnames is None:
+                if not isinstance(data[0], dict):
+                    logger.error(f"Export CSV: data[0] is not a dict! Type={type(data[0])}")
+                    return False, "Données mal formatées"
                 fieldnames = list(data[0].keys())
             
             # Écrire le CSV avec en-tête du centre
