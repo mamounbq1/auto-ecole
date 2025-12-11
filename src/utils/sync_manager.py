@@ -41,13 +41,13 @@ class SyncManager:
                 passed_exams = [e for e in student.exams if e.result == ExamResult.PASSED]
                 
                 if len(passed_exams) >= 2:  # Code + Conduite réussis
-                    new_status = StudentStatus.LICENSED
+                    new_status = StudentStatus.GRADUATED
                 elif student.hours_completed >= student.hours_planned:
-                    new_status = StudentStatus.READY_FOR_EXAM
+                    new_status = StudentStatus.ACTIVE
                 elif student.hours_completed > 0:
-                    new_status = StudentStatus.IN_TRAINING
+                    new_status = StudentStatus.ACTIVE
                 elif len(student.sessions) == 0:
-                    new_status = StudentStatus.REGISTERED
+                    new_status = StudentStatus.PENDING
                 
                 if new_status and new_status != old_status:
                     student.status = new_status
@@ -127,7 +127,7 @@ class SyncManager:
             ).all()
             
             for sess in sessions:
-                session_datetime = datetime.combine(sess.session_date, sess.start_time)
+                session_datetime = sess.start_datetime
                 
                 if session_datetime < now:
                     sess.status = SessionStatus.COMPLETED
