@@ -7,8 +7,8 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                               QScrollArea, QFileDialog, QMessageBox, QComboBox,
                               QCheckBox, QSpinBox, QTextEdit, QTableWidget,
                               QTableWidgetItem, QHeaderView, QDialog, QFormLayout,
-                              QGridLayout, QFrame, QApplication)
-from PySide6.QtCore import Qt, Signal, QTimer
+                              QGridLayout, QFrame, QApplication, QProgressDialog)
+from PySide6.QtCore import Qt, Signal, QTimer, QThread
 from PySide6.QtGui import QPixmap, QFont
 import json
 import shutil
@@ -1047,21 +1047,23 @@ class SettingsWidget(QWidget):
         )
         
         if reply == QMessageBox.Yes:
-            progress = None
             try:
                 from src.utils.sync_manager import SyncManager
                 
-                # Afficher progression
-                progress = QMessageBox(self)
-                progress.setWindowTitle("Synchronisation en cours...")
-                progress.setText("Synchronisation des statuts en cours...\nVeuillez patienter.")
-                progress.setStandardButtons(QMessageBox.NoButton)
+                # Afficher progression non-bloquante
+                progress = QProgressDialog("Synchronisation des statuts en cours...", None, 0, 0, self)
+                progress.setWindowTitle("Synchronisation")
+                progress.setWindowModality(Qt.WindowModal)
+                progress.setCancelButton(None)
+                progress.setMinimumDuration(0)
                 progress.show()
                 QApplication.processEvents()
                 
                 # Exécuter synchronisation
                 results = SyncManager.sync_all()
                 report = SyncManager.get_sync_report(results)
+                
+                progress.close()
                 
                 QMessageBox.information(
                     self,
@@ -1070,14 +1072,13 @@ class SettingsWidget(QWidget):
                 )
                 
             except Exception as e:
+                if 'progress' in locals():
+                    progress.close()
                 QMessageBox.critical(
                     self,
                     "❌ Erreur",
                     f"Erreur lors de la synchronisation:\n{str(e)}"
                 )
-            finally:
-                if progress:
-                    progress.close()
     
     def reset_config(self):
         """Réinitialise la configuration"""
