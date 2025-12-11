@@ -711,6 +711,9 @@ class StudentsEnhancedWidget(QWidget):
         """Exporter en CSV"""
         try:
             from pathlib import Path
+            from src.utils import get_logger
+            logger = get_logger()
+            
             filename, _ = QFileDialog.getSaveFileName(
                 self, "Exporter les élèves", 
                 f"exports/eleves_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
@@ -718,8 +721,11 @@ class StudentsEnhancedWidget(QWidget):
             )
             
             if filename:
+                logger.info(f"Students export: QFileDialog returned filename={filename}")
                 # Extract just the filename without extension
                 basename = Path(filename).stem
+                logger.info(f"Students export: Extracted basename={basename}")
+                logger.info(f"Students export: Calling export_to_csv with {len(self.filtered_students)} students")
                 success, result = export_to_csv(self.filtered_students, basename, 'students')
                 
                 if success:
