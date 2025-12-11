@@ -9,6 +9,7 @@ from .logger import setup_logger, get_logger
 from .pdf_generator import PDFGenerator, get_pdf_generator
 from .notifications import NotificationManager, get_notification_manager
 from .config_manager import ConfigManager, get_config_manager
+from .license_manager import LicenseManager, get_license_manager
 
 __all__ = [
     # Auth
@@ -37,6 +38,9 @@ __all__ = [
     # Config Manager
     'ConfigManager',
     'get_config_manager',
+    # License Manager
+    'LicenseManager',
+    'get_license_manager',
     # Logger
     'setup_logger',
     'get_logger',

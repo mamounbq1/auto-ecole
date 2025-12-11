@@ -22,6 +22,7 @@ from src.models import (
     Payment, PaymentMethod,
     Exam, ExamType, ExamResult
 )
+from src.utils.license_manager import get_license_manager
 
 
 def create_sample_users(session):
@@ -526,6 +527,26 @@ def main():
     print("=" * 60)
     print("🚗 Initialisation de la base de données Auto-École")
     print("=" * 60)
+    
+    # === VÉRIFICATION DE LA LICENCE ===
+    print("\n🔐 Vérification de la licence...")
+    license_manager = get_license_manager()
+    
+    if not license_manager.is_licensed():
+        print("\n❌ ERREUR : Aucune licence valide détectée!")
+        print()
+        print("⚠️  Pour initialiser la base de données, vous devez d'abord:")
+        print("   1. Lancer l'application graphique (python src/main_gui.py)")
+        print("   2. Activer une licence valide")
+        print("   3. Ensuite relancer ce script d'initialisation")
+        print()
+        print("📧 Pour obtenir une licence, contactez le support technique")
+        print()
+        return
+    
+    license_info = license_manager.get_license_info()
+    print(f"✅ Licence valide pour: {license_info.get('company')}")
+    print(f"   ({license_info.get('days_remaining')} jours restants)")
     
     # Créer le dossier data s'il n'existe pas
     os.makedirs("data", exist_ok=True)

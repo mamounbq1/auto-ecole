@@ -22,7 +22,9 @@ from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
 
 from src.views import LoginWindow, MainWindow
+from src.views.license_activation_window import LicenseActivationWindow
 from src.utils import get_logger
+from src.utils.license_manager import get_license_manager
 
 logger = get_logger()
 
@@ -46,6 +48,25 @@ def main():
     
     # Configurer le style
     setup_app_style(app)
+    
+    # === VÉRIFICATION DE LA LICENCE ===
+    license_manager = get_license_manager()
+    
+    if not license_manager.is_licensed():
+        logger.warning("⚠️ Aucune licence valide détectée")
+        
+        # Afficher la fenêtre d'activation
+        license_window = LicenseActivationWindow()
+        result = license_window.exec()
+        
+        if result != LicenseActivationWindow.Accepted:
+            logger.info("Application fermée sans activation de licence")
+            return 0
+        
+        logger.info("✅ Licence activée avec succès")
+    else:
+        license_info = license_manager.get_license_info()
+        logger.info(f"✅ Licence valide pour {license_info.get('company')} ({license_info.get('days_remaining')} jours restants)")
     
     # Créer et afficher la fenêtre de connexion
     login_window = LoginWindow()
