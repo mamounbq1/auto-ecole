@@ -45,6 +45,13 @@ class ExportManager:
             if not data:
                 return False, "Aucune donnée à exporter"
             
+            # Convertir les objets SQLAlchemy en dictionnaires
+            if hasattr(data[0], 'to_dict'):
+                data = [item.to_dict() for item in data]
+            elif hasattr(data[0], '__dict__') and not isinstance(data[0], dict):
+                # Si c'est un objet SQLAlchemy sans to_dict, utiliser __dict__
+                data = [{k: v for k, v in item.__dict__.items() if not k.startswith('_')} for item in data]
+            
             # Générer le nom de fichier
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             csv_filename = f"{filename}_{timestamp}.csv"
