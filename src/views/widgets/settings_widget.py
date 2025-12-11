@@ -801,7 +801,8 @@ class SettingsWidget(QWidget):
             from src.utils.config_manager import get_config_manager
             config_mgr = get_config_manager()
             
-            db_path = Path(config_mgr.get_database_path())
+            from src.config import DATABASE_PATH
+            db_path = Path(DATABASE_PATH)
             if not db_path.exists():
                 return
             
@@ -862,7 +863,8 @@ class SettingsWidget(QWidget):
             from src.utils.config_manager import get_config_manager
             config_mgr = get_config_manager()
             
-            db_path = Path(config_mgr.get_database_path())
+            from src.config import DATABASE_PATH
+            db_path = Path(DATABASE_PATH)
             if not db_path.exists():
                 QMessageBox.warning(self, "Attention", "❌ Base de données introuvable!")
                 return
@@ -901,7 +903,8 @@ class SettingsWidget(QWidget):
             
             if reply == QMessageBox.Yes:
                 try:
-                    db_path = Path(config_mgr.get_database_path())
+                    from src.config import DATABASE_PATH
+            db_path = Path(DATABASE_PATH)
                     shutil.copy(file_path, db_path)
                     
                     QMessageBox.information(
