@@ -622,8 +622,8 @@ class PDFGenerator:
             
             amount_text = Paragraph(
                 f"<para align=center>"
-                f"<font size=11>Montant payé</font><br/>"
-                f"<b><font size=18>{amount_formatted} DH</font></b>"
+                f"<font size=11>Montant payé</font><br/><br/>"
+                f"<b><font size=14>{amount_formatted} DH</font></b>"
                 f"</para>",
                 self.styles['Normal']
             )
