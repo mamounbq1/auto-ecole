@@ -726,7 +726,7 @@ class StudentsEnhancedWidget(QWidget):
                 basename = Path(filename).stem
                 logger.info(f"Students export: Extracted basename={basename}")
                 logger.info(f"Students export: Calling export_to_csv with {len(self.filtered_students)} students")
-                success, result = export_to_csv(self.filtered_students, basename, 'students')
+                success, result = export_to_csv(self.filtered_students, basename)
                 
                 if success:
                     QMessageBox.information(self, "Succès", f"Export réussi: {result}")
