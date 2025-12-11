@@ -1047,6 +1047,7 @@ class SettingsWidget(QWidget):
         )
         
         if reply == QMessageBox.Yes:
+            progress = None
             try:
                 from src.utils.sync_manager import SyncManager
                 
@@ -1062,8 +1063,6 @@ class SettingsWidget(QWidget):
                 results = SyncManager.sync_all()
                 report = SyncManager.get_sync_report(results)
                 
-                progress.close()
-                
                 QMessageBox.information(
                     self,
                     "✅ Synchronisation terminée",
@@ -1071,12 +1070,14 @@ class SettingsWidget(QWidget):
                 )
                 
             except Exception as e:
-                progress.close()
                 QMessageBox.critical(
                     self,
                     "❌ Erreur",
                     f"Erreur lors de la synchronisation:\n{str(e)}"
                 )
+            finally:
+                if progress:
+                    progress.close()
     
     def reset_config(self):
         """Réinitialise la configuration"""
