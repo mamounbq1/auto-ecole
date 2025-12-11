@@ -1,6 +1,6 @@
 """
-Module Paramètres - Interface complète de configuration
-Permet de modifier toutes les informations du centre et paramètres
+Module Paramètres - Interface simplifiée de configuration
+Contient uniquement les paramètres fonctionnels
 """
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                               QLineEdit, QPushButton, QTabWidget, QGroupBox,
@@ -8,10 +8,12 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                               QCheckBox, QSpinBox, QTextEdit, QTableWidget,
                               QTableWidgetItem, QHeaderView, QDialog, QFormLayout,
                               QGridLayout, QFrame, QApplication)
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QPixmap, QFont
 import json
 import shutil
+import os
+import threading
 from pathlib import Path
 from datetime import datetime
 
@@ -25,7 +27,9 @@ class SettingsWidget(QWidget):
         super().__init__()
         self.config_path = Path("config.json")
         self.config = self.load_config()
+        self.backup_timer = None
         self.init_ui()
+        self.init_auto_backup()
         
     def load_config(self):
         """Charge la configuration depuis config.json"""
@@ -95,14 +99,11 @@ class SettingsWidget(QWidget):
         # Onglet 1: Informations du Centre
         tabs.addTab(self.create_center_info_tab(), "🏢 Informations du Centre")
         
-        # Onglet 2: Paramètres Généraux
-        tabs.addTab(self.create_general_settings_tab(), "⚙️ Paramètres Généraux")
+        # Onglet 2: Base de Données & Backup
+        tabs.addTab(self.create_database_tab(), "💾 Base de Données")
         
-        # Onglet 3: Formats et Affichage
-        tabs.addTab(self.create_formats_tab(), "📋 Formats et Affichage")
-        
-        # Onglet 4: Sauvegarde et Données
-        tabs.addTab(self.create_backup_tab(), "💾 Sauvegarde et Données")
+        # Onglet 3: Actions & Maintenance
+        tabs.addTab(self.create_actions_tab(), "🔧 Actions & Maintenance")
         
         layout.addWidget(tabs)
         
@@ -362,8 +363,8 @@ class SettingsWidget(QWidget):
         
         return container
     
-    def create_general_settings_tab(self):
-        """Onglet: Paramètres Généraux"""
+    def create_database_tab(self):
+        """Onglet: Base de Données & Backup"""
         widget = QWidget()
         scroll = QScrollArea()
         scroll.setWidget(widget)
@@ -374,9 +375,9 @@ class SettingsWidget(QWidget):
         layout.setContentsMargins(30, 30, 30, 30)
         layout.setSpacing(20)
         
-        # Groupe: Application
-        group_app = QGroupBox("📱 Application")
-        group_app.setStyleSheet("""
+        # Groupe: Base de données
+        group_db = QGroupBox("💾 Base de Données")
+        group_db.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
                 font-size: 13px;
@@ -393,235 +394,100 @@ class SettingsWidget(QWidget):
                 color: #2196F3;
             }
         """)
-        
-        form_app = QFormLayout(group_app)
-        form_app.setSpacing(10)
-        form_app.setContentsMargins(15, 20, 15, 15)
-        form_app.setLabelAlignment(Qt.AlignRight)
-        
-        self.input_app_name = QLineEdit(self.config.get('app', {}).get('name', ''))
-        self.input_app_version = QLineEdit(self.config.get('app', {}).get('version', ''))
-        
-        self.combo_language = QComboBox()
-        self.combo_language.addItems(['Français', 'English', 'العربية'])
-        current_lang = self.config.get('app', {}).get('language', 'fr')
-        lang_map = {'fr': 0, 'en': 1, 'ar': 2}
-        self.combo_language.setCurrentIndex(lang_map.get(current_lang, 0))
-        
-        self.combo_theme = QComboBox()
-        self.combo_theme.addItems(['Clair', 'Sombre', 'Auto'])
-        theme_map = {'light': 0, 'dark': 1, 'auto': 2}
-        current_theme = self.config.get('app', {}).get('theme', 'light')
-        self.combo_theme.setCurrentIndex(theme_map.get(current_theme, 0))
-        
-        input_style = """
-            QLineEdit, QComboBox {
-                padding: 8px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 12px;
-                background: white;
-            }
-            QLineEdit:focus, QComboBox:focus {
-                border-color: #2196F3;
-                background: #f8f9fa;
-            }
-        """
-        
-        for widget_input in [self.input_app_name, self.input_app_version, 
-                            self.combo_language, self.combo_theme]:
-            widget_input.setStyleSheet(input_style)
-        
-        form_app.addRow("Nom de l'application:", self.input_app_name)
-        form_app.addRow("Version:", self.input_app_version)
-        form_app.addRow("Langue:", self.combo_language)
-        form_app.addRow("Thème:", self.combo_theme)
-        
-        layout.addWidget(group_app)
-        
-        # Groupe: Horaires
-        group_hours = QGroupBox("🕐 Horaires")
-        group_hours.setStyleSheet(group_app.styleSheet())
-        
-        form_hours = QFormLayout(group_hours)
-        form_hours.setSpacing(10)
-        form_hours.setContentsMargins(15, 20, 15, 15)
-        form_hours.setLabelAlignment(Qt.AlignRight)
-        
-        self.input_start_time = QLineEdit(self.config.get('working_hours', {}).get('start', '08:00'))
-        self.input_end_time = QLineEdit(self.config.get('working_hours', {}).get('end', '18:00'))
-        self.input_session_duration = QSpinBox()
-        self.input_session_duration.setRange(15, 180)
-        self.input_session_duration.setSuffix(" minutes")
-        self.input_session_duration.setValue(self.config.get('working_hours', {}).get('session_duration', 60))
-        
-        for widget_input in [self.input_start_time, self.input_end_time, self.input_session_duration]:
-            widget_input.setStyleSheet(input_style)
-        
-        form_hours.addRow("Heure d'ouverture:", self.input_start_time)
-        form_hours.addRow("Heure de fermeture:", self.input_end_time)
-        form_hours.addRow("Durée session par défaut:", self.input_session_duration)
-        
-        layout.addWidget(group_hours)
-        
-        # Groupe: Base de données
-        group_db = QGroupBox("💾 Base de Données")
-        group_db.setStyleSheet(group_app.styleSheet())
         
         form_db = QFormLayout(group_db)
         form_db.setSpacing(10)
         form_db.setContentsMargins(15, 20, 15, 15)
         form_db.setLabelAlignment(Qt.AlignRight)
         
-        self.input_db_path = QLineEdit(self.config.get('database', {}).get('path', ''))
-        self.check_backup_start = QCheckBox("Sauvegarde automatique au démarrage")
-        self.check_backup_start.setChecked(self.config.get('database', {}).get('backup_on_start', True))
+        # Chemin BD avec bouton parcourir
+        db_path_layout = QHBoxLayout()
+        self.input_db_path = QLineEdit(self.config.get('database', {}).get('path', 'data/autoecole.db'))
+        self.input_db_path.setPlaceholderText("Chemin de la base de données")
         
-        self.input_backup_interval = QSpinBox()
-        self.input_backup_interval.setRange(300, 86400)
-        self.input_backup_interval.setSuffix(" secondes")
-        self.input_backup_interval.setValue(self.config.get('database', {}).get('auto_backup_interval', 3600))
-        
-        for widget_input in [self.input_db_path, self.input_backup_interval]:
-            widget_input.setStyleSheet(input_style)
-        
-        form_db.addRow("Chemin de la BD:", self.input_db_path)
-        form_db.addRow("", self.check_backup_start)
-        form_db.addRow("Intervalle de sauvegarde:", self.input_backup_interval)
-        
-        layout.addWidget(group_db)
-        layout.addStretch()
-        
-        container = QWidget()
-        container_layout = QVBoxLayout(container)
-        container_layout.setContentsMargins(0, 0, 0, 0)
-        container_layout.addWidget(scroll)
-        
-        return container
-    
-    def create_formats_tab(self):
-        """Onglet: Formats et Affichage"""
-        widget = QWidget()
-        scroll = QScrollArea()
-        scroll.setWidget(widget)
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QScrollArea.NoFrame)
-        
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(30, 30, 30, 30)
-        layout.setSpacing(20)
-        
-        # Groupe: Formats
-        group_formats = QGroupBox("📋 Formats")
-        group_formats.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                font-size: 13px;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                margin-top: 10px;
-                padding-top: 10px;
-                background: white;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px;
-                color: #2196F3;
-            }
-        """)
-        
-        form_formats = QFormLayout(group_formats)
-        form_formats.setSpacing(10)
-        form_formats.setContentsMargins(15, 20, 15, 15)
-        form_formats.setLabelAlignment(Qt.AlignRight)
-        
-        self.combo_date_format = QComboBox()
-        self.combo_date_format.addItems(['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'])
-        current_date = self.config.get('formats', {}).get('date', 'DD/MM/YYYY')
-        self.combo_date_format.setCurrentText(current_date)
-        
-        self.combo_time_format = QComboBox()
-        self.combo_time_format.addItems(['HH:mm', 'HH:mm:ss', 'hh:mm A'])
-        current_time = self.config.get('formats', {}).get('time', 'HH:mm')
-        self.combo_time_format.setCurrentText(current_time)
-        
-        self.input_currency = QLineEdit(self.config.get('formats', {}).get('currency', 'DH'))
-        
-        self.input_decimal_places = QSpinBox()
-        self.input_decimal_places.setRange(0, 4)
-        self.input_decimal_places.setValue(self.config.get('formats', {}).get('decimal_places', 2))
+        btn_browse_db = QPushButton("📁 Parcourir")
+        btn_browse_db.setFixedWidth(100)
+        btn_browse_db.clicked.connect(self.browse_database_path)
         
         input_style = """
-            QLineEdit, QComboBox, QSpinBox {
+            QLineEdit, QSpinBox {
                 padding: 8px;
                 border: 1px solid #ddd;
                 border-radius: 4px;
                 font-size: 12px;
                 background: white;
             }
-            QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
+            QLineEdit:focus, QSpinBox:focus {
                 border-color: #2196F3;
                 background: #f8f9fa;
             }
         """
         
-        for widget_input in [self.combo_date_format, self.combo_time_format, 
-                            self.input_currency, self.input_decimal_places]:
-            widget_input.setStyleSheet(input_style)
+        self.input_db_path.setStyleSheet(input_style)
+        btn_browse_db.setStyleSheet("""
+            QPushButton {
+                background: #2196F3;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 4px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background: #1976D2;
+            }
+        """)
         
-        form_formats.addRow("Format de date:", self.combo_date_format)
-        form_formats.addRow("Format d'heure:", self.combo_time_format)
-        form_formats.addRow("Symbole monétaire:", self.input_currency)
-        form_formats.addRow("Décimales:", self.input_decimal_places)
+        db_path_layout.addWidget(self.input_db_path)
+        db_path_layout.addWidget(btn_browse_db)
         
-        layout.addWidget(group_formats)
+        form_db.addRow("Chemin BD:", db_path_layout)
         
-        # Groupe: PDF
-        group_pdf = QGroupBox("📄 PDF")
-        group_pdf.setStyleSheet(group_formats.styleSheet())
+        layout.addWidget(group_db)
         
-        form_pdf = QFormLayout(group_pdf)
-        form_pdf.setSpacing(10)
-        form_pdf.setContentsMargins(15, 20, 15, 15)
-        form_pdf.setLabelAlignment(Qt.AlignRight)
+        # Groupe: Backup automatique
+        group_backup = QGroupBox("🔄 Backup Automatique")
+        group_backup.setStyleSheet(group_db.styleSheet())
         
-        self.combo_page_size = QComboBox()
-        self.combo_page_size.addItems(['A4', 'Letter', 'A5'])
-        current_page = self.config.get('pdf', {}).get('page_size', 'A4')
-        self.combo_page_size.setCurrentText(current_page)
+        form_backup = QFormLayout(group_backup)
+        form_backup.setSpacing(10)
+        form_backup.setContentsMargins(15, 20, 15, 15)
+        form_backup.setLabelAlignment(Qt.AlignRight)
         
-        self.check_auto_print = QCheckBox("Imprimer automatiquement après génération")
-        self.check_auto_print.setChecked(self.config.get('pdf', {}).get('auto_print', False))
+        self.check_backup_start = QCheckBox("Créer un backup automatique au démarrage de l'application")
+        self.check_backup_start.setChecked(self.config.get('database', {}).get('backup_on_start', False))
         
-        self.combo_page_size.setStyleSheet(input_style)
+        self.check_backup_interval = QCheckBox("Activer backup automatique périodique")
+        self.check_backup_interval.setChecked(self.config.get('database', {}).get('auto_backup_enabled', False))
+        self.check_backup_interval.toggled.connect(self.toggle_backup_interval)
         
-        form_pdf.addRow("Taille de page:", self.combo_page_size)
-        form_pdf.addRow("", self.check_auto_print)
+        self.input_backup_interval = QSpinBox()
+        self.input_backup_interval.setRange(5, 1440)  # 5 min à 24h
+        self.input_backup_interval.setSuffix(" minutes")
+        self.input_backup_interval.setValue(self.config.get('database', {}).get('auto_backup_interval', 60))
+        self.input_backup_interval.setEnabled(self.check_backup_interval.isChecked())
+        self.input_backup_interval.setStyleSheet(input_style)
         
-        layout.addWidget(group_pdf)
+        form_backup.addRow("", self.check_backup_start)
+        form_backup.addRow("", self.check_backup_interval)
+        form_backup.addRow("Intervalle:", self.input_backup_interval)
         
-        # Groupe: Rapports
-        group_reports = QGroupBox("📊 Rapports")
-        group_reports.setStyleSheet(group_formats.styleSheet())
+        layout.addWidget(group_backup)
         
-        form_reports = QFormLayout(group_reports)
-        form_reports.setSpacing(10)
-        form_reports.setContentsMargins(15, 20, 15, 15)
-        form_reports.setLabelAlignment(Qt.AlignRight)
+        # Info box
+        info = QLabel("💡 Les backups sont sauvegardés dans le dossier 'backups/' avec horodatage automatique.")
+        info.setStyleSheet("""
+            QLabel {
+                background: #e3f2fd;
+                padding: 10px;
+                border-radius: 6px;
+                color: #1976D2;
+                font-size: 11px;
+            }
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
         
-        self.input_fiscal_year = QLineEdit(self.config.get('reports', {}).get('fiscal_year_start', '01-01'))
-        self.input_fiscal_year.setPlaceholderText("MM-DD")
-        
-        self.input_default_currency = QLineEdit(self.config.get('reports', {}).get('default_currency', 'MAD'))
-        
-        for widget_input in [self.input_fiscal_year, self.input_default_currency]:
-            widget_input.setStyleSheet(input_style)
-        
-        form_reports.addRow("Début année fiscale:", self.input_fiscal_year)
-        form_reports.addRow("Devise par défaut:", self.input_default_currency)
-        
-        layout.addWidget(group_reports)
         layout.addStretch()
         
         container = QWidget()
@@ -631,8 +497,8 @@ class SettingsWidget(QWidget):
         
         return container
     
-    def create_backup_tab(self):
-        """Onglet: Sauvegarde et Données - Organisation en grille"""
+    def create_actions_tab(self):
+        """Onglet: Actions & Maintenance"""
         widget = QWidget()
         widget.setStyleSheet("background: #f5f5f5;")
         
@@ -643,19 +509,6 @@ class SettingsWidget(QWidget):
         # Grille de cards
         grid = QGridLayout()
         grid.setSpacing(15)
-        
-        # Style pour les cards
-        card_style = """
-            QFrame {
-                background: white;
-                border-radius: 8px;
-                border: 1px solid #e0e0e0;
-            }
-            QFrame:hover {
-                border: 1px solid #2196F3;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            }
-        """
         
         # Card 1: Créer sauvegarde
         card1 = self._create_action_card(
@@ -690,7 +543,7 @@ class SettingsWidget(QWidget):
         # Card 4: Exporter CSV
         card4 = self._create_action_card(
             "📤",
-            "Exporter CSV",
+            "Exporter CSV Global",
             "Exporter toutes les données en format CSV",
             "#9C27B0",
             self.export_all_data
@@ -740,7 +593,7 @@ class SettingsWidget(QWidget):
         danger_title.setStyleSheet("font-size: 13px; font-weight: bold; color: #f44336;")
         text_layout.addWidget(danger_title)
         
-        danger_desc = QLabel("Actions irréversibles - Sauvegardez avant de continuer")
+        danger_desc = QLabel("Actions irréversibles - Un backup sera créé automatiquement")
         danger_desc.setStyleSheet("font-size: 10px; color: #666;")
         text_layout.addWidget(danger_desc)
         
@@ -906,6 +759,60 @@ class SettingsWidget(QWidget):
             
             QMessageBox.information(self, "Succès", "✅ Logo supprimé!")
     
+    def browse_database_path(self):
+        """Parcourir pour choisir un emplacement de base de données"""
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Choisir l'emplacement de la base de données",
+            self.input_db_path.text(),
+            "Base de données SQLite (*.db)"
+        )
+        
+        if file_path:
+            self.input_db_path.setText(file_path)
+    
+    def toggle_backup_interval(self, checked):
+        """Active/désactive l'intervalle de backup"""
+        self.input_backup_interval.setEnabled(checked)
+    
+    def init_auto_backup(self):
+        """Initialise le système de backup automatique"""
+        # Backup au démarrage si activé
+        if self.config.get('database', {}).get('backup_on_start', False):
+            QTimer.singleShot(2000, self.silent_backup)  # 2 secondes après le démarrage
+        
+        # Backup périodique si activé
+        if self.config.get('database', {}).get('auto_backup_enabled', False):
+            interval_minutes = self.config.get('database', {}).get('auto_backup_interval', 60)
+            self.start_auto_backup_timer(interval_minutes)
+    
+    def start_auto_backup_timer(self, interval_minutes):
+        """Démarre le timer de backup automatique"""
+        if self.backup_timer:
+            self.backup_timer.stop()
+        
+        self.backup_timer = QTimer()
+        self.backup_timer.timeout.connect(self.silent_backup)
+        self.backup_timer.start(interval_minutes * 60 * 1000)  # Convertir en millisecondes
+    
+    def silent_backup(self):
+        """Crée un backup silencieux (sans messages)"""
+        try:
+            db_path = Path(self.config.get('database', {}).get('path', 'data/autoecole.db'))
+            if not db_path.exists():
+                return
+            
+            backup_dir = Path("backups")
+            backup_dir.mkdir(exist_ok=True)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_path = backup_dir / f"auto_backup_{timestamp}.db"
+            
+            shutil.copy(db_path, backup_path)
+            print(f"✅ Backup automatique créé: {backup_path}")
+        except Exception as e:
+            print(f"❌ Erreur backup automatique: {e}")
+    
     def save_all_settings(self):
         """Sauvegarde tous les paramètres"""
         try:
@@ -925,54 +832,23 @@ class SettingsWidget(QWidget):
             self.config['center']['license_number'] = self.input_center_license.text()
             self.config['center']['director_name'] = self.input_center_director.text()
             
-            # Application
-            if 'app' not in self.config:
-                self.config['app'] = {}
-            self.config['app']['name'] = self.input_app_name.text()
-            self.config['app']['version'] = self.input_app_version.text()
-            
-            lang_reverse_map = {0: 'fr', 1: 'en', 2: 'ar'}
-            self.config['app']['language'] = lang_reverse_map.get(self.combo_language.currentIndex(), 'fr')
-            
-            theme_reverse_map = {0: 'light', 1: 'dark', 2: 'auto'}
-            self.config['app']['theme'] = theme_reverse_map.get(self.combo_theme.currentIndex(), 'light')
-            
-            # Horaires
-            if 'working_hours' not in self.config:
-                self.config['working_hours'] = {}
-            self.config['working_hours']['start'] = self.input_start_time.text()
-            self.config['working_hours']['end'] = self.input_end_time.text()
-            self.config['working_hours']['session_duration'] = self.input_session_duration.value()
-            
             # Base de données
             if 'database' not in self.config:
                 self.config['database'] = {}
             self.config['database']['path'] = self.input_db_path.text()
             self.config['database']['backup_on_start'] = self.check_backup_start.isChecked()
+            self.config['database']['auto_backup_enabled'] = self.check_backup_interval.isChecked()
             self.config['database']['auto_backup_interval'] = self.input_backup_interval.value()
             
-            # Formats
-            if 'formats' not in self.config:
-                self.config['formats'] = {}
-            self.config['formats']['date'] = self.combo_date_format.currentText()
-            self.config['formats']['time'] = self.combo_time_format.currentText()
-            self.config['formats']['currency'] = self.input_currency.text()
-            self.config['formats']['decimal_places'] = self.input_decimal_places.value()
-            
-            # PDF
-            if 'pdf' not in self.config:
-                self.config['pdf'] = {}
-            self.config['pdf']['page_size'] = self.combo_page_size.currentText()
-            self.config['pdf']['auto_print'] = self.check_auto_print.isChecked()
-            
-            # Rapports
-            if 'reports' not in self.config:
-                self.config['reports'] = {}
-            self.config['reports']['fiscal_year_start'] = self.input_fiscal_year.text()
-            self.config['reports']['default_currency'] = self.input_default_currency.text()
-            
             # Sauvegarder
-            self.save_config()
+            success = self.save_config()
+            
+            if success:
+                # Redémarrer le timer de backup si nécessaire
+                if self.check_backup_interval.isChecked():
+                    self.start_auto_backup_timer(self.input_backup_interval.value())
+                elif self.backup_timer:
+                    self.backup_timer.stop()
             
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"❌ Erreur lors de la sauvegarde: {e}")
@@ -1032,7 +908,6 @@ class SettingsWidget(QWidget):
         backup_dir = Path("backups")
         backup_dir.mkdir(exist_ok=True)
         
-        import os
         import subprocess
         
         if os.name == 'nt':  # Windows
@@ -1042,12 +917,53 @@ class SettingsWidget(QWidget):
     
     def export_all_data(self):
         """Exporte toutes les données en CSV"""
-        QMessageBox.information(
-            self,
-            "Export",
-            "📤 Fonctionnalité d'export global en cours de développement.\n\n" +
-            "Utilisez les exports CSV de chaque module en attendant."
-        )
+        try:
+            from src.models import get_session, Student, Instructor, Vehicle, Session, Payment, Exam
+            from src.utils.export import ExportManager
+            
+            reply = QMessageBox.question(
+                self,
+                "Confirmation",
+                "Voulez-vous exporter toutes les données en CSV?\n\n" +
+                "Cela va créer plusieurs fichiers CSV dans le dossier exports/",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            
+            if reply == QMessageBox.Yes:
+                export_dir = Path("exports/export_global_" + datetime.now().strftime("%Y%m%d_%H%M%S"))
+                export_dir.mkdir(parents=True, exist_ok=True)
+                
+                exporter = ExportManager()
+                session = get_session()
+                
+                # Export de chaque entité
+                entities = [
+                    ("eleves", Student),
+                    ("moniteurs", Instructor),
+                    ("vehicules", Vehicle),
+                    ("sessions", Session),
+                    ("paiements", Payment),
+                    ("examens", Exam)
+                ]
+                
+                exported_files = []
+                for name, model in entities:
+                    data = session.query(model).all()
+                    if data:
+                        file_path = export_dir / f"{name}.csv"
+                        success = exporter.export_to_csv(data, str(file_path))
+                        if success:
+                            exported_files.append(name)
+                
+                QMessageBox.information(
+                    self,
+                    "✅ Export terminé",
+                    f"Export global réussi!\n\n" +
+                    f"Dossier: {export_dir}\n" +
+                    f"Fichiers créés: {', '.join(exported_files)}"
+                )
+        except Exception as e:
+            QMessageBox.critical(self, "Erreur", f"❌ Erreur lors de l'export: {e}")
     
     def optimize_database(self):
         """Optimise la base de données"""
@@ -1149,7 +1065,7 @@ class SettingsWidget(QWidget):
             self,
             "⚠️ Confirmation",
             "Êtes-vous ABSOLUMENT SÛR de vouloir réinitialiser la configuration?\n\n" +
-            "Cette action est IRRÉVERSIBLE et supprimera tous vos paramètres personnalisés.",
+            "Un backup automatique sera créé avant la réinitialisation.",
             QMessageBox.Yes | QMessageBox.No
         )
         
@@ -1163,10 +1079,41 @@ class SettingsWidget(QWidget):
             )
             
             if reply2 == QMessageBox.Yes:
-                # TODO: Implémenter la réinitialisation complète
-                QMessageBox.information(
-                    self,
-                    "Information",
-                    "❌ Fonctionnalité désactivée pour éviter les erreurs.\n\n" +
-                    "Supprimez manuellement le fichier config.json si nécessaire."
-                )
+                try:
+                    # Créer un backup de la config actuelle
+                    backup_dir = Path("backups")
+                    backup_dir.mkdir(exist_ok=True)
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    config_backup = backup_dir / f"config_backup_{timestamp}.json"
+                    shutil.copy(self.config_path, config_backup)
+                    
+                    # Charger config.example.json ou créer config minimal
+                    example_config_path = Path("config.example.json")
+                    if example_config_path.exists():
+                        shutil.copy(example_config_path, self.config_path)
+                    else:
+                        # Config minimal
+                        minimal_config = {
+                            "center": {},
+                            "database": {"path": "data/autoecole.db"},
+                            "pdf": {"company_logo": None},
+                            "formats": {"currency": "DH"},
+                            "paths": {"exports": "exports", "backups": "backups"}
+                        }
+                        with open(self.config_path, 'w', encoding='utf-8') as f:
+                            json.dump(minimal_config, f, indent=4, ensure_ascii=False)
+                    
+                    QMessageBox.information(
+                        self,
+                        "✅ Succès",
+                        f"Configuration réinitialisée!\n\n" +
+                        f"Backup sauvegardé: {config_backup}\n\n" +
+                        f"Veuillez redémarrer l'application."
+                    )
+                    
+                except Exception as e:
+                    QMessageBox.critical(
+                        self,
+                        "❌ Erreur",
+                        f"Erreur lors de la réinitialisation:\n{str(e)}"
+                    )
