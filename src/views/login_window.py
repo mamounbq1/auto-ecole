@@ -2,6 +2,8 @@
 Fenêtre de connexion de l'application
 """
 
+from typing import Optional
+
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QMessageBox,
@@ -10,9 +12,13 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPixmap, QFont, QIcon
 
-from src.utils import login, get_logger
+from src.utils import login, get_logger, bypass_login
 
 logger = get_logger()
+
+# ⚠️ Mode temporaire : permet de se connecter sans identifiants lorsque les champs sont vides.
+#    Veillez à remettre cette valeur à False une fois les tests terminés.
+TEMPORARY_LOGIN_BYPASS_ENABLED = True
 
 
 class LoginWindow(QMainWindow):
@@ -215,6 +221,30 @@ class LoginWindow(QMainWindow):
         username = self.username_input.text().strip()
         password = self.password_input.text()
         
+        # Mode bypass temporaire : connexion automatique si les champs sont vides
+        if TEMPORARY_LOGIN_BYPASS_ENABLED and not username and not password:
+            success, message, user = bypass_login()
+            if success:
+                logger.warning(
+                    "Connexion bypass utilisée : authentification automatique pour '%s' (rôle: %s)",
+                    user.username,
+                    user.role.value,
+                )
+                self._finalize_successful_login(
+                    user,
+                    (
+                        f"Mode bypass activé.\nConnexion automatique en tant que {user.full_name} "
+                        f"({user.role.value.capitalize()})."
+                    ),
+                )
+            else:
+                QMessageBox.critical(
+                    self,
+                    "Connexion impossible",
+                    message,
+                )
+            return
+        
         # Validation basique
         if not username or not password:
             QMessageBox.warning(
@@ -237,19 +267,7 @@ class LoginWindow(QMainWindow):
         
         if success:
             logger.info(f"Connexion réussie : {username}")
-            
-            # Message de bienvenue
-            QMessageBox.information(
-                self,
-                "Connexion réussie",
-                f"Bienvenue {user.full_name} !\n\nRôle : {user.role.value.capitalize()}"
-            )
-            
-            # Émettre le signal de connexion réussie
-            self.login_successful.emit(user)
-            
-            # Fermer la fenêtre de connexion
-            self.close()
+            self._finalize_successful_login(user)
         else:
             logger.warning(f"Échec de connexion pour : {username}")
             
@@ -264,6 +282,25 @@ class LoginWindow(QMainWindow):
             self.password_input.clear()
             self.password_input.setFocus()
             
+    def _finalize_successful_login(self, user, custom_message: Optional[str] = None) -> None:
+        """Afficher le message de bienvenue et émettre le signal de connexion."""
+        message = custom_message or (
+            f"Bienvenue {user.full_name} !\n\nRôle : {user.role.value.capitalize()}"
+        )
+
+        # S'assurer que le bouton est réactivé (au cas où)
+        self.login_button.setEnabled(True)
+        self.login_button.setText("Se Connecter")
+
+        QMessageBox.information(
+            self,
+            "Connexion réussie",
+            message,
+        )
+
+        self.login_successful.emit(user)
+        self.close()
+        
     def keyPressEvent(self, event):
         """Gérer les événements clavier"""
         if event.key() == Qt.Key_Escape:

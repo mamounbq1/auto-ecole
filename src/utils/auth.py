@@ -83,6 +83,69 @@ class AuthManager:
             logger.error(f"Erreur lors de la connexion : {e}")
             return False, f"Erreur lors de la connexion : {str(e)}", None
     
+    def bypass_login(self, preferred_roles: Optional[list[UserRole]] = None) -> tuple[bool, str, Optional[User]]:
+        """Forcer une connexion sans vérifier le mot de passe (mode temporaire)."""
+        try:
+            session = get_session()
+            search_roles = preferred_roles or [
+                UserRole.ADMIN,
+                UserRole.CASHIER,
+                UserRole.INSTRUCTOR,
+                UserRole.RECEPTIONIST,
+            ]
+
+            user: Optional[User] = None
+
+            for role in search_roles:
+                user = (
+                    session.query(User)
+                    .filter(
+                        User.role == role,
+                        User.is_active.is_(True),
+                        User.is_locked.is_(False),
+                    )
+                    .order_by(User.id.asc())
+                    .first()
+                )
+                if user:
+                    break
+
+            if not user:
+                user = (
+                    session.query(User)
+                    .filter(
+                        User.is_active.is_(True),
+                        User.is_locked.is_(False),
+                    )
+                    .order_by(User.id.asc())
+                    .first()
+                )
+
+            if not user:
+                logger.error("Bypass login impossible : aucun utilisateur actif disponible")
+                session.close()
+                return False, "Aucun utilisateur actif disponible pour la connexion automatique.", None
+
+            user.record_login_attempt(success=True)
+            session.commit()
+
+            if self._session:
+                self._session.close()
+
+            self._current_user = user
+            self._session = session
+
+            logger.warning(
+                "Mode bypass activé : connexion automatique pour l'utilisateur '%s' (rôle: %s)",
+                user.username,
+                user.role.value,
+            )
+            return True, "Connexion bypass réussie", user
+
+        except Exception as e:
+            logger.error(f"Erreur lors du bypass de connexion : {e}")
+            return False, f"Erreur lors du bypass de connexion : {str(e)}", None
+
     def logout(self) -> None:
         """Déconnecter l'utilisateur actuel"""
         if self._current_user:
@@ -173,6 +236,11 @@ _auth_manager = AuthManager()
 def login(username: str, password: str, max_attempts: int = 5) -> tuple[bool, str, Optional[User]]:
     """Connexion globale"""
     return _auth_manager.login(username, password, max_attempts)
+
+
+def bypass_login(preferred_roles: Optional[list[UserRole]] = None) -> tuple[bool, str, Optional[User]]:
+    """Connexion forcée sans mot de passe (usage temporaire)."""
+    return _auth_manager.bypass_login(preferred_roles)
 
 
 def logout() -> None:
