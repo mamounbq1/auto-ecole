@@ -969,8 +969,7 @@ class SettingsWidget(QWidget):
                 for name, model in entities:
                     data = session.query(model).all()
                     if data:
-                        file_path = export_dir / f"{name}.csv"
-                        success = exporter.export_to_csv(data, str(file_path))
+                        success, filepath = exporter.export_to_csv(data, name)
                         if success:
                             exported_files.append(name)
                 
