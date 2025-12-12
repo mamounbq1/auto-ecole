@@ -438,6 +438,8 @@ class StudentDetailViewDialog(QDialog):
         self.total_paid.setMaximum(999999)
         self.total_paid.setSuffix(" DH")
         self.total_paid.setEnabled(False)
+        # Connect signal to recalculate balance (even if disabled, for consistency)
+        self.total_paid.valueChanged.connect(self.update_balance_display)
         
         self.balance = QDoubleSpinBox()
         self.balance.setMinimum(-999999)
