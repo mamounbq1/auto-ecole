@@ -1,0 +1,153 @@
+╔════════════════════════════════════════════════════════════════════╗
+║              BIENVENUE DANS AUTO-ÉCOLE MANAGER v1.0.0              ║
+╚════════════════════════════════════════════════════════════════════╝
+
+Merci d'avoir choisi Auto-École Manager, le logiciel de gestion complet 
+pour les auto-écoles marocaines !
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 INFORMATIONS AVANT L'INSTALLATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚙️ CONFIGURATION REQUISE
+
+Système d'exploitation :
+  ✓ Windows 10 / 11 (64-bit recommandé)
+  ✓ Windows 8.1 (avec dernières mises à jour)
+  ✓ Windows 7 SP1 (support limité)
+
+Matériel minimum :
+  ✓ Processeur : Intel Core i3 ou équivalent
+  ✓ RAM : 4 GB minimum (8 GB recommandé)
+  ✓ Espace disque : 500 MB libres
+  ✓ Écran : Résolution 1366x768 minimum (1920x1080 recommandé)
+
+Connexion Internet :
+  ✓ Requise pour l'activation de la licence
+  ✓ Optionnelle pour l'utilisation quotidienne
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ FONCTIONNALITÉS INCLUSES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 Gestion des Élèves
+  • Dossiers complets avec photos
+  • Suivi des examens (théorique et pratique)
+  • Historique détaillé
+  • Import/Export CSV
+
+💰 Gestion Financière
+  • Paiements et encaissements
+  • Factures et reçus automatiques
+  • Suivi des soldes
+  • Statistiques financières
+
+📅 Planning et Séances
+  • Planification des cours
+  • Gestion des moniteurs
+  • Calendrier visuel
+  • Historique des séances
+
+🚗 Parc Automobile
+  • Gestion de la flotte
+  • Suivi de l'entretien
+  • Assurances et taxes
+  • Alertes automatiques
+
+👥 Gestion des Utilisateurs
+  • Système de rôles (RBAC)
+  • Permissions granulaires
+  • Multi-utilisateurs
+  • Journal d'audit
+
+📊 Statistiques et Rapports
+  • Tableaux de bord personnalisables
+  • Graphiques en temps réel
+  • Export PDF/Excel
+  • Analyses avancées
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 CE QUI SERA INSTALLÉ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+L'installateur va :
+
+1. ✓ Créer le répertoire d'installation (C:\Program Files\Auto-École Manager)
+2. ✓ Copier les fichiers de l'application
+3. ✓ Créer les raccourcis sur le bureau et le menu démarrer
+4. ✓ Initialiser la base de données
+5. ✓ Créer les dossiers de travail (data, backups, exports)
+6. ✓ Configurer les permissions d'accès
+7. ✓ Ajouter l'application au panneau de configuration
+
+Taille approximative : 150 MB
+Temps d'installation : 2-3 minutes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔐 ACTIVATION DE LA LICENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Après l'installation, vous devrez activer votre licence :
+
+1. Lancez l'application
+2. Notez votre "Hardware ID" affiché à l'écran
+3. Contactez-nous pour obtenir votre clé de licence :
+   
+   📧 Email : e.belqasim@gmail.com
+   📱 Téléphone : +212 637-636146
+
+4. Entrez la clé de licence reçue
+5. Commencez à utiliser l'application !
+
+Note : La licence est liée à cet ordinateur uniquement.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 IDENTIFIANTS PAR DÉFAUT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+À la première connexion, utilisez :
+
+Username : admin
+Password : Admin123!
+
+⚠️ IMPORTANT : Changez ce mot de passe immédiatement après la première 
+connexion pour des raisons de sécurité !
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 SUPPORT ET ASSISTANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Notre équipe est à votre disposition :
+
+📧 Email : e.belqasim@gmail.com
+📱 Téléphone : +212 637-636146
+🌐 Site web : https://autoecole-manager.ma
+
+Heures d'assistance :
+  Lundi - Vendredi : 9h00 - 18h00
+  Samedi : 9h00 - 13h00
+  Dimanche : Fermé
+
+Temps de réponse : 24-48 heures maximum
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ PRÊT À INSTALLER ?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Cliquez sur "Suivant" pour commencer l'installation.
+
+L'installation prendra quelques minutes. Vous pourrez suivre la progression 
+à chaque étape.
+
+Merci d'avoir choisi Auto-École Manager !
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+© 2024-2025 Auto-École Manager. Tous droits réservés.
