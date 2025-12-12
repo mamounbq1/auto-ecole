@@ -148,7 +148,7 @@ begin
   if CurPageID = wpSelectDir then
   begin
     DiskSpace := GetSpaceOnDisk(WizardDirValue);
-    if DiskSpace < (Int64(500) * 1024 * 1024) then // 500 MB requis
+    if DiskSpace < 524288000 then // 500 MB requis (500 * 1024 * 1024)
     begin
       MsgBox('Espace disque insuffisant!' + #13#10 +
              'L''installation nécessite au moins 500 MB d''espace libre.' + #13#10 +
