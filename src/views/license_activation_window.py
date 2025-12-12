@@ -3,6 +3,8 @@ Fenêtre d'activation de licence
 Première fenêtre affichée si l'application n'est pas sous licence
 """
 
+from pathlib import Path
+
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
     QLineEdit, QPushButton, QTextEdit, QGroupBox,
@@ -30,8 +32,13 @@ class LicenseActivationWindow(QDialog):
     def setup_ui(self):
         """Configure l'interface"""
         self.setWindowTitle("🔐 Activation de Licence - Auto-École")
-        self.setMinimumSize(700, 600)
+        self.setMinimumSize(700, 500)
         self.setModal(True)
+        
+        # Set window icon
+        icon_path = Path(__file__).parent.parent.parent / "assets" / "app_icon.png"
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
         
         # Style global
         self.setStyleSheet("""
@@ -194,40 +201,28 @@ class LicenseActivationWindow(QDialog):
         activation_group.setLayout(activation_layout)
         layout.addWidget(activation_group)
         
-        # === INSTRUCTIONS ===
-        instructions_group = QGroupBox("ℹ️ Comment obtenir une licence ?")
-        instructions_layout = QVBoxLayout()
-        
-        instructions_text = QTextEdit()
-        instructions_text.setReadOnly(True)
-        instructions_text.setMaximumHeight(120)
-        instructions_text.setStyleSheet("""
-            QTextEdit {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 5px;
-                padding: 10px;
-                font-size: 10px;
-                color: #495057;
-            }
-        """)
-        instructions_text.setHtml("""
-            <p><b>Pour obtenir votre clé de licence :</b></p>
-            <ol>
-                <li>Contactez le support technique à l'email: <b>support@auto-ecole.com</b></li>
-                <li>Fournissez l'<b>Identifiant de cet Ordinateur</b> affiché ci-dessus</li>
-                <li>Recevez votre clé de licence par email</li>
-                <li>Entrez la clé dans le champ ci-dessus et cliquez sur "Activer"</li>
-            </ol>
-            <p><i>Note: La licence est liée à cet ordinateur uniquement.</i></p>
-        """)
-        instructions_layout.addWidget(instructions_text)
-        
-        instructions_group.setLayout(instructions_layout)
-        layout.addWidget(instructions_group)
-        
         # === FOOTER ===
         footer_layout = QHBoxLayout()
+        
+        # Bouton instructions (à gauche)
+        help_btn = QPushButton("❓ Comment obtenir une licence ?")
+        help_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #74b9ff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px 20px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #0984e3;
+            }
+        """)
+        help_btn.clicked.connect(self.show_instructions)
+        footer_layout.addWidget(help_btn)
+        
         footer_layout.addStretch()
         
         # Bouton quitter
@@ -263,6 +258,85 @@ class LicenseActivationWindow(QDialog):
             "✅ Copié",
             "L'identifiant de cet ordinateur a été copié dans le presse-papiers!"
         )
+    
+    def show_instructions(self):
+        """Affiche les instructions d'obtention de licence dans une popup"""
+        instructions_html = """
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; font-size: 12px; }
+                h2 { color: #6c5ce7; }
+                ol { line-height: 1.8; }
+                li { margin-bottom: 8px; }
+                b { color: #2c3e50; }
+                .note { 
+                    background-color: #fff3cd; 
+                    border-left: 4px solid #ffc107;
+                    padding: 10px;
+                    margin-top: 15px;
+                    border-radius: 4px;
+                }
+                .contact {
+                    background-color: #e3f2fd;
+                    border-left: 4px solid #2196f3;
+                    padding: 10px;
+                    margin-top: 10px;
+                    border-radius: 4px;
+                }
+            </style>
+        </head>
+        <body>
+            <h2>📋 Comment obtenir votre clé de licence ?</h2>
+            
+            <ol>
+                <li><b>Copiez votre Identifiant d'Ordinateur</b><br>
+                    Cliquez sur le bouton "📋 Copier l'Identifiant" dans la fenêtre d'activation.
+                </li>
+                
+                <li><b>Contactez le Support Technique</b><br>
+                    Envoyez un email avec votre identifiant d'ordinateur.
+                </li>
+                
+                <li><b>Recevez votre Clé de Licence</b><br>
+                    Le support vous enverra votre clé de licence unique par email.
+                </li>
+                
+                <li><b>Activez l'Application</b><br>
+                    Copiez la clé reçue et collez-la dans le champ "Clé de licence".<br>
+                    Cliquez sur "✅ Activer la Licence".
+                </li>
+            </ol>
+            
+            <div class="contact">
+                <b>📧 Contact Support:</b><br>
+                Email: <b>support@auto-ecole.com</b><br>
+                Téléphone: <b>+212 XXX-XXXXXX</b>
+            </div>
+            
+            <div class="note">
+                <b>⚠️ Important:</b><br>
+                • La licence est liée à cet ordinateur uniquement<br>
+                • Conservez votre clé de licence en lieu sûr<br>
+                • Pour transférer la licence, contactez le support
+            </div>
+        </body>
+        </html>
+        """
+        
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("ℹ️ Instructions d'Activation")
+        msg_box.setTextFormat(Qt.RichText)
+        msg_box.setText(instructions_html)
+        msg_box.setIcon(QMessageBox.Information)
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        
+        # Set window icon
+        icon_path = Path(__file__).parent.parent.parent / "assets" / "app_icon.png"
+        if icon_path.exists():
+            msg_box.setWindowIcon(QIcon(str(icon_path)))
+        
+        msg_box.exec()
     
     def on_license_key_changed(self, text: str):
         """Active le bouton si la clé a au moins 20 caractères"""

@@ -54,24 +54,24 @@ def main():
     # Configurer le style
     setup_app_style(app)
     
-    # === LICENCE DÉSACTIVÉE TEMPORAIREMENT ===
-    # license_manager = get_license_manager()
-    # 
-    # if not license_manager.is_licensed():
-    #     logger.warning("⚠️ Aucune licence valide détectée")
-    #     
-    #     # Afficher la fenêtre d'activation
-    #     license_window = LicenseActivationWindow()
-    #     result = license_window.exec()
-    #     
-    #     if result != LicenseActivationWindow.Accepted:
-    #         logger.info("Application fermée sans activation de licence")
-    #         return 0
-    #     
-    #     logger.info("✅ Licence activée avec succès")
-    # else:
-    #     license_info = license_manager.get_license_info()
-    #     logger.info(f"✅ Licence valide pour {license_info.get('company')} ({license_info.get('days_remaining')} jours restants)")
+    # === VÉRIFICATION DE LA LICENCE ===
+    license_manager = get_license_manager()
+    
+    if not license_manager.is_licensed():
+        logger.warning("⚠️ Aucune licence valide détectée")
+        
+        # Afficher la fenêtre d'activation
+        license_window = LicenseActivationWindow()
+        result = license_window.exec()
+        
+        if result != LicenseActivationWindow.Accepted:
+            logger.info("Application fermée sans activation de licence")
+            return 0
+        
+        logger.info("✅ Licence activée avec succès")
+    else:
+        license_info = license_manager.get_license_info()
+        logger.info(f"✅ Licence valide pour {license_info.get('company')} ({license_info.get('days_remaining')} jours restants)")
     
     # === MIGRATIONS AUTOMATIQUES ===
     try:
