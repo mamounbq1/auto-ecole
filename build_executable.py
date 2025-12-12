@@ -107,6 +107,7 @@ def build_executable():
         '--hidden-import=PySide6.QtCore',
         '--hidden-import=PySide6.QtGui',
         '--hidden-import=PySide6.QtWidgets',
+        '--hidden-import=PySide6.QtCharts',
         '--hidden-import=matplotlib',
         '--hidden-import=matplotlib.backends.backend_agg',
         '--hidden-import=pandas',
