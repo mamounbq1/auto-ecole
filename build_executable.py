@@ -134,12 +134,16 @@ def build_executable():
     ]
     
     try:
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print("✅ Compilation réussie!")
+        # Afficher la sortie en temps réel pour suivre la progression
+        result = subprocess.run(cmd, check=True)
+        print("\n✅ Compilation réussie!")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Erreur lors de la compilation:")
-        print(e.stderr)
+        print(f"\n❌ Erreur lors de la compilation (code {e.returncode})")
+        return False
+    except KeyboardInterrupt:
+        print("\n\n⚠️ Compilation interrompue par l'utilisateur (Ctrl+C)")
+        print("💡 La compilation prend 5-10 minutes. Relancez et laissez-la terminer.")
         return False
 
 def create_installer_structure():
