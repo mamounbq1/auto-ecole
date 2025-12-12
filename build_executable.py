@@ -113,6 +113,11 @@ def build_executable():
         '--hidden-import=openpyxl',
         '--hidden-import=twilio',
         '--hidden-import=twilio.rest',
+        '--hidden-import=email',
+        '--hidden-import=email.mime',
+        '--hidden-import=email.mime.text',
+        '--hidden-import=email.mime.multipart',
+        '--hidden-import=smtplib',
         
         # Exclure les modules inutiles pour réduire la taille
         '--exclude-module=pytest',
