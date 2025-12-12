@@ -70,28 +70,37 @@ def main():
     
     logger.info("⚠️ Mode développement : licence et login désactivés")
     
-    # === INITIALISATION AUTOMATIQUE RBAC ===
+    # === MIGRATIONS AUTOMATIQUES ===
     try:
-        from sqlalchemy import inspect
+        from sqlalchemy import inspect, text
         from src.models import get_engine
-        from src.utils.init_rbac import initialize_rbac_system
         
         engine = get_engine()
         inspector = inspect(engine)
-        existing_tables = inspector.get_table_names()
         
-        # Vérifier si les tables RBAC existent
+        # Migration 1: Ajouter la colonne password_plain
+        columns = [col['name'] for col in inspector.get_columns('users')]
+        if 'password_plain' not in columns:
+            logger.info("🔄 Ajout de la colonne password_plain...")
+            with engine.connect() as connection:
+                connection.execute(text("ALTER TABLE users ADD COLUMN password_plain TEXT"))
+                connection.commit()
+            logger.info("✅ Colonne password_plain ajoutée")
+        
+        # Migration 2: Créer les tables RBAC si nécessaire
+        existing_tables = inspector.get_table_names()
         if 'roles' not in existing_tables or 'permissions' not in existing_tables:
             logger.info("🔄 Initialisation du système RBAC...")
+            from src.utils.init_rbac import initialize_rbac_system
             success_rbac, message_rbac = initialize_rbac_system()
             if success_rbac:
                 logger.info(f"✅ {message_rbac}")
             else:
                 logger.warning(f"⚠️ RBAC init: {message_rbac}")
         else:
-            logger.info("✓ Tables RBAC déjà initialisées")
+            logger.info("✓ Système RBAC déjà initialisé")
     except Exception as e:
-        logger.warning(f"⚠️ Erreur initialisation RBAC (ignorée) : {e}")
+        logger.warning(f"⚠️ Erreur migrations (ignorée) : {e}")
     
     # === LOGIN DÉSACTIVÉ - BYPASS DIRECT ===
     # Créer directement la fenêtre principale avec un utilisateur admin

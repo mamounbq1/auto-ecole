@@ -8,7 +8,7 @@ from typing import Optional, Set, List, TYPE_CHECKING
 
 import bcrypt
 from sqlalchemy import Column, Integer, String, Enum, Boolean, DateTime, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, deferred
 
 from .base import Base, BaseModel
 
@@ -45,7 +45,8 @@ class User(Base, BaseModel):
     # La relation est définie ici, la table user_roles est créée dans role.py
     
     # Mot de passe en clair (visible par admin UNIQUEMENT - optionnel)
-    password_plain = Column(Text, nullable=True)
+    # Deferred pour éviter les erreurs si la colonne n'existe pas encore
+    password_plain = deferred(Column(Text, nullable=True))
     
     # Status et sécurité
     is_active = Column(Boolean, default=True, nullable=False)
