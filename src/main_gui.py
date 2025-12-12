@@ -94,6 +94,9 @@ def main():
         logger.warning(f"⚠️ Erreur migrations (ignorée) : {e}")
     
     # === FENÊTRE DE CONNEXION ===
+    # Store reference to main window to prevent garbage collection
+    app.main_window = None
+    
     def on_login_success(user):
         """Callback appelé lors d'une connexion réussie"""
         logger.info(f"✅ Connexion réussie : {user.username}")
@@ -120,8 +123,10 @@ def main():
         
         # Créer et afficher la fenêtre principale
         try:
-            main_window = MainWindow(user)
-            main_window.show()
+            # Store as app attribute to prevent garbage collection
+            app.main_window = MainWindow(user)
+            app.main_window.show()
+            logger.info("✅ Fenêtre principale affichée avec succès")
         except Exception as e:
             logger.error(f"❌ Erreur lors du chargement de la fenêtre principale: {e}")
             import traceback

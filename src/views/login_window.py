@@ -171,19 +171,12 @@ class LoginWindow(QMainWindow):
         footer_layout = QVBoxLayout()
         footer_layout.setAlignment(Qt.AlignCenter)
         
-        # Message d'aide
-        help_label = QLabel("Comptes de démonstration disponibles")
-        help_label.setAlignment(Qt.AlignCenter)
-        help_label.setStyleSheet("color: #95a5a6; font-size: 11px; margin-top: 10px;")
+        # Version info only
+        version_label = QLabel("Auto-École Manager v1.0")
+        version_label.setAlignment(Qt.AlignCenter)
+        version_label.setStyleSheet("color: #95a5a6; font-size: 10px; margin-top: 15px;")
         
-        # Liens vers la documentation
-        demo_label = QLabel("Admin: admin / Admin123! | Caissier: caissier / Caisse123!")
-        demo_label.setAlignment(Qt.AlignCenter)
-        demo_label.setStyleSheet("color: #3498db; font-size: 10px;")
-        
-        footer_layout.addWidget(help_label)
-        footer_layout.addWidget(demo_label)
-        
+        footer_layout.addWidget(version_label)
         layout.addLayout(footer_layout)
         
     def apply_style(self):
