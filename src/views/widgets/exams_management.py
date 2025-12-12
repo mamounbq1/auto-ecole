@@ -23,6 +23,7 @@ from datetime import datetime, date
 import os
 import webbrowser
 
+from functools import partial
 from src.controllers.exam_controller import ExamController
 from src.controllers.student_controller import StudentController
 from src.models import ExamType, ExamResult, get_session, Exam
@@ -1148,7 +1149,6 @@ class ExamsManagement(QWidget):
         from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
         from reportlab.pdfbase import pdfmetrics
         from reportlab.pdfbase.ttfonts import TTFont
-from functools import partial
         
         # Créer le document
         doc = SimpleDocTemplate(filepath, pagesize=A4,

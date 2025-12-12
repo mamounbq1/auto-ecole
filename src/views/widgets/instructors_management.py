@@ -13,6 +13,7 @@ from PySide6.QtCore import Qt, QDate, Signal
 from PySide6.QtGui import QFont, QColor
 from datetime import datetime, date
 
+from functools import partial
 from src.controllers.instructor_controller import InstructorController
 from src.models import Instructor
 
@@ -195,7 +196,6 @@ class AddInstructorDialog(QDialog):
         
         try:
             from src.models import get_session
-from functools import partial
             session = get_session()
             
             if self.instructor:

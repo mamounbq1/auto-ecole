@@ -21,6 +21,7 @@ from PySide6.QtCore import Qt, QDate, Signal
 from PySide6.QtGui import QFont, QColor
 from datetime import datetime, date
 
+from functools import partial
 from src.controllers.vehicle_controller import VehicleController
 from src.models import VehicleStatus, get_session, Vehicle
 from src.utils import export_to_csv
@@ -48,7 +49,6 @@ class VehicleDialog(QDialog):
         
         # Scroll pour les grands formulaires
         from PySide6.QtWidgets import QScrollArea
-from functools import partial
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("QScrollArea { border: none; }")

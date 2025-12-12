@@ -13,6 +13,7 @@ from PySide6.QtCore import Qt, QDate, QTime, QDateTime
 from PySide6.QtGui import QFont, QColor
 from datetime import datetime, timedelta
 
+from functools import partial
 from src.controllers.session_controller import SessionController
 from src.controllers.student_controller import StudentController
 from src.controllers.instructor_controller import InstructorController
@@ -314,7 +315,6 @@ class SessionDetailViewDialog(QDialog):
             
             # Récupérer ACTIFS en formation
             from src.models import StudentStatus
-from functools import partial
             all_students = StudentController.get_all_students()
             active_students = [s for s in all_students 
                               if s.status == StudentStatus.ACTIVE 

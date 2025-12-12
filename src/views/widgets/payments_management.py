@@ -13,6 +13,7 @@ from PySide6.QtCore import Qt, QDate, Signal
 from PySide6.QtGui import QFont, QColor
 from datetime import datetime, date
 
+from functools import partial
 from src.controllers.payment_controller import PaymentController
 from src.controllers.student_controller import StudentController
 from src.models import PaymentMethod, Payment
@@ -1525,7 +1526,6 @@ class PaymentsManagement(QWidget):
         if reply == QMessageBox.Yes:
             # Demander raison
             from PySide6.QtWidgets import QInputDialog
-from functools import partial
             reason, ok = QInputDialog.getText(
                 self,
                 "Raison de l'annulation",
