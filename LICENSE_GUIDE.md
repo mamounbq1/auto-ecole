@@ -26,8 +26,8 @@ L'Auto-École Manager utilise un système de licence basé sur le Hardware ID po
    - Lisez les instructions dans la popup
 
 5. **Contactez le support:**
-   - Email: support@auto-ecole.com
-   - Téléphone: +212 XXX-XXXXXX
+   - Email: e.belqasim@gmail.com
+   - Téléphone: +212 637-636146
    - Fournissez votre Hardware ID
 
 6. **Recevez votre clé de licence:**
@@ -250,8 +250,8 @@ python generate_license.py "Mon Auto-École" 365
 
 Pour toute question concernant les licences:
 
-- 📧 **Email**: support@auto-ecole.com
-- 📱 **Téléphone**: +212 XXX-XXXXXX
+- 📧 **Email**: e.belqasim@gmail.com
+- 📱 **Téléphone**: +212 637-636146
 - 🌐 **Site Web**: https://auto-ecole-manager.com
 
 ---

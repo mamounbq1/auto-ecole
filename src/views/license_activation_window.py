@@ -310,8 +310,8 @@ class LicenseActivationWindow(QDialog):
             
             <div class="contact">
                 <b>📧 Contact Support:</b><br>
-                Email: <b>support@auto-ecole.com</b><br>
-                Téléphone: <b>+212 XXX-XXXXXX</b>
+                Email: <b>e.belqasim@gmail.com</b><br>
+                Téléphone: <b>+212 637-636146</b>
             </div>
             
             <div class="note">
