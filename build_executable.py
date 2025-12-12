@@ -118,6 +118,13 @@ def build_executable():
         '--exclude-module=pytest',
         '--exclude-module=unittest',
         '--exclude-module=setuptools',
+        '--exclude-module=PyQt5',
+        '--exclude-module=PyQt6',
+        '--exclude-module=tkinter',
+        '--exclude-module=IPython',
+        '--exclude-module=jedi',
+        '--exclude-module=jupyter',
+        '--exclude-module=notebook',
         
         # Paramètres de console
         '--noconsole',
