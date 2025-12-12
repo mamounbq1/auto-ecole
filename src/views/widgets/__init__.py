@@ -6,7 +6,7 @@ pour éviter de charger matplotlib au démarrage si pas nécessaire
 """
 
 # Import des widgets sans matplotlib (chargement rapide)
-from .dashboard_simple import DashboardSimpleWidget
+from .dashboard_professional import DashboardProfessionalWidget
 from .students_enhanced import StudentsEnhancedWidget
 from .planning_enhanced import PlanningEnhancedWidget
 from .payments_main import PaymentsMainWidget  # Module Paiements complet
@@ -22,7 +22,7 @@ from .settings_widget import SettingsWidget  # Module Paramètres complet
 
 __all__ = [
     # Main widgets (used in main_window.py)
-    'DashboardSimpleWidget',
+    'DashboardProfessionalWidget',
     'StudentsEnhancedWidget',
     'PlanningEnhancedWidget',
     'PaymentsMainWidget',

@@ -311,20 +311,10 @@ class MainWindow(QMainWindow):
         
     # Méthodes pour afficher les différents modules
     def show_dashboard(self):
-        """Afficher le dashboard"""
-        # Utiliser le dashboard professionnel avec QtCharts (stable, moderne)
-        try:
-            from .widgets.dashboard_professional import DashboardProfessionalWidget
-            self.set_current_module(DashboardProfessionalWidget(self.user))
-            self.statusBar().showMessage("Dashboard Professionnel")
-        except Exception as e:
-            # Fallback vers dashboard simple en cas d'erreur
-            print(f"[ERREUR] Dashboard professionnel: {e}")
-            import traceback
-            traceback.print_exc()
-            from .widgets.dashboard_simple import DashboardSimpleWidget
-            self.set_current_module(DashboardSimpleWidget(self.user))
-            self.statusBar().showMessage("Dashboard Simple (Fallback)")
+        """Afficher le dashboard professionnel"""
+        from .widgets.dashboard_professional import DashboardProfessionalWidget
+        self.set_current_module(DashboardProfessionalWidget(self.user))
+        self.statusBar().showMessage("Dashboard Professionnel")
         
         # Version avec graphiques matplotlib (désactivée)
         # try:
