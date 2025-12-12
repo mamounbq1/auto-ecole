@@ -72,6 +72,29 @@ def main():
             # Initialiser la base de données
             init_db(drop_all=False)
             logger.info("✅ Base de données créée avec succès")
+            
+            # Créer l'utilisateur admin par défaut
+            try:
+                from src.models import User, UserRole, get_session
+                db_session = get_session()
+                
+                # Vérifier si l'admin existe déjà
+                admin_user = db_session.query(User).filter_by(username="admin").first()
+                if not admin_user:
+                    admin_user = User(
+                        username="admin",
+                        password="Admin123!",
+                        full_name="Administrateur Principal",
+                        email="admin@autoecole.ma",
+                        phone="+212 600-000001",
+                        role=UserRole.ADMIN
+                    )
+                    db_session.add(admin_user)
+                    db_session.commit()
+                    logger.info("✅ Utilisateur admin créé (admin / Admin123!)")
+                db_session.close()
+            except Exception as e:
+                logger.warning(f"⚠️ Erreur création admin : {e}")
         else:
             # Vérifier que les tables existent
             engine = get_engine()
