@@ -29,13 +29,24 @@ class UserController:
             Liste des utilisateurs
         """
         try:
+            from sqlalchemy.orm import joinedload
             session = get_session()
-            query = session.query(User)
+            query = session.query(User).options(joinedload(User.roles))
             
             if not include_inactive:
                 query = query.filter(User.is_active == True)
             
             users = query.order_by(User.full_name).all()
+            
+            # Force load deferred columns before closing session
+            for user in users:
+                try:
+                    _ = user.password_plain  # Force load deferred column
+                    _ = user.roles  # Force load relationship
+                except Exception:
+                    pass
+            
+            session.expunge_all()  # Detach all objects so they can be used after session close
             session.close()
             return users
         except Exception as e:
@@ -54,8 +65,19 @@ class UserController:
             Utilisateur ou None
         """
         try:
+            from sqlalchemy.orm import joinedload
             session = get_session()
-            user = session.query(User).filter(User.id == user_id).first()
+            user = session.query(User).options(joinedload(User.roles)).filter(User.id == user_id).first()
+            
+            if user:
+                # Force load deferred columns before closing session
+                try:
+                    _ = user.password_plain
+                    _ = user.roles
+                except Exception:
+                    pass
+                session.expunge(user)  # Detach object so it can be used after session close
+            
             session.close()
             return user
         except Exception as e:

@@ -225,16 +225,26 @@ class UserManagementWidget(QWidget):
     
     def edit_user(self, user: User):
         """Modifier un utilisateur"""
-        dialog = UserEditDialog(user, self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.load_users()
-            self.user_changed.emit()
+        # Reload user to ensure all data is loaded
+        fresh_user = UserController.get_user_by_id(user.id)
+        if fresh_user:
+            dialog = UserEditDialog(fresh_user, self)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                self.load_users()
+                self.user_changed.emit()
+        else:
+            QMessageBox.warning(self, "Erreur", "Impossible de charger l'utilisateur")
     
     def change_password(self, user: User):
         """Changer le mot de passe d'un utilisateur"""
-        dialog = PasswordChangeDialog(user, self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.user_changed.emit()
+        # Reload user to ensure password_plain is loaded
+        fresh_user = UserController.get_user_by_id(user.id)
+        if fresh_user:
+            dialog = PasswordChangeDialog(fresh_user, self)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                self.user_changed.emit()
+        else:
+            QMessageBox.warning(self, "Erreur", "Impossible de charger l'utilisateur")
     
     def unlock_user(self, user: User):
         """Déverrouiller un utilisateur"""
@@ -399,7 +409,12 @@ class UserEditDialog(QDialog):
         self.txt_notes.setPlainText(self.user.notes or "")
         
         # Cocher les rôles de l'utilisateur
-        user_role_ids = {r.id for r in self.user.roles} if hasattr(self.user, 'roles') else set()
+        user_role_ids = set()
+        try:
+            if hasattr(self.user, 'roles') and self.user.roles:
+                user_role_ids = {r.id for r in self.user.roles}
+        except Exception as e:
+            logger.warning(f"Impossible de charger les rôles de l'utilisateur : {e}")
         
         for i in range(self.roles_list.count()):
             item = self.roles_list.item(i)
@@ -511,8 +526,14 @@ class PasswordChangeDialog(QDialog):
         layout.addWidget(info_label)
         
         # Afficher le mot de passe actuel (si disponible)
-        if self.user.password_plain:
-            current_pwd_label = QLabel(f"🔑 Mot de passe actuel: <b>{self.user.password_plain}</b>")
+        current_password = None
+        try:
+            current_password = self.user.password_plain
+        except Exception:
+            pass
+        
+        if current_password:
+            current_pwd_label = QLabel(f"🔑 Mot de passe actuel: <b>{current_password}</b>")
             current_pwd_label.setStyleSheet("background-color: #FFF9C4; padding: 8px; border-radius: 4px; margin: 10px 0;")
             layout.addWidget(current_pwd_label)
         
