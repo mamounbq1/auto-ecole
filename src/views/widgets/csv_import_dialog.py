@@ -44,9 +44,11 @@ class CSVImportWorker(QThread):
         }
         
         try:
-            with open(self.file_path, 'r', encoding='utf-8') as file:
+            with open(self.file_path, 'r', encoding='utf-8-sig') as file:
+                # Skip comment lines (starting with #)
+                lines = [line for line in file if not line.strip().startswith('#')]
                 # Read CSV
-                csv_reader = csv.DictReader(file)
+                csv_reader = csv.DictReader(lines)
                 rows = list(csv_reader)
                 results['total'] = len(rows)
                 
