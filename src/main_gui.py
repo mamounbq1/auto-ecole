@@ -58,6 +58,42 @@ def main():
     # Configurer le style
     setup_app_style(app)
     
+    # === INITIALISATION DE LA BASE DE DONNÉES ===
+    try:
+        from src.models import init_db, get_engine
+        from src.config import DATABASE_PATH
+        from pathlib import Path
+        
+        # Vérifier si la base de données existe
+        db_path = Path(DATABASE_PATH)
+        if not db_path.exists():
+            logger.info("🗄️ Base de données non trouvée, création...")
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Initialiser la base de données
+            init_db(drop_all=False)
+            logger.info("✅ Base de données créée avec succès")
+        else:
+            # Vérifier que les tables existent
+            engine = get_engine()
+            from sqlalchemy import inspect
+            inspector = inspect(engine)
+            tables = inspector.get_table_names()
+            
+            if 'users' not in tables:
+                logger.warning("⚠️ Table 'users' manquante, réinitialisation...")
+                init_db(drop_all=False)
+                logger.info("✅ Tables créées avec succès")
+    except Exception as e:
+        logger.error(f"❌ Erreur initialisation base de données: {e}")
+        from PySide6.QtWidgets import QMessageBox
+        QMessageBox.critical(
+            None,
+            "Erreur de base de données",
+            f"Impossible d'initialiser la base de données:\n{str(e)}\n\nL'application ne peut pas continuer."
+        )
+        return 1
+    
     # === VÉRIFICATION DE LA LICENCE ===
     license_manager = get_license_manager()
     
