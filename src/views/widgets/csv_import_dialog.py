@@ -111,12 +111,15 @@ class CSVImportWorker(QThread):
         if cin and len(cin) != 8:
             errors.append(f"CIN invalide (doit être 8 caractères): {cin}")
         
-        # Validate phone format (10 digits starting with 0)
+        # Validate phone format (accept both 0XXXXXXXXX and +212 XXX-XXXXXX)
         phone = row.get('phone', '').strip()
         if phone:
-            phone_clean = phone.replace(' ', '').replace('-', '')
-            if not phone_clean.isdigit() or len(phone_clean) != 10 or not phone_clean.startswith('0'):
-                errors.append(f"Téléphone invalide (format: 0XXXXXXXXX): {phone}")
+            phone_clean = phone.replace(' ', '').replace('-', '').replace('+', '')
+            # Accept Moroccan format: +212XXXXXXXXX or 0XXXXXXXXX
+            if phone_clean.startswith('212'):
+                phone_clean = '0' + phone_clean[3:]  # Convert +212 to 0
+            if not (phone_clean.isdigit() and len(phone_clean) == 10 and phone_clean.startswith('0')):
+                errors.append(f"Téléphone invalide (format: 0XXXXXXXXX ou +212 XXX-XXXXXX): {phone}")
         
         # Validate email format
         email = row.get('email', '').strip()
@@ -128,11 +131,23 @@ class CSVImportWorker(QThread):
         if license_type and license_type not in ['A', 'B', 'C', 'D', 'E']:
             errors.append(f"Type de permis invalide (A, B, C, D, E): {license_type}")
         
-        # Validate status
+        # Validate status (accept both English and French status values)
         status = row.get('status', '').strip().lower()
-        valid_statuses = ['active', 'suspended', 'graduated', 'pending']
-        if status and status not in valid_statuses:
-            errors.append(f"Statut invalide (active, suspended, graduated, pending): {status}")
+        # Map French status to English StudentStatus enum values
+        status_mapping = {
+            'actif': 'ACTIVE',
+            'active': 'ACTIVE',
+            'en_attente': 'PENDING',
+            'pending': 'PENDING',
+            'suspendu': 'SUSPENDED',
+            'suspended': 'SUSPENDED',
+            'diplome': 'GRADUATED',
+            'graduated': 'GRADUATED',
+            'abandonne': 'ABANDONED',
+            'abandoned': 'ABANDONED'
+        }
+        if status and status not in status_mapping:
+            errors.append(f"Statut invalide: {status}")
         
         # Validate numeric fields
         numeric_fields = {
@@ -190,14 +205,20 @@ class CSVImportWorker(QThread):
             except ValueError:
                 data['date_of_birth'] = None
         
-        # Parse status
+        # Parse status (accept both English and French)
         status_map = {
+            'actif': StudentStatus.ACTIVE,
             'active': StudentStatus.ACTIVE,
+            'en_attente': StudentStatus.PENDING,
+            'pending': StudentStatus.PENDING,
+            'suspendu': StudentStatus.SUSPENDED,
             'suspended': StudentStatus.SUSPENDED,
+            'diplome': StudentStatus.GRADUATED,
             'graduated': StudentStatus.GRADUATED,
-            'pending': StudentStatus.PENDING
+            'abandonne': StudentStatus.ABANDONED,
+            'abandoned': StudentStatus.ABANDONED
         }
-        status_str = row.get('status', 'active').strip().lower()
+        status_str = row.get('status', 'actif').strip().lower()
         data['status'] = status_map.get(status_str, StudentStatus.ACTIVE)
         
         # Parse numeric fields with defaults
