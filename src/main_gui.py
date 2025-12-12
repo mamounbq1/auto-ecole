@@ -62,7 +62,6 @@ def main():
     try:
         from src.models import init_db, get_engine
         from src.config import DATABASE_PATH
-        from pathlib import Path
         
         # Vérifier si la base de données existe
         db_path = Path(DATABASE_PATH)
