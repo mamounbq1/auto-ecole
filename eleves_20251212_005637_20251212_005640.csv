@@ -1,9 +1,0 @@
-# Auto-École Manager
-# Exporté le 12/12/2025 à 00:56
-#
-id,full_name,cin,date_of_birth,age,phone,email,address,registration_date,status,license_type,theoretical_exam_passed,practical_exam_passed,theoretical_exam_attempts,practical_exam_attempts,total_paid,total_due,balance,is_solvent,hours_completed,hours_planned,completion_rate,emergency_contact_name,emergency_contact_phone,notes,created_at
-5,Yasmine Taoufik,II567890,2002-09-30,23,+212 600-222005,yasmine.t@email.com,"Tanger, Malabata",2024-11-01,en_attente,B,0,0,0,0,2000.0,5000.0,-3000.0,True,0,20,0.0,,,,2025-12-10T22:19:03.150853
-2,Omar El Fassi,FF234567,2001-07-22,24,+212 600-222002,omar.fassi@email.com,"Rabat, Agdal",2024-10-05,actif,B,0,0,0,0,5000.0,5000.0,0.0,True,8,20,40.0,M. El Fassi,+212 600-222010,,2025-12-10T22:19:03.148203
-1,Sara Bennani,EE123456,2002-03-15,23,+212 600-222001,sara.bennani@email.com,"Casablanca, Maarif",2024-09-01,actif,B,0,0,0,0,3500.0,5000.0,-1500.0,True,12,20,60.0,Mme Bennani,+212 600-222000,,2025-12-10T22:19:03.148199
-3,Leila Amrani,GG345678,2003-11-05,22,+212 600-222003,leila.amrani@email.com,"Marrakech, Gueliz",2024-08-15,actif,B,1,0,1,0,5500.0,5500.0,0.0,True,18,20,90.0,,,,2025-12-10T22:19:03.149422
-4,Mehdi Ziani,HH456789,2000-04-18,25,+212 600-222004,mehdi.ziani@email.com,"Fès, Centre Ville",2024-07-01,diplome,B,1,1,2,1,6000.0,6000.0,0.0,True,22,20,100.0,,,,2025-12-10T22:19:03.150193

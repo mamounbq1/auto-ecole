@@ -19,12 +19,14 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual Environment
 venv/
-ENV/
 env/
-.venv
+ENV/
+env.bak/
+venv.bak/
 
 # IDE
 .vscode/
@@ -34,53 +36,40 @@ env/
 *~
 .DS_Store
 
-# Database
-*.db-journal
-*.db-wal
-
 # Logs
-logs/*.log
 *.log
+logs/
 
-# Test
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Config (keep template, ignore actual config with sensitive data)
+config/license.dat
 
 # Backups
-backups/*.db
-backups/*.sql
+backups/
+*.bak
 
-# Exports
-exports/*.pdf
-exports/*.csv
-exports/*.xlsx
+# Test files
+test_*.py
+*_test.py
+pytest_cache/
+.pytest_cache/
 
-# Uploads (keep structure, ignore content)
-uploads/*
-!uploads/.gitkeep
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# CSV test data
+eleves_*.csv
+
+# Documentation drafts (keep production docs)
+*_draft.md
+*_temp.md
 
 # OS
 Thumbs.db
 .DS_Store
-
-# Temporary
-*.tmp
-*.bak
-*.swp
-~*
-
-# Config (keep example)
-config.json
-
-# Documentation builds
-docs/_build/
-docs/.doctrees/
-
-# PyInstaller
-*.spec
-
-# Distribution
-*.exe
-*.msi
