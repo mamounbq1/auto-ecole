@@ -141,14 +141,14 @@ end;
 // Vérifier l'espace disque requis
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
-  DiskSpace: Integer;
+  DiskSpace: Int64;
 begin
   Result := True;
   
   if CurPageID = wpSelectDir then
   begin
-    DiskSpace := GetSpaceOnDisk(ExtractFileDrive(WizardDirValue), True);
-    if DiskSpace < 500 * 1024 * 1024 then // 500 MB requis
+    DiskSpace := GetSpaceOnDisk(ExtractFileDrive(WizardDirValue), False);
+    if DiskSpace < (Int64(500) * 1024 * 1024) then // 500 MB requis
     begin
       MsgBox('Espace disque insuffisant!' + #13#10 +
              'L''installation nécessite au moins 500 MB d''espace libre.' + #13#10 +
