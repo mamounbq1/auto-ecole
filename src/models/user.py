@@ -147,10 +147,15 @@ class User(Base, BaseModel):
         # Nouveau système multi-rôles
         if permission_key:
             # Vérifier dans tous les rôles assignés
-            if hasattr(self, 'roles') and self.roles:
-                for role in self.roles:
-                    if role.has_permission(permission_key):
-                        return True
+            try:
+                if hasattr(self, 'roles') and self.roles:
+                    for role in self.roles:
+                        if role.has_permission(permission_key):
+                            return True
+            except Exception:
+                # Tables RBAC pas encore créées, fallback sur admin
+                pass
+            
             # Fallback: admin legacy a toutes les permissions
             if self.role == UserRole.ADMIN:
                 return True
@@ -178,9 +183,13 @@ class User(Base, BaseModel):
         permissions = set()
         
         # Permissions des rôles assignés
-        if hasattr(self, 'roles') and self.roles:
-            for role in self.roles:
-                permissions.update(role.get_permission_keys())
+        try:
+            if hasattr(self, 'roles') and self.roles:
+                for role in self.roles:
+                    permissions.update(role.get_permission_keys())
+        except Exception:
+            # Tables RBAC pas encore créées, ignorer
+            pass
         
         # Si admin legacy, ajouter toutes les permissions
         if self.role == UserRole.ADMIN:
@@ -203,8 +212,12 @@ class User(Base, BaseModel):
         role_names = []
         
         # Rôles du nouveau système
-        if hasattr(self, 'roles') and self.roles:
-            role_names.extend([r.display_name for r in self.roles if r.is_active])
+        try:
+            if hasattr(self, 'roles') and self.roles:
+                role_names.extend([r.display_name for r in self.roles if r.is_active])
+        except Exception:
+            # Tables RBAC pas encore créées, ignorer
+            pass
         
         # Rôle legacy
         if self.role and not role_names:
@@ -249,8 +262,12 @@ class User(Base, BaseModel):
         # Inclure les rôles
         if include_roles:
             data['role_names'] = self.get_role_names()
-            if hasattr(self, 'roles') and self.roles:
-                data['roles'] = [r.to_dict() for r in self.roles if r.is_active]
+            try:
+                if hasattr(self, 'roles') and self.roles:
+                    data['roles'] = [r.to_dict() for r in self.roles if r.is_active]
+            except Exception:
+                # Tables RBAC pas encore créées
+                data['roles'] = []
         
         return data
 

@@ -19,7 +19,8 @@ from .document import Document, DocumentType, DocumentStatus
 
 # Configurer la relation many-to-many entre User et Role après tous les imports
 # Cela évite les imports circulaires
-User.roles = relationship("Role", secondary=user_roles, back_populates="users", lazy="joined")
+# lazy="select" pour éviter les erreurs si les tables n'existent pas encore
+User.roles = relationship("Role", secondary=user_roles, back_populates="users", lazy="select")
 
 __all__ = [
     # Base

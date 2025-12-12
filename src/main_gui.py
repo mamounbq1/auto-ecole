@@ -70,6 +70,29 @@ def main():
     
     logger.info("⚠️ Mode développement : licence et login désactivés")
     
+    # === INITIALISATION AUTOMATIQUE RBAC ===
+    try:
+        from sqlalchemy import inspect
+        from src.models import get_engine
+        from src.utils.init_rbac import initialize_rbac_system
+        
+        engine = get_engine()
+        inspector = inspect(engine)
+        existing_tables = inspector.get_table_names()
+        
+        # Vérifier si les tables RBAC existent
+        if 'roles' not in existing_tables or 'permissions' not in existing_tables:
+            logger.info("🔄 Initialisation du système RBAC...")
+            success_rbac, message_rbac = initialize_rbac_system()
+            if success_rbac:
+                logger.info(f"✅ {message_rbac}")
+            else:
+                logger.warning(f"⚠️ RBAC init: {message_rbac}")
+        else:
+            logger.info("✓ Tables RBAC déjà initialisées")
+    except Exception as e:
+        logger.warning(f"⚠️ Erreur initialisation RBAC (ignorée) : {e}")
+    
     # === LOGIN DÉSACTIVÉ - BYPASS DIRECT ===
     # Créer directement la fenêtre principale avec un utilisateur admin
     from src.utils import bypass_login
