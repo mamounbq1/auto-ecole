@@ -280,13 +280,16 @@ class UserController:
                 session.close()
                 return False, f"Utilisateur ID {user_id} introuvable"
             
+            # Force load username before changing password
+            username = user.username
+            
             # Changer le mot de passe (stocke en clair si changé par admin)
             user.set_password(new_password, store_plain=changed_by_admin)
             
             session.commit()
             session.close()
             
-            logger.info(f"✓ Mot de passe changé pour : {user.username} (par admin: {changed_by_admin})")
+            logger.info(f"✓ Mot de passe changé pour : {username} (par admin: {changed_by_admin})")
             return True, "Mot de passe changé avec succès"
             
         except Exception as e:
@@ -312,14 +315,17 @@ class UserController:
                 session.close()
                 return False, f"Utilisateur ID {user_id} introuvable"
             
+            # Force load username before changes
+            username = user.username
+            
             # Désactiver l'utilisateur au lieu de le supprimer
             user.is_active = False
             
             session.commit()
             session.close()
             
-            logger.info(f"✓ Utilisateur désactivé : {user.username} (ID: {user_id})")
-            return True, f"Utilisateur '{user.username}' désactivé avec succès"
+            logger.info(f"✓ Utilisateur désactivé : {username} (ID: {user_id})")
+            return True, f"Utilisateur '{username}' désactivé avec succès"
             
         except Exception as e:
             logger.error(f"Erreur lors de la suppression de l'utilisateur : {e}")
@@ -344,13 +350,16 @@ class UserController:
                 session.close()
                 return False, f"Utilisateur ID {user_id} introuvable"
             
+            # Force load username before changes
+            username = user.username
+            
             user.unlock()
             
             session.commit()
             session.close()
             
-            logger.info(f"✓ Utilisateur déverrouillé : {user.username}")
-            return True, f"Utilisateur '{user.username}' déverrouillé avec succès"
+            logger.info(f"✓ Utilisateur déverrouillé : {username}")
+            return True, f"Utilisateur '{username}' déverrouillé avec succès"
             
         except Exception as e:
             logger.error(f"Erreur lors du déverrouillage de l'utilisateur : {e}")
