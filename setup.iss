@@ -138,26 +138,8 @@ begin
          mbInformation, MB_OK);
 end;
 
-// Vérifier l'espace disque requis
-function NextButtonClick(CurPageID: Integer): Boolean;
-var
-  DiskSpace: Int64;
-begin
-  Result := True;
-  
-  if CurPageID = wpSelectDir then
-  begin
-    DiskSpace := GetSpaceOnDisk(WizardDirValue);
-    if DiskSpace < 524288000 then // 500 MB requis (500 * 1024 * 1024)
-    begin
-      MsgBox('Espace disque insuffisant!' + #13#10 +
-             'L''installation nécessite au moins 500 MB d''espace libre.' + #13#10 +
-             'Espace disponible: ' + IntToStr(DiskSpace div (1024*1024)) + ' MB',
-             mbError, MB_OK);
-      Result := False;
-    end;
-  end;
-end;
+// Vérification de l'espace disque désactivée temporairement
+// (Windows vérifiera automatiquement l'espace lors de l'installation)
 
 // Message après installation
 procedure CurStepChanged(CurStep: TSetupStep);
