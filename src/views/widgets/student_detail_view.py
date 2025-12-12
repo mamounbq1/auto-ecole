@@ -905,8 +905,15 @@ class StudentDetailViewDialog(QDialog):
         self.practical_test_attempts.setValue(self.student.practical_exam_attempts or 0)
         
         # Financial - disconnect signal to avoid triggering update during load
-        self.total_due.valueChanged.disconnect()
-        self.total_paid.valueChanged.disconnect()
+        try:
+            self.total_due.valueChanged.disconnect()
+        except TypeError:
+            pass  # Signal was not connected
+        
+        try:
+            self.total_paid.valueChanged.disconnect()
+        except TypeError:
+            pass  # Signal was not connected
         
         self.total_due.setValue(float(self.student.total_due) if self.student.total_due else 0.0)
         self.total_paid.setValue(float(self.student.total_paid) if self.student.total_paid else 0.0)
