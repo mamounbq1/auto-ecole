@@ -78,7 +78,7 @@ def build_executable():
         '--name=AutoEcoleManager',
         '--onefile',
         '--windowed',
-        '--icon=assets/app_icon.png',
+        '--icon=assets/app_icon.ico',  # Utiliser l'icône .ico pour Windows
         '--version-file=version_info.txt',
         
         # Ajouter les données nécessaires
@@ -119,10 +119,11 @@ def create_installer_structure():
         shutil.copy('dist/AutoEcoleManager.exe', installer_dir)
         print("   ✓ Exécutable copié")
     
-    # Copier l'icône
-    if Path('assets/app_icon.png').exists():
-        shutil.copy('assets/app_icon.png', installer_dir)
-        print("   ✓ Icône copiée")
+    # Copier les icônes
+    for icon_file in ['app_icon.png', 'app_icon.ico', 'app_icon_new.png']:
+        if Path(f'assets/{icon_file}').exists():
+            shutil.copy(f'assets/{icon_file}', installer_dir)
+            print(f"   ✓ {icon_file} copié")
     
     # Copier les scripts essentiels
     for script in ['generate_license.py', 'scripts/setup_database.py']:

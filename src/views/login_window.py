@@ -34,10 +34,14 @@ class LoginWindow(QMainWindow):
         self.setFixedSize(450, 550)
         self._auto_bypass_scheduled = False
         
-        # Set window icon
-        icon_path = Path(__file__).parent.parent.parent / "assets" / "app_icon.png"
-        if icon_path.exists():
-            self.setWindowIcon(QIcon(str(icon_path)))
+        # Set window icon (prioritize new icon)
+        icon_new = Path(__file__).parent.parent.parent / "assets" / "app_icon_new.png"
+        icon_ico = Path(__file__).parent.parent.parent / "assets" / "app_icon.ico"
+        
+        if icon_ico.exists():
+            self.setWindowIcon(QIcon(str(icon_ico)))
+        elif icon_new.exists():
+            self.setWindowIcon(QIcon(str(icon_new)))
         
         self.setup_ui()
         
@@ -97,8 +101,11 @@ class LoginWindow(QMainWindow):
         header_layout = QVBoxLayout()
         header_layout.setAlignment(Qt.AlignCenter)
         
-        # Logo icon
-        icon_path = Path(__file__).parent.parent.parent / "assets" / "app_icon.png"
+        # Logo icon (use new icon)
+        icon_new = Path(__file__).parent.parent.parent / "assets" / "app_icon_new.png"
+        icon_old = Path(__file__).parent.parent.parent / "assets" / "app_icon.png"
+        
+        icon_path = icon_new if icon_new.exists() else icon_old
         if icon_path.exists():
             logo_label = QLabel()
             pixmap = QPixmap(str(icon_path))

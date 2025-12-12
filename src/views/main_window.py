@@ -29,10 +29,14 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"🚗 Auto-École Manager - {user.full_name} ({user.role.value})")
         self.setMinimumSize(1200, 700)
         
-        # Set window icon
-        icon_path = Path(__file__).parent.parent.parent / "assets" / "app_icon.png"
-        if icon_path.exists():
-            self.setWindowIcon(QIcon(str(icon_path)))
+        # Set window icon (prioritize new icon)
+        icon_ico = Path(__file__).parent.parent.parent / "assets" / "app_icon.ico"
+        icon_new = Path(__file__).parent.parent.parent / "assets" / "app_icon_new.png"
+        
+        if icon_ico.exists():
+            self.setWindowIcon(QIcon(str(icon_ico)))
+        elif icon_new.exists():
+            self.setWindowIcon(QIcon(str(icon_new)))
         
         self.setup_ui()
         self.create_menu_bar()

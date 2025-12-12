@@ -35,7 +35,7 @@ InfoAfterFile=AFTER_INSTALL.txt
 ; Sortie de l'installeur
 OutputDir=installer
 OutputBaseFilename=AutoEcoleManager_Setup_v{#MyAppVersion}
-SetupIconFile=assets\app_icon.png
+SetupIconFile=assets\app_icon.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
 ; Compression
@@ -47,8 +47,8 @@ PrivilegesRequired=admin
 
 ; Style visuel
 WizardStyle=modern
-WizardImageFile=installer_banner.bmp
-WizardSmallImageFile=installer_icon.bmp
+WizardImageFile=assets\installer_banner.bmp
+WizardSmallImageFile=assets\installer_icon.bmp
 
 ; Langues
 ShowLanguageDialog=no
@@ -65,8 +65,11 @@ Name: "startupicon"; Description: "Lancer au démarrage de Windows"; GroupDescri
 ; Exécutable principal
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
-; Icône
+; Icônes et images
 Source: "assets\app_icon.png"; DestDir: "{app}\assets"; Flags: ignoreversion
+Source: "assets\app_icon_new.png"; DestDir: "{app}\assets"; Flags: ignoreversion
+Source: "assets\app_icon.ico"; DestDir: "{app}\assets"; Flags: ignoreversion
+Source: "assets\installer_banner.png"; DestDir: "{app}\assets"; Flags: ignoreversion
 
 ; Scripts utilitaires
 Source: "generate_license.py"; DestDir: "{app}"; Flags: ignoreversion
@@ -86,19 +89,19 @@ Name: "{app}\logs"; Permissions: users-full
 
 [Icons]
 ; Menu Démarrer
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\app_icon.png"; Comment: "Lancer {#MyAppName}"
-Name: "{group}\Générateur de Licence"; Filename: "python"; Parameters: """{app}\generate_license.py"""; IconFilename: "{app}\assets\app_icon.png"; Comment: "Générer une licence"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\app_icon.ico"; Comment: "Lancer {#MyAppName}"
+Name: "{group}\Générateur de Licence"; Filename: "python"; Parameters: """{app}\generate_license.py"""; IconFilename: "{app}\assets\app_icon.ico"; Comment: "Générer une licence"
 Name: "{group}\Aide et Support"; Filename: "{app}\README.txt"; Comment: "Documentation et support"
 Name: "{group}\Désinstaller {#MyAppName}"; Filename: "{uninstallexe}"; Comment: "Désinstaller l'application"
 
 ; Bureau
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\app_icon.png"; Tasks: desktopicon; Comment: "{#MyAppName} - Gestion d'Auto-École"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\app_icon.ico"; Tasks: desktopicon; Comment: "{#MyAppName} - Gestion d'Auto-École"
 
 ; Barre de lancement rapide
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\app_icon.png"; Tasks: quicklaunchicon
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\app_icon.ico"; Tasks: quicklaunchicon
 
 ; Démarrage automatique (optionnel)
-Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\app_icon.png"; Tasks: startupicon
+Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\app_icon.ico"; Tasks: startupicon
 
 [Run]
 ; Initialiser la base de données au premier lancement

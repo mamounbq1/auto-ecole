@@ -46,10 +46,14 @@ def main():
     app.setApplicationName("Auto-École Manager")
     app.setOrganizationName("AutoEcole")
     
-    # Set application icon
-    icon_path = Path(__file__).parent.parent / "assets" / "app_icon.png"
-    if icon_path.exists():
-        app.setWindowIcon(QIcon(str(icon_path)))
+    # Set application icon (prioritize .ico for Windows)
+    icon_ico = Path(__file__).parent.parent / "assets" / "app_icon.ico"
+    icon_png = Path(__file__).parent.parent / "assets" / "app_icon_new.png"
+    
+    if icon_ico.exists():
+        app.setWindowIcon(QIcon(str(icon_ico)))
+    elif icon_png.exists():
+        app.setWindowIcon(QIcon(str(icon_png)))
     
     # Configurer le style
     setup_app_style(app)
