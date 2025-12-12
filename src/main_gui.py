@@ -18,7 +18,7 @@ warnings.filterwarnings('ignore', category=RuntimeWarning)
 warnings.filterwarnings('ignore', message='.*FigureCanvas.*')
 
 from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QIcon
 from PySide6.QtCore import Qt
 
 from src.views import LoginWindow, MainWindow
@@ -45,6 +45,11 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("Auto-École Manager")
     app.setOrganizationName("AutoEcole")
+    
+    # Set application icon
+    icon_path = Path(__file__).parent.parent / "assets" / "app_icon.png"
+    if icon_path.exists():
+        app.setWindowIcon(QIcon(str(icon_path)))
     
     # Configurer le style
     setup_app_style(app)

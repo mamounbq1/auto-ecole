@@ -4,6 +4,8 @@ Fenêtre de connexion de l'application
 
 from typing import Optional
 
+from pathlib import Path
+
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QMessageBox,
@@ -31,6 +33,12 @@ class LoginWindow(QMainWindow):
         self.setWindowTitle("🚗 Auto-École Manager - Connexion")
         self.setFixedSize(450, 550)
         self._auto_bypass_scheduled = False
+        
+        # Set window icon
+        icon_path = Path(__file__).parent.parent.parent / "assets" / "app_icon.png"
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
+        
         self.setup_ui()
         
     def setup_ui(self):
@@ -89,8 +97,20 @@ class LoginWindow(QMainWindow):
         header_layout = QVBoxLayout()
         header_layout.setAlignment(Qt.AlignCenter)
         
+        # Logo icon
+        icon_path = Path(__file__).parent.parent.parent / "assets" / "app_icon.png"
+        if icon_path.exists():
+            logo_label = QLabel()
+            pixmap = QPixmap(str(icon_path))
+            # Scale icon to reasonable size (80x80)
+            scaled_pixmap = pixmap.scaled(80, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            logo_label.setPixmap(scaled_pixmap)
+            logo_label.setAlignment(Qt.AlignCenter)
+            logo_label.setStyleSheet("margin-bottom: 10px;")
+            header_layout.addWidget(logo_label)
+        
         # Titre principal
-        title = QLabel("🚗 Auto-École Manager")
+        title = QLabel("Auto-École Manager")
         title_font = QFont()
         title_font.setPointSize(24)
         title_font.setBold(True)

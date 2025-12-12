@@ -2,6 +2,8 @@
 Fenêtre principale de l'application avec navigation
 """
 
+from pathlib import Path
+
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QStackedWidget, QFrame,
@@ -26,6 +28,11 @@ class MainWindow(QMainWindow):
         
         self.setWindowTitle(f"🚗 Auto-École Manager - {user.full_name} ({user.role.value})")
         self.setMinimumSize(1200, 700)
+        
+        # Set window icon
+        icon_path = Path(__file__).parent.parent.parent / "assets" / "app_icon.png"
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
         
         self.setup_ui()
         self.create_menu_bar()
