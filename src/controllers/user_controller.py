@@ -203,17 +203,27 @@ class UserController:
                 session.close()
                 return False, f"Utilisateur ID {user_id} introuvable"
             
+            # Force load current values to avoid refresh issues
+            current_username = user.username
+            current_email = user.email
+            
             # Vérifier l'unicité du username
-            if username and username != user.username:
-                existing_user = session.query(User).filter(User.username == username).first()
+            if username and username != current_username:
+                existing_user = session.query(User).filter(
+                    User.username == username,
+                    User.id != user_id
+                ).first()
                 if existing_user:
                     session.close()
                     return False, f"Le nom d'utilisateur '{username}' existe déjà"
                 user.username = username
             
             # Vérifier l'unicité de l'email
-            if email and email != user.email:
-                existing_email = session.query(User).filter(User.email == email).first()
+            if email and email != current_email:
+                existing_email = session.query(User).filter(
+                    User.email == email,
+                    User.id != user_id
+                ).first()
                 if existing_email:
                     session.close()
                     return False, f"L'email '{email}' est déjà utilisé"
@@ -234,14 +244,18 @@ class UserController:
                 roles = session.query(Role).filter(Role.id.in_(role_ids)).all()
                 user.roles = roles
             
+            session.flush()  # Flush to catch any errors before commit
             session.commit()
+            
+            # Get username for logging before closing session
+            updated_username = user.username
             session.close()
             
-            logger.info(f"✓ Utilisateur mis à jour : {user.username} (ID: {user_id})")
+            logger.info(f"✓ Utilisateur mis à jour : {updated_username} (ID: {user_id})")
             return True, f"Utilisateur mis à jour avec succès"
             
         except Exception as e:
-            logger.error(f"Erreur lors de la mise à jour de l'utilisateur : {e}")
+            logger.error(f"Erreur lors de la mise à jour de l'utilisateur : {e}", exc_info=True)
             return False, f"Erreur : {str(e)}"
     
     @staticmethod
