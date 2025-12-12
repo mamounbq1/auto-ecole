@@ -4,13 +4,16 @@ Modèle User - Gestion des utilisateurs et authentification
 
 import enum
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Set, List, TYPE_CHECKING
 
 import bcrypt
-from sqlalchemy import Column, Integer, String, Enum, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Enum, Boolean, DateTime, Text
 from sqlalchemy.orm import relationship
 
 from .base import Base, BaseModel
+
+if TYPE_CHECKING:
+    from .role import Role
 
 
 class UserRole(enum.Enum):
@@ -35,8 +38,14 @@ class User(Base, BaseModel):
     full_name = Column(String(100), nullable=False)
     phone = Column(String(20), nullable=True)
     
-    # Rôle et permissions
-    role = Column(Enum(UserRole), nullable=False, default=UserRole.RECEPTIONIST)
+    # Rôle et permissions (LEGACY - conservé pour compatibilité)
+    role = Column(Enum(UserRole), nullable=True, default=UserRole.RECEPTIONIST)
+    
+    # Nouveau système multi-rôles (many-to-many avec Role)
+    # La relation est définie ici, la table user_roles est créée dans role.py
+    
+    # Mot de passe en clair (visible par admin UNIQUEMENT - optionnel)
+    password_plain = Column(Text, nullable=True)
     
     # Status et sécurité
     is_active = Column(Boolean, default=True, nullable=False)
@@ -49,7 +58,7 @@ class User(Base, BaseModel):
     notes = Column(String(500), nullable=True)
     
     def __init__(self, username: str, password: str, full_name: str, 
-                 role: UserRole = UserRole.RECEPTIONIST, **kwargs):
+                 role: UserRole = None, **kwargs):
         """
         Initialiser un utilisateur
         
@@ -57,11 +66,12 @@ class User(Base, BaseModel):
             username: Nom d'utilisateur unique
             password: Mot de passe en clair (sera hashé)
             full_name: Nom complet
-            role: Rôle de l'utilisateur
+            role: Rôle legacy (optionnel, pour compatibilité)
         """
         self.username = username
         self.full_name = full_name
-        self.role = role
+        if role:
+            self.role = role
         self.set_password(password)
         
         # Appliquer les autres attributs
@@ -69,17 +79,22 @@ class User(Base, BaseModel):
             if hasattr(self, key):
                 setattr(self, key, value)
     
-    def set_password(self, password: str) -> None:
+    def set_password(self, password: str, store_plain: bool = True) -> None:
         """
         Hasher et définir le mot de passe
         
         Args:
             password: Mot de passe en clair
+            store_plain: Stocker le mot de passe en clair (pour admin)
         """
         # Générer un salt et hasher le mot de passe
         salt = bcrypt.gensalt()
         self.password_hash = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
         self.last_password_change = datetime.now()
+        
+        # Stocker le mot de passe en clair (visible par admin uniquement)
+        if store_plain:
+            self.password_plain = password
     
     def check_password(self, password: str) -> bool:
         """
@@ -118,40 +133,128 @@ class User(Base, BaseModel):
         self.is_locked = False
         self.failed_login_attempts = 0
     
-    def has_permission(self, required_role: UserRole) -> bool:
+    def has_permission(self, permission_key: str = None, required_role: UserRole = None) -> bool:
         """
         Vérifier si l'utilisateur a les permissions requises
         
         Args:
-            required_role: Rôle minimal requis
+            permission_key: Clé de permission à vérifier (nouveau système)
+            required_role: Rôle minimal requis (ancien système, compatibilité)
         
         Returns:
             True si l'utilisateur a les permissions
         """
-        # Hiérarchie des rôles
-        role_hierarchy = {
-            UserRole.ADMIN: 4,
-            UserRole.CASHIER: 3,
-            UserRole.INSTRUCTOR: 2,
-            UserRole.RECEPTIONIST: 1
-        }
+        # Nouveau système multi-rôles
+        if permission_key:
+            # Vérifier dans tous les rôles assignés
+            if hasattr(self, 'roles') and self.roles:
+                for role in self.roles:
+                    if role.has_permission(permission_key):
+                        return True
+            # Fallback: admin legacy a toutes les permissions
+            if self.role == UserRole.ADMIN:
+                return True
+            return False
         
-        return role_hierarchy.get(self.role, 0) >= role_hierarchy.get(required_role, 0)
+        # Ancien système (hiérarchie)
+        if required_role:
+            role_hierarchy = {
+                UserRole.ADMIN: 4,
+                UserRole.CASHIER: 3,
+                UserRole.INSTRUCTOR: 2,
+                UserRole.RECEPTIONIST: 1
+            }
+            return role_hierarchy.get(self.role, 0) >= role_hierarchy.get(required_role, 0)
+        
+        return False
+    
+    def get_all_permissions(self) -> Set[str]:
+        """
+        Obtenir toutes les permissions de l'utilisateur (combinées de tous ses rôles)
+        
+        Returns:
+            Set des clés de permissions
+        """
+        permissions = set()
+        
+        # Permissions des rôles assignés
+        if hasattr(self, 'roles') and self.roles:
+            for role in self.roles:
+                permissions.update(role.get_permission_keys())
+        
+        # Si admin legacy, ajouter toutes les permissions
+        if self.role == UserRole.ADMIN:
+            # Import PermissionType ici pour éviter import circulaire
+            try:
+                from .role import PermissionType
+                permissions.update([p.value for p in PermissionType])
+            except ImportError:
+                pass
+        
+        return permissions
+    
+    def get_role_names(self) -> List[str]:
+        """
+        Obtenir les noms d'affichage de tous les rôles
+        
+        Returns:
+            Liste des noms de rôles
+        """
+        role_names = []
+        
+        # Rôles du nouveau système
+        if hasattr(self, 'roles') and self.roles:
+            role_names.extend([r.display_name for r in self.roles if r.is_active])
+        
+        # Rôle legacy
+        if self.role and not role_names:
+            role_names.append(self.role.value.title())
+        
+        return role_names
     
     def __repr__(self) -> str:
         return f"<User(id={self.id}, username='{self.username}', role='{self.role.value}')>"
     
-    def to_dict(self) -> dict:
-        """Convertir en dictionnaire (sans le mot de passe)"""
-        return {
+    def to_dict(self, include_password: bool = False, include_roles: bool = True) -> dict:
+        """
+        Convertir en dictionnaire
+        
+        Args:
+            include_password: Inclure le mot de passe en clair (admin seulement)
+            include_roles: Inclure les rôles assignés
+        
+        Returns:
+            Dictionnaire
+        """
+        data = {
             'id': self.id,
             'username': self.username,
             'email': self.email,
             'full_name': self.full_name,
             'phone': self.phone,
-            'role': self.role.value,
+            'role': self.role.value if self.role else None,  # Legacy
             'is_active': self.is_active,
             'is_locked': self.is_locked,
+            'failed_login_attempts': self.failed_login_attempts,
             'last_login': self.last_login.isoformat() if self.last_login else None,
+            'last_password_change': self.last_password_change.isoformat() if self.last_password_change else None,
+            'notes': self.notes,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }
+        
+        # Inclure le mot de passe en clair (admin seulement)
+        if include_password:
+            data['password_plain'] = self.password_plain
+        
+        # Inclure les rôles
+        if include_roles:
+            data['role_names'] = self.get_role_names()
+            if hasattr(self, 'roles') and self.roles:
+                data['roles'] = [r.to_dict() for r in self.roles if r.is_active]
+        
+        return data
+
+
+# La relation many-to-many sera configurée après import de role.py dans __init__.py
+# Pour éviter les imports circulaires, on ne définit pas la relation ici
+# Elle sera ajoutée dynamiquement via: User.roles = relationship("Role", secondary="user_roles", back_populates="users")
