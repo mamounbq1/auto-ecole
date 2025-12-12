@@ -65,12 +65,18 @@ def main():
         
         # Vérifier si la base de données existe
         db_path = Path(DATABASE_PATH)
-        if not db_path.exists():
+        db_exists = db_path.exists()
+        
+        if not db_exists:
             logger.info("🗄️ Base de données non trouvée, création...")
             db_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            # Initialiser la base de données
-            init_db(drop_all=False)
+        
+        # Toujours s'assurer que les tables existent (sans supprimer les données)
+        # create_all() ne supprime JAMAIS les données existantes
+        init_db(drop_all=False)
+        
+        # Si c'est une nouvelle base de données, créer l'admin par défaut
+        if not db_exists:
             logger.info("✅ Base de données créée avec succès")
             
             # Créer l'utilisateur admin par défaut
@@ -96,16 +102,7 @@ def main():
             except Exception as e:
                 logger.warning(f"⚠️ Erreur création admin : {e}")
         else:
-            # Vérifier que les tables existent
-            engine = get_engine()
-            from sqlalchemy import inspect
-            inspector = inspect(engine)
-            tables = inspector.get_table_names()
-            
-            if 'users' not in tables:
-                logger.warning("⚠️ Table 'users' manquante, réinitialisation...")
-                init_db(drop_all=False)
-                logger.info("✅ Tables créées avec succès")
+            logger.info("✓ Base de données existante chargée")
     except Exception as e:
         logger.error(f"❌ Erreur initialisation base de données: {e}")
         from PySide6.QtWidgets import QMessageBox

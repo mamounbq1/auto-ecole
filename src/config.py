@@ -3,10 +3,25 @@ Configuration globale de l'application
 """
 
 import os
+import sys
 from pathlib import Path
 
+# Détecter si on est dans PyInstaller
+def get_project_root():
+    """
+    Retourne le répertoire racine du projet
+    - En développement : répertoire parent de src/
+    - En exécutable : répertoire de l'exécutable
+    """
+    if getattr(sys, 'frozen', False):
+        # Mode PyInstaller : utiliser le répertoire de l'exécutable
+        return Path(sys.executable).parent
+    else:
+        # Mode développement : répertoire parent de src/
+        return Path(__file__).resolve().parent.parent
+
 # Répertoire racine du projet
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = get_project_root()
 
 # Chemins de la base de données
 DATA_DIR = PROJECT_ROOT / "data"
