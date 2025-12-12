@@ -58,33 +58,108 @@ class LicenseManager:
             # 3. Architecture processeur
             system_info.append(platform.machine())
             
-            # 4. UUID de la machine (Windows/Linux)
+            # 4. UUID de la machine (Windows/Linux/macOS)
+            uuid_found = False
             try:
                 if platform.system() == "Windows":
-                    output = subprocess.check_output("wmic csproduct get uuid", shell=True)
-                    uuid = output.decode().split('\n')[1].strip()
-                    system_info.append(uuid)
+                    # Try multiple methods for Windows
+                    try:
+                        # Method 1: wmic (older Windows)
+                        output = subprocess.check_output(
+                            "wmic csproduct get uuid", 
+                            shell=True, 
+                            stderr=subprocess.DEVNULL,
+                            timeout=5
+                        )
+                        uuid = output.decode().split('\n')[1].strip()
+                        if uuid and uuid != "N/A":
+                            system_info.append(uuid)
+                            uuid_found = True
+                    except:
+                        pass
+                    
+                    if not uuid_found:
+                        # Method 2: PowerShell (modern Windows)
+                        try:
+                            output = subprocess.check_output(
+                                'powershell -Command "(Get-CimInstance -Class Win32_ComputerSystemProduct).UUID"',
+                                shell=True,
+                                stderr=subprocess.DEVNULL,
+                                timeout=5
+                            )
+                            uuid = output.decode().strip()
+                            if uuid:
+                                system_info.append(uuid)
+                                uuid_found = True
+                        except:
+                            pass
+                
                 elif platform.system() == "Linux":
-                    with open('/etc/machine-id', 'r') as f:
-                        system_info.append(f.read().strip())
+                    # Try multiple methods for Linux
+                    try:
+                        with open('/etc/machine-id', 'r') as f:
+                            machine_id = f.read().strip()
+                            if machine_id:
+                                system_info.append(machine_id)
+                                uuid_found = True
+                    except:
+                        pass
+                    
+                    if not uuid_found:
+                        try:
+                            with open('/var/lib/dbus/machine-id', 'r') as f:
+                                machine_id = f.read().strip()
+                                if machine_id:
+                                    system_info.append(machine_id)
+                                    uuid_found = True
+                        except:
+                            pass
+                
                 elif platform.system() == "Darwin":  # macOS
-                    output = subprocess.check_output("ioreg -rd1 -c IOPlatformExpertDevice", shell=True)
-                    uuid = output.decode().split('"IOPlatformUUID" = "')[1].split('"')[0]
-                    system_info.append(uuid)
-            except:
+                    try:
+                        output = subprocess.check_output(
+                            "ioreg -rd1 -c IOPlatformExpertDevice | grep IOPlatformUUID",
+                            shell=True,
+                            stderr=subprocess.DEVNULL,
+                            timeout=5
+                        )
+                        uuid = output.decode().split('"IOPlatformUUID" = "')[1].split('"')[0]
+                        if uuid:
+                            system_info.append(uuid)
+                            uuid_found = True
+                    except:
+                        pass
+                
+                # Fallback: use MAC address if UUID not found
+                if not uuid_found:
+                    try:
+                        import uuid as uuid_module
+                        mac = uuid_module.getnode()
+                        system_info.append(str(mac))
+                    except:
+                        pass
+                        
+            except Exception as uuid_error:
+                logger.debug(f"UUID detection failed: {uuid_error}")
                 pass
+            
+            # Ensure we have at least some system info
+            if not system_info:
+                system_info = [platform.node(), platform.system(), str(hash(platform.node()))]
             
             # Créer un hash unique
             combined = "|".join(system_info)
             hardware_id = hashlib.sha256(combined.encode()).hexdigest()[:16].upper()
             
-            logger.info(f"Hardware ID généré: {hardware_id}")
+            logger.info(f"✅ Hardware ID généré: {hardware_id} (basé sur {len(system_info)} identifiants)")
             return hardware_id
             
         except Exception as e:
-            logger.error(f"Erreur lors de la génération du Hardware ID: {e}")
-            # Fallback: utiliser un ID basique
-            return hashlib.md5(platform.node().encode()).hexdigest()[:16].upper()
+            logger.warning(f"⚠️ Erreur génération Hardware ID (fallback utilisé): {e}")
+            # Fallback: utiliser un ID basique mais stable
+            fallback_info = [platform.node(), platform.system(), platform.machine()]
+            combined = "|".join(fallback_info)
+            return hashlib.sha256(combined.encode()).hexdigest()[:16].upper()
     
     def generate_license_key(self, 
                             company_name: str,
