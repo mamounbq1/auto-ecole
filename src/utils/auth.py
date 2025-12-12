@@ -174,20 +174,46 @@ class AuthManager:
         """
         return self._current_user is not None
     
-    def has_role(self, role: UserRole) -> bool:
+    def has_role(self, role: UserRole = None, role_name: str = None) -> bool:
         """
         Vérifier si l'utilisateur a un rôle spécifique
         
         Args:
-            role: Rôle à vérifier
+            role: Rôle legacy à vérifier
+            role_name: Nom du nouveau rôle à vérifier
         
         Returns:
-            True si l'utilisateur a ce rôle ou un rôle supérieur
+            True si l'utilisateur a ce rôle
         """
         if not self.is_authenticated():
             return False
         
-        return self._current_user.has_permission(role)
+        # Nouveau système : vérifier par nom de rôle
+        if role_name:
+            if hasattr(self._current_user, 'roles') and self._current_user.roles:
+                return any(r.name == role_name and r.is_active for r in self._current_user.roles)
+            return False
+        
+        # Ancien système : vérifier via hiérarchie
+        if role:
+            return self._current_user.has_permission(required_role=role)
+        
+        return False
+    
+    def has_permission(self, permission_key: str) -> bool:
+        """
+        Vérifier si l'utilisateur a une permission spécifique
+        
+        Args:
+            permission_key: Clé de la permission à vérifier
+        
+        Returns:
+            True si l'utilisateur a cette permission
+        """
+        if not self.is_authenticated():
+            return False
+        
+        return self._current_user.has_permission(permission_key=permission_key)
     
     def require_auth(self, func: Callable) -> Callable:
         """
@@ -258,9 +284,14 @@ def is_authenticated() -> bool:
     return _auth_manager.is_authenticated()
 
 
-def has_role(role: UserRole) -> bool:
+def has_role(role: UserRole = None, role_name: str = None) -> bool:
     """Vérifier le rôle"""
-    return _auth_manager.has_role(role)
+    return _auth_manager.has_role(role, role_name)
+
+
+def has_permission(permission_key: str) -> bool:
+    """Vérifier une permission"""
+    return _auth_manager.has_permission(permission_key)
 
 
 def require_auth(func: Callable) -> Callable:

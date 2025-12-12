@@ -17,6 +17,9 @@ import threading
 from pathlib import Path
 from datetime import datetime
 
+from src.utils.auth import has_permission
+from .user_management import UserManagementWidget
+
 
 class SettingsWidget(QWidget):
     """Widget principal des paramètres avec onglets"""
@@ -102,7 +105,12 @@ class SettingsWidget(QWidget):
         # Onglet 2: Base de Données & Backup
         tabs.addTab(self.create_database_tab(), "💾 Base de Données")
         
-        # Onglet 3: Actions & Maintenance
+        # Onglet 3: Gestion des Utilisateurs (Admin seulement)
+        if has_permission('manage_users'):
+            self.user_management_widget = UserManagementWidget()
+            tabs.addTab(self.user_management_widget, "👥 Gestion des Utilisateurs")
+        
+        # Onglet 4: Actions & Maintenance
         tabs.addTab(self.create_actions_tab(), "🔧 Actions & Maintenance")
         
         layout.addWidget(tabs)
