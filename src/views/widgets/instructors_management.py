@@ -195,6 +195,7 @@ class AddInstructorDialog(QDialog):
         
         try:
             from src.models import get_session
+from functools import partial
             session = get_session()
             
             if self.instructor:
@@ -568,17 +569,17 @@ class InstructorsManagement(QWidget):
             
             view_btn = QPushButton("👁️")
             view_btn.setToolTip("Voir détails")
-            view_btn.clicked.connect(lambda checked, i=instructor: self.view_instructor(i))
+            view_btn.clicked.connect(partial(self.view_instructor, instructor))
             view_btn.setCursor(Qt.PointingHandCursor)
             
             edit_btn = QPushButton("✏️")
             edit_btn.setToolTip("Modifier")
-            edit_btn.clicked.connect(lambda checked, i=instructor: self.edit_instructor(i))
+            edit_btn.clicked.connect(partial(self.edit_instructor, instructor))
             edit_btn.setCursor(Qt.PointingHandCursor)
             
             delete_btn = QPushButton("🗑️")
             delete_btn.setToolTip("Supprimer")
-            delete_btn.clicked.connect(lambda checked, i=instructor: self.delete_instructor(i))
+            delete_btn.clicked.connect(partial(self.delete_instructor, instructor))
             delete_btn.setCursor(Qt.PointingHandCursor)
             delete_btn.setStyleSheet("""
                 QPushButton {

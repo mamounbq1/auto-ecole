@@ -48,6 +48,7 @@ class VehicleDialog(QDialog):
         
         # Scroll pour les grands formulaires
         from PySide6.QtWidgets import QScrollArea
+from functools import partial
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("QScrollArea { border: none; }")
@@ -718,7 +719,7 @@ class VehiclesManagement(QWidget):
                     background: #1976D2;
                 }
             """)
-            edit_btn.clicked.connect(lambda checked, v=vehicle: self.edit_vehicle(v))
+            edit_btn.clicked.connect(partial(self.edit_vehicle, vehicle))
             actions_layout.addWidget(edit_btn)
             
             delete_btn = QPushButton("🗑️")
@@ -735,7 +736,7 @@ class VehiclesManagement(QWidget):
                     background: #D32F2F;
                 }
             """)
-            delete_btn.clicked.connect(lambda checked, v=vehicle: self.delete_vehicle(v))
+            delete_btn.clicked.connect(partial(self.delete_vehicle, vehicle))
             actions_layout.addWidget(delete_btn)
             
             self.table.setCellWidget(row, 9, actions_widget)

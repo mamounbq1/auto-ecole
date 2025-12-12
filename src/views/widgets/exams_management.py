@@ -797,7 +797,7 @@ class ExamsManagement(QWidget):
                     background: #229954;
                 }
             """)
-            print_btn.clicked.connect(lambda checked, e=exam: self.print_convocation(e))
+            print_btn.clicked.connect(partial(self.print_convocation, exam))
             actions_layout.addWidget(print_btn)
             
             edit_btn = QPushButton("✏️")
@@ -815,7 +815,7 @@ class ExamsManagement(QWidget):
                     background: #1976D2;
                 }
             """)
-            edit_btn.clicked.connect(lambda checked, e=exam: self.edit_exam(e))
+            edit_btn.clicked.connect(partial(self.edit_exam, exam))
             actions_layout.addWidget(edit_btn)
             
             delete_btn = QPushButton("🗑️")
@@ -833,7 +833,7 @@ class ExamsManagement(QWidget):
                     background: #D32F2F;
                 }
             """)
-            delete_btn.clicked.connect(lambda checked, e=exam: self.delete_exam(e))
+            delete_btn.clicked.connect(partial(self.delete_exam, exam))
             actions_layout.addWidget(delete_btn)
             
             self.table.setCellWidget(row, 9, actions_widget)
@@ -1148,6 +1148,7 @@ class ExamsManagement(QWidget):
         from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
         from reportlab.pdfbase import pdfmetrics
         from reportlab.pdfbase.ttfonts import TTFont
+from functools import partial
         
         # Créer le document
         doc = SimpleDocTemplate(filepath, pagesize=A4,

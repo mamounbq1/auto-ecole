@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QFont, QColor
 from datetime import datetime
+from functools import partial
 
 from src.controllers.student_controller import StudentController
 from src.controllers.payment_controller import PaymentController
@@ -627,22 +628,22 @@ class StudentsEnhancedWidget(QWidget):
             
             view_btn = QPushButton("👁️")
             view_btn.setToolTip("Voir détails")
-            view_btn.clicked.connect(lambda checked, s=student: self.view_student(s))
+            view_btn.clicked.connect(partial(self.view_student, student))
             view_btn.setCursor(Qt.PointingHandCursor)
             
             edit_btn = QPushButton("✏️")
             edit_btn.setToolTip("Modifier")
-            edit_btn.clicked.connect(lambda checked, s=student: self.edit_student(s))
+            edit_btn.clicked.connect(partial(self.edit_student, student))
             edit_btn.setCursor(Qt.PointingHandCursor)
             
             contract_btn = QPushButton("📄")
             contract_btn.setToolTip("Générer contrat")
-            contract_btn.clicked.connect(lambda checked, s=student: self.generate_contract(s))
+            contract_btn.clicked.connect(partial(self.generate_contract, student))
             contract_btn.setCursor(Qt.PointingHandCursor)
             
             delete_btn = QPushButton("🗑️")
             delete_btn.setToolTip("Supprimer")
-            delete_btn.clicked.connect(lambda checked, s=student: self.delete_student(s))
+            delete_btn.clicked.connect(partial(self.delete_student, student))
             delete_btn.setCursor(Qt.PointingHandCursor)
             delete_btn.setStyleSheet("""
                 QPushButton {

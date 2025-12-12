@@ -314,6 +314,7 @@ class SessionDetailViewDialog(QDialog):
             
             # Récupérer ACTIFS en formation
             from src.models import StudentStatus
+from functools import partial
             all_students = StudentController.get_all_students()
             active_students = [s for s in all_students 
                               if s.status == StudentStatus.ACTIVE 

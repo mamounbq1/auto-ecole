@@ -23,6 +23,7 @@ import re
 from src.controllers.student_controller import StudentController
 from src.models import StudentStatus
 from src.views.widgets.student_detail_view import StudentDetailViewDialog
+from functools import partial
 
 # Types de permis disponibles
 LICENSE_TYPES = ['A', 'B', 'C', 'D', 'E']

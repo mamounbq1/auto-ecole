@@ -828,22 +828,22 @@ class PaymentsManagement(QWidget):
             
             view_btn = QPushButton("👁️")
             view_btn.setToolTip("Voir reçu")
-            view_btn.clicked.connect(lambda checked, p=payment: self.view_receipt(p))
+            view_btn.clicked.connect(partial(self.view_receipt, payment))
             view_btn.setCursor(Qt.PointingHandCursor)
             
             edit_btn = QPushButton("✏️")
             edit_btn.setToolTip("Modifier")
-            edit_btn.clicked.connect(lambda checked, p=payment: self.edit_payment(p))
+            edit_btn.clicked.connect(partial(self.edit_payment, payment))
             edit_btn.setCursor(Qt.PointingHandCursor)
             
             pdf_btn = QPushButton("📄")
             pdf_btn.setToolTip("Générer PDF")
-            pdf_btn.clicked.connect(lambda checked, p=payment: self.generate_pdf(p))
+            pdf_btn.clicked.connect(partial(self.generate_pdf, payment))
             pdf_btn.setCursor(Qt.PointingHandCursor)
             
             delete_btn = QPushButton("🗑️")
             delete_btn.setToolTip("Annuler/Supprimer")
-            delete_btn.clicked.connect(lambda checked, p=payment: self.delete_payment(p))
+            delete_btn.clicked.connect(partial(self.delete_payment, payment))
             delete_btn.setCursor(Qt.PointingHandCursor)
             delete_btn.setStyleSheet("""
                 QPushButton {
@@ -1525,6 +1525,7 @@ class PaymentsManagement(QWidget):
         if reply == QMessageBox.Yes:
             # Demander raison
             from PySide6.QtWidgets import QInputDialog
+from functools import partial
             reason, ok = QInputDialog.getText(
                 self,
                 "Raison de l'annulation",

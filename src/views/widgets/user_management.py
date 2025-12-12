@@ -16,6 +16,7 @@ from src.controllers.user_controller import UserController
 from src.models import User, Role
 from src.utils.auth import get_current_user, has_permission
 from src.utils.logger import get_logger
+from functools import partial
 
 logger = get_logger()
 
