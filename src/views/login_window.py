@@ -16,9 +16,8 @@ from src.utils import login, get_logger, bypass_login
 
 logger = get_logger()
 
-# ⚠️ Mode temporaire : permet de se connecter sans identifiants lorsque les champs sont vides.
-#    Veillez à remettre cette valeur à False une fois les tests terminés.
-TEMPORARY_LOGIN_BYPASS_ENABLED = True
+# Mode bypass désactivé - Connexion normale requise
+TEMPORARY_LOGIN_BYPASS_ENABLED = False
 
 
 class LoginWindow(QMainWindow):
