@@ -118,6 +118,11 @@ def build_executable():
         '--hidden-import=email.mime.text',
         '--hidden-import=email.mime.multipart',
         '--hidden-import=smtplib',
+        '--hidden-import=cryptography',
+        '--hidden-import=cryptography.fernet',
+        '--hidden-import=cryptography.hazmat',
+        '--hidden-import=cryptography.hazmat.primitives',
+        '--hidden-import=cryptography.hazmat.backends',
         
         # Exclure les modules inutiles pour réduire la taille
         '--exclude-module=pytest',
