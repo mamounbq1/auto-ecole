@@ -165,6 +165,13 @@ def main():
         """Callback appelé lors d'une connexion réussie"""
         logger.info(f"✅ Connexion réussie : {user.username}")
         
+        # === INITIALISER LES DOSSIERS D'EXPORT (lazy) ===
+        try:
+            from src.config import init_export_folders
+            init_export_folders()
+        except Exception as e:
+            logger.warning(f"⚠️ Dossiers export non créés: {e}")
+        
         # === BACKUP AUTOMATIQUE AU DÉMARRAGE ===
         try:
             from src.utils.config_manager import get_config_manager

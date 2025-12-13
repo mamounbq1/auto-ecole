@@ -38,53 +38,66 @@ LOG_DIR = PROJECT_ROOT / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 LOG_FILE = LOG_DIR / "autoecole.log"
 
-# Dossiers d'export sur le Bureau
+# Dossiers d'export sur le Bureau (lazy initialization)
+_desktop_initialized = False
+DESKTOP_DIR = None
+EXPORTS_DIR = None
+CONTRACTS_DIR = None
+RECEIPTS_DIR = None
+CONVOCATIONS_DIR = None
+REPORTS_DIR = None
+
 def get_desktop_path():
     """Retourne le chemin du Bureau de l'utilisateur"""
-    # Windows
     if os.name == 'nt':
         desktop = Path.home() / "Desktop"
-        # Alternative si Desktop n'existe pas (OneDrive, langue non-anglaise)
         if not desktop.exists():
-            import winreg
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 
-                                r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders")
-            desktop = Path(winreg.QueryValueEx(key, "Desktop")[0])
-            winreg.CloseKey(key)
-    # Linux/Mac
+            try:
+                import winreg
+                key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 
+                                    r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders")
+                desktop = Path(winreg.QueryValueEx(key, "Desktop")[0])
+                winreg.CloseKey(key)
+            except:
+                pass
     else:
         desktop = Path.home() / "Desktop"
-    
     return desktop
 
-# Créer le dossier AutoEcole sur le Bureau
-try:
-    DESKTOP_DIR = get_desktop_path() / "AutoEcole_Documents"
-    DESKTOP_DIR.mkdir(parents=True, exist_ok=True)
+def init_export_folders():
+    """Initialise les dossiers d'export (appelé à la première utilisation)"""
+    global _desktop_initialized, DESKTOP_DIR, EXPORTS_DIR, CONTRACTS_DIR
+    global RECEIPTS_DIR, CONVOCATIONS_DIR, REPORTS_DIR
     
-    # Sous-dossiers pour les exports
-    EXPORTS_DIR = DESKTOP_DIR / "Exports"
-    CONTRACTS_DIR = DESKTOP_DIR / "Contrats"
-    RECEIPTS_DIR = DESKTOP_DIR / "Reçus"
-    CONVOCATIONS_DIR = DESKTOP_DIR / "Convocations"
-    REPORTS_DIR = DESKTOP_DIR / "Rapports"
+    if _desktop_initialized:
+        return
     
-    # Créer tous les sous-dossiers
-    for folder in [EXPORTS_DIR, CONTRACTS_DIR, RECEIPTS_DIR, CONVOCATIONS_DIR, REPORTS_DIR]:
-        folder.mkdir(parents=True, exist_ok=True)
-except Exception:
-    # Fallback : utiliser le dossier du projet si le Bureau n'est pas accessible
-    DESKTOP_DIR = PROJECT_ROOT / "documents"
-    DESKTOP_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        DESKTOP_DIR = get_desktop_path() / "AutoEcole_Documents"
+        DESKTOP_DIR.mkdir(parents=True, exist_ok=True)
+        
+        EXPORTS_DIR = DESKTOP_DIR / "Exports"
+        CONTRACTS_DIR = DESKTOP_DIR / "Contrats"
+        RECEIPTS_DIR = DESKTOP_DIR / "Reçus"
+        CONVOCATIONS_DIR = DESKTOP_DIR / "Convocations"
+        REPORTS_DIR = DESKTOP_DIR / "Rapports"
+        
+        for folder in [EXPORTS_DIR, CONTRACTS_DIR, RECEIPTS_DIR, CONVOCATIONS_DIR, REPORTS_DIR]:
+            folder.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        DESKTOP_DIR = PROJECT_ROOT / "documents"
+        DESKTOP_DIR.mkdir(parents=True, exist_ok=True)
+        
+        EXPORTS_DIR = DESKTOP_DIR / "Exports"
+        CONTRACTS_DIR = DESKTOP_DIR / "Contrats"
+        RECEIPTS_DIR = DESKTOP_DIR / "Reçus"
+        CONVOCATIONS_DIR = DESKTOP_DIR / "Convocations"
+        REPORTS_DIR = DESKTOP_DIR / "Rapports"
+        
+        for folder in [EXPORTS_DIR, CONTRACTS_DIR, RECEIPTS_DIR, CONVOCATIONS_DIR, REPORTS_DIR]:
+            folder.mkdir(parents=True, exist_ok=True)
     
-    EXPORTS_DIR = DESKTOP_DIR / "Exports"
-    CONTRACTS_DIR = DESKTOP_DIR / "Contrats"
-    RECEIPTS_DIR = DESKTOP_DIR / "Reçus"
-    CONVOCATIONS_DIR = DESKTOP_DIR / "Convocations"
-    REPORTS_DIR = DESKTOP_DIR / "Rapports"
-    
-    for folder in [EXPORTS_DIR, CONTRACTS_DIR, RECEIPTS_DIR, CONVOCATIONS_DIR, REPORTS_DIR]:
-        folder.mkdir(parents=True, exist_ok=True)
+    _desktop_initialized = True
 
 # Configuration de l'application
 APP_NAME = "Auto-École Manager"
