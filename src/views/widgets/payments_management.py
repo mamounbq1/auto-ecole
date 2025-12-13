@@ -1130,10 +1130,18 @@ class PaymentsManagement(QWidget):
             QMessageBox.warning(self, "Erreur", "Aucun paiement à exporter")
             return
         
+        # Utiliser EXPORTS_DIR depuis config
+        try:
+            from src.config import EXPORTS_DIR, init_export_folders
+            init_export_folders()
+            default_dir = str(EXPORTS_DIR) if EXPORTS_DIR else "."
+        except:
+            default_dir = "."
+        
         filename, _ = QFileDialog.getSaveFileName(
             self,
             "Exporter les paiements",
-            f"paiements_{date.today().strftime('%Y%m%d')}.csv",
+            f"{default_dir}/paiements_{date.today().strftime('%Y%m%d')}.csv",
             "CSV Files (*.csv)"
         )
         

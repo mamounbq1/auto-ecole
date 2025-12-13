@@ -119,6 +119,13 @@ class ConfigManager:
     
     def get_export_path(self) -> str:
         """Récupère le chemin du dossier exports depuis config"""
+        try:
+            from src.config import EXPORTS_DIR, init_export_folders
+            init_export_folders()
+            if EXPORTS_DIR:
+                return str(EXPORTS_DIR)
+        except:
+            pass
         return self._config.get('paths', {}).get('exports', 'exports')
     
     def get_backup_path(self) -> str:

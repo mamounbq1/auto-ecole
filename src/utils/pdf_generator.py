@@ -28,7 +28,15 @@ class PDFGenerator:
     
     def __init__(self, output_dir: str = None):
         self.config = get_config_manager()
-        self.output_dir = output_dir or self.config.get_export_path()
+        if output_dir:
+            self.output_dir = output_dir
+        else:
+            try:
+                from src.config import EXPORTS_DIR, init_export_folders
+                init_export_folders()
+                self.output_dir = str(EXPORTS_DIR) if EXPORTS_DIR else self.config.get_export_path()
+            except:
+                self.output_dir = self.config.get_export_path()
         os.makedirs(self.output_dir, exist_ok=True)
         self.styles = getSampleStyleSheet()
         self._setup_custom_styles()
@@ -224,10 +232,18 @@ class PDFGenerator:
             Tuple (success, filepath_or_error)
         """
         try:
+            # Utiliser RECEIPTS_DIR depuis config
+            try:
+                from src.config import RECEIPTS_DIR, init_export_folders
+                init_export_folders()
+                output_dir = str(RECEIPTS_DIR) if RECEIPTS_DIR else self.output_dir
+            except:
+                output_dir = self.output_dir
+            
             # Nom du fichier
             receipt_number = payment_data.get('receipt_number', 'DRAFT')
             filename = f"recu_{receipt_number}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-            filepath = os.path.join(self.output_dir, filename)
+            filepath = os.path.join(output_dir, filename)
             
             # Créer le document
             doc = SimpleDocTemplate(filepath, pagesize=A4,
@@ -384,8 +400,16 @@ class PDFGenerator:
             Tuple (success, filepath_or_error)
         """
         try:
+            # Utiliser CONTRACTS_DIR depuis config
+            try:
+                from src.config import CONTRACTS_DIR, init_export_folders
+                init_export_folders()
+                output_dir = str(CONTRACTS_DIR) if CONTRACTS_DIR else self.output_dir
+            except:
+                output_dir = self.output_dir
+            
             filename = f"contrat_{student_data.get('cin', 'DRAFT')}_{datetime.now().strftime('%Y%m%d')}.pdf"
-            filepath = os.path.join(self.output_dir, filename)
+            filepath = os.path.join(output_dir, filename)
             
             doc = SimpleDocTemplate(filepath, pagesize=A4,
                                    rightMargin=2*cm, leftMargin=2*cm,
@@ -460,8 +484,16 @@ class PDFGenerator:
             Tuple (success, filepath_or_error)
         """
         try:
+            # Utiliser CONVOCATIONS_DIR depuis config
+            try:
+                from src.config import CONVOCATIONS_DIR, init_export_folders
+                init_export_folders()
+                output_dir = str(CONVOCATIONS_DIR) if CONVOCATIONS_DIR else self.output_dir
+            except:
+                output_dir = self.output_dir
+            
             filename = f"convocation_{exam_data.get('summons_number', 'DRAFT')}.pdf"
-            filepath = os.path.join(self.output_dir, filename)
+            filepath = os.path.join(output_dir, filename)
             
             doc = SimpleDocTemplate(filepath, pagesize=A4,
                                    rightMargin=2*cm, leftMargin=2*cm,

@@ -715,9 +715,17 @@ class StudentsEnhancedWidget(QWidget):
             from src.utils import get_logger
             logger = get_logger()
             
+            # Utiliser EXPORTS_DIR depuis config
+            try:
+                from src.config import EXPORTS_DIR, init_export_folders
+                init_export_folders()
+                default_dir = str(EXPORTS_DIR) if EXPORTS_DIR else "exports"
+            except:
+                default_dir = "exports"
+            
             filename, _ = QFileDialog.getSaveFileName(
                 self, "Exporter les élèves", 
-                f"exports/eleves_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                f"{default_dir}/eleves_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 "CSV Files (*.csv)"
             )
             
