@@ -382,6 +382,11 @@ class PDFGenerator:
             doc.build(story)
             
             logger.info(f"Reçu PDF généré : {filepath}")
+            
+            # Ouvrir automatiquement le PDF
+            import webbrowser
+            webbrowser.open(filepath)
+            
             return True, filepath
             
         except Exception as e:
@@ -466,6 +471,11 @@ class PDFGenerator:
             doc.build(story)
             
             logger.info(f"Contrat PDF généré : {filepath}")
+            
+            # Ouvrir automatiquement le PDF
+            import webbrowser
+            webbrowser.open(filepath)
+            
             return True, filepath
             
         except Exception as e:
@@ -534,6 +544,11 @@ class PDFGenerator:
             doc.build(story)
             
             logger.info(f"Convocation PDF générée : {filepath}")
+            
+            # Ouvrir automatiquement le PDF
+            import webbrowser
+            webbrowser.open(filepath)
+            
             return True, filepath
             
         except Exception as e:
@@ -699,6 +714,11 @@ class PDFGenerator:
             doc.build(story)
             
             logger.info(f"Reçu PDF professionnel généré : {filepath}")
+            
+            # Ouvrir automatiquement le PDF
+            import webbrowser
+            webbrowser.open(filepath)
+            
             return True, filepath
             
         except Exception as e:

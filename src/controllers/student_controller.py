@@ -191,7 +191,7 @@ class StudentController:
     @staticmethod
     def delete_student(student_id: int) -> tuple[bool, str]:
         """
-        Supprimer un élève
+        Supprimer un élève et toutes ses données liées
         
         Args:
             student_id: ID de l'élève
@@ -199,22 +199,27 @@ class StudentController:
         Returns:
             Tuple (success, message)
         """
+        session = get_session()
         try:
-            session = get_session()
             student = session.query(Student).filter(Student.id == student_id).first()
             
             if not student:
+                session.close()
                 return False, "Élève introuvable"
             
             student_name = student.full_name
+            
+            # Supprimer l'élève (CASCADE supprimera les données liées)
             session.delete(student)
             session.commit()
             
             logger.info(f"Élève supprimé : {student_name} (ID: {student_id})")
+            session.close()
             return True, "Élève supprimé avec succès"
             
         except Exception as e:
             session.rollback()
+            session.close()
             error_msg = f"Erreur lors de la suppression de l'élève : {str(e)}"
             logger.error(error_msg)
             return False, error_msg
