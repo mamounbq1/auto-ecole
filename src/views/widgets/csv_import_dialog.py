@@ -227,6 +227,7 @@ class CSVImportWorker(QThread):
         data['theoretical_exam_attempts'] = int(row.get('theoretical_exam_attempts', '0') or '0')
         data['practical_exam_attempts'] = int(row.get('practical_exam_attempts', '0') or '0')
         data['total_due'] = float(row.get('total_due', '0') or '0')
+        data['total_paid'] = float(row.get('total_paid', '0') or '0')
         
         # Notes
         data['notes'] = row.get('notes', '').strip() or None

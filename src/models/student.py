@@ -91,6 +91,13 @@ class Student(Base, BaseModel):
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
+        
+        # Calculer le balance si total_due et total_paid sont fournis
+        if 'total_due' in kwargs or 'total_paid' in kwargs:
+            from decimal import Decimal
+            paid = Decimal(str(float(self.total_paid) if self.total_paid else 0.0))
+            due = Decimal(str(float(self.total_due) if self.total_due else 0.0))
+            self.balance = paid - due
     
     @property
     def age(self) -> int:
