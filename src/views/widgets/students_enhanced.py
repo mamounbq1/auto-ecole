@@ -748,7 +748,7 @@ class StudentsEnhancedWidget(QWidget):
         """Supprimer un élève avec confirmation"""
         # Check for related payments
         try:
-            payments = PaymentController.get_student_payments(student.id)
+            payments = PaymentController.get_payments_by_student(student.id)
             sessions = SessionController.get_student_sessions(student.id)
             
             # Build warning message

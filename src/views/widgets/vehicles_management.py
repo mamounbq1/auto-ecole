@@ -372,13 +372,18 @@ class VehicleDialog(QDialog):
                     QMessageBox.critical(self, "Erreur", "Véhicule introuvable")
                     return
             else:
-                # Création
-                vehicle = Vehicle()
+                # Création - passer les arguments requis
+                vehicle = Vehicle(
+                    plate_number=self.plate_number.text().strip(),
+                    make=self.make.text().strip(),
+                    model=self.model.text().strip()
+                )
             
-            # Remplir les données
-            vehicle.plate_number = self.plate_number.text().strip()
-            vehicle.make = self.make.text().strip()
-            vehicle.model = self.model.text().strip()
+            # Remplir les données (mise à jour ou création)
+            if self.vehicle:
+                vehicle.plate_number = self.plate_number.text().strip()
+                vehicle.make = self.make.text().strip()
+                vehicle.model = self.model.text().strip()
             vehicle.year = self.year.value()
             vehicle.color = self.color.text().strip() or None
             vehicle.license_type = self.license_type.currentText()
