@@ -18,7 +18,7 @@ class StudentController:
     @staticmethod
     def get_all_students(status: Optional[StudentStatus] = None) -> List[Student]:
         """
-        Récupérer tous les élèves
+        Récupérer tous les élèves avec données à jour
         
         Args:
             status: Filtrer par statut (optionnel)
@@ -28,6 +28,10 @@ class StudentController:
         """
         try:
             session = get_session()
+            
+            # Forcer le refresh des données depuis la DB
+            session.expire_all()
+            
             query = session.query(Student)
             
             if status:
